@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Linkedin, Instagram, ChevronLeft, ChevronRight } from 'lucide-react'
 import ShimmerButton from '@/components/magicui/shimmer-button'
 import ShinyButton from '@/components/magicui/shiny-button'
+import MintButton from '@/components/mintButton'
 
 const XIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor">
@@ -102,7 +103,7 @@ export default function NFTPage() {
               <span className="text-2xl font-bold ml-2">$533.70</span>
             </div>
 
-            <ShimmerButton borderRadius='6px' className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold">MINT NOW</ShimmerButton>
+            <MintButton />
 
             <p className="text-sm text-gray-600 mb-8">
               This artwork is configured for minting. Once minted, it will be added to your collection.
