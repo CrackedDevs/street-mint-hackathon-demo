@@ -31,7 +31,7 @@ export default function MintButton() {
       <DialogTrigger asChild>
       <ShimmerButton borderRadius='6px' className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold">MINT NOW</ShimmerButton>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] w-11/12 max-w-[90vw] rounded-md">
+      <DialogContent className="sm:max-w-[500px] w-11/12 max-w-[90vw] rounded-md">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl">Choose Payment Method</DialogTitle>
           <DialogDescription className="text-sm sm:text-base">
