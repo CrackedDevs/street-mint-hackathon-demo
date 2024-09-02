@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
+"use client";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -7,29 +8,43 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { WalletIcon, CreditCardIcon } from "lucide-react"
-import ShimmerButton from './magicui/shimmer-button'
+} from "@/components/ui/dialog";
+import { WalletIcon, CreditCardIcon } from "lucide-react";
+import ShimmerButton from "./magicui/shimmer-button";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
 export default function MintButton() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const { setVisible } = useWalletModal();
+  const {  connected, publicKey } = useWallet();
 
-  const handleWalletPayment = () => {
-    console.log("Connecting to Solana wallet...")
-    // Implement your wallet connection logic here
-    setIsOpen(false)
-  }
+  const handleWalletPayment = async () => {
+    if (!connected) {
+      setVisible(true);
+      console.log("Connecting to Solana wallet...");
+    } else {
+      console.log(`Wallet connected with public key: ${publicKey}`);
+      // Implement your payment logic here using the connected wallet
+    }
+    setIsOpen(false);
+  };
 
   const handleCardPayment = () => {
-    console.log("Proceeding to card payment...")
+    console.log("Proceeding to card payment...");
     // Implement your card payment logic here
-    setIsOpen(false)
-  }
+    setIsOpen(false);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-      <ShimmerButton borderRadius='6px' className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold">MINT NOW</ShimmerButton>
+        <ShimmerButton
+          borderRadius="6px"
+          className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
+        >
+          MINT NOW
+        </ShimmerButton>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] w-11/12 max-w-[90vw] rounded-md">
         <DialogHeader>
@@ -58,5 +73,5 @@ export default function MintButton() {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
