@@ -96,7 +96,7 @@ export default function NFTPage() {
             <MintButton />
 
             <p className="text-sm text-gray-600 mb-8">
-              This artwork is configured for minting. Once minted, it will be added to your collection.
+              This digital collectible is configured for minting. Once minted, it will be added to your collection.
             </p>
 
             <div className="space-y-4 mt-4">
