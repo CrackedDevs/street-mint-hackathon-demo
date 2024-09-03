@@ -6,9 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import SparklesText from "@/components/magicui/sparkles-text";
 import Link from "next/link";
 import { Collection, NFT, supabase } from "@/lib/supabaseClient";
-import AnimatedGridPattern from "@/components/magicui/animated-grid-pattern";
-import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 export default function CollectionPage() {
