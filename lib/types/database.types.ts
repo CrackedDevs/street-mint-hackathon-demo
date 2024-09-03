@@ -9,6 +9,159 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      artists: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          collections: number[] | null
+          farcaster_username: string | null
+          id: number
+          instagram_username: string | null
+          linkedin_username: string | null
+          username: string | null
+          wallet_address: string | null
+          x_username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          collections?: number[] | null
+          farcaster_username?: string | null
+          id?: number
+          instagram_username?: string | null
+          linkedin_username?: string | null
+          username?: string | null
+          wallet_address?: string | null
+          x_username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          collections?: number[] | null
+          farcaster_username?: string | null
+          id?: number
+          instagram_username?: string | null
+          linkedin_username?: string | null
+          username?: string | null
+          wallet_address?: string | null
+          x_username?: string | null
+        }
+        Relationships: []
+      }
+      collections: {
+        Row: {
+          artist: number | null
+          description: string | null
+          id: number
+          name: string | null
+          nfts: number[] | null
+        }
+        Insert: {
+          artist?: number | null
+          description?: string | null
+          id?: number
+          name?: string | null
+          nfts?: number[] | null
+        }
+        Update: {
+          artist?: number | null
+          description?: string | null
+          id?: number
+          name?: string | null
+          nfts?: number[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_artist_fkey"
+            columns: ["artist"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nfts: {
+        Row: {
+          chain: string | null
+          collection_id: number | null
+          description: string | null
+          gallery_urls: string[] | null
+          id: number
+          location: string | null
+          name: string | null
+          price_usd: number | null
+          primary_image_url: string | null
+          quantity: number | null
+          quantity_type: Database["public"]["Enums"]["quantity_type"] | null
+        }
+        Insert: {
+          chain?: string | null
+          collection_id?: number | null
+          description?: string | null
+          gallery_urls?: string[] | null
+          id?: number
+          location?: string | null
+          name?: string | null
+          price_usd?: number | null
+          primary_image_url?: string | null
+          quantity?: number | null
+          quantity_type?: Database["public"]["Enums"]["quantity_type"] | null
+        }
+        Update: {
+          chain?: string | null
+          collection_id?: number | null
+          description?: string | null
+          gallery_urls?: string[] | null
+          id?: number
+          location?: string | null
+          name?: string | null
+          price_usd?: number | null
+          primary_image_url?: string | null
+          quantity?: number | null
+          quantity_type?: Database["public"]["Enums"]["quantity_type"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nfts_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          device_id: string | null
+          id: number
+          nft_id: number | null
+          reciever_wallet_address: string | null
+          status: string | null
+        }
+        Insert: {
+          device_id?: string | null
+          id?: number
+          nft_id?: number | null
+          reciever_wallet_address?: string | null
+          status?: string | null
+        }
+        Update: {
+          device_id?: string | null
+          id?: number
+          nft_id?: number | null
+          reciever_wallet_address?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_nft_id_fkey"
+            columns: ["nft_id"]
+            isOneToOne: false
+            referencedRelation: "nfts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       test: {
         Row: {
           created_at: string
@@ -32,7 +185,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      quantity_type: "limited" | "unlimited" | "single"
     }
     CompositeTypes: {
       [_ in never]: never
