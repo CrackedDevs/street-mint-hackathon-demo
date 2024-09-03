@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import ShimmerButton from "@/components/magicui/shimmer-button";
-import ShinyButton from "@/components/magicui/shiny-button";
+import {
+  Linkedin,
+  Instagram,
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+  Wallet,
+} from "lucide-react";
 import MintButton from "@/components/mintButton";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { Linkedin, Instagram, ChevronLeft, ChevronRight, LogOut, Wallet } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { Button } from "@/components/ui/button";
 import { shortenAddress } from "@/lib/shortenAddress";
 import {
   DropdownMenu,
@@ -51,11 +55,11 @@ export default function NFTPage() {
       <header className="py-4 px-6 border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex justify-center items-center w-full">
-            <Image 
-              src="/logo.svg" 
-              alt="Street mint logo" 
-              width={150} 
-              height={50} 
+            <Image
+              src="/logo.svg"
+              alt="Street mint logo"
+              width={150}
+              height={50}
               className="h-8 w-auto"
             />
           </div>
@@ -77,8 +81,12 @@ export default function NFTPage() {
 
           {/* Right column - Details */}
           <div>
-            <h1 className="text-3xl font-bold mb-2">We&apos;ll dream of a longer summer,</h1>
-            <p className="text-xl text-gray-600 mb-4">From the &quot;Urban Dreamscapes&quot; Collection</p>
+            <h1 className="text-3xl font-bold mb-2">
+              We&apos;ll dream of a longer summer,
+            </h1>
+            <p className="text-xl text-gray-600 mb-4">
+              From the &quot;Urban Dreamscapes&quot; Collection
+            </p>
 
             {/* Artist Information */}
             <div className="flex items-center space-x-2 mb-4">
@@ -101,7 +109,9 @@ export default function NFTPage() {
                 <span className="text-lg font-semibold">Limited Edition</span>
                 <span className="text-3xl font-bold">43 of 43</span>
               </div>
-              <div className="mt-2 text-sm text-gray-300">Last chance to own this unique piece</div>
+              <div className="mt-2 text-sm text-gray-300">
+                Last chance to own this unique piece
+              </div>
             </div>
 
             <div className="mb-6 p-4 bg-gray-100 rounded-lg">
@@ -115,17 +125,22 @@ export default function NFTPage() {
             <MintButton />
 
             <p className="text-sm text-gray-600 mb-8">
-              This digital collectible is configured for minting. Once minted, it will be added to your collection.
+              This digital collectible is configured for minting. Once minted,
+              it will be added to your collection.
             </p>
 
             <div className="space-y-4 mt-4">
               <p className="text-lg">
-                &quot;We&apos;ll dream of a longer summer&quot; is a captivating digital artwork that blends surrealism
-                with urban landscapes. The piece features a nighttime city scene with vibrant, dreamlike elements. In
-                the foreground, stylized figures in colorful dresses stand out against the dark background. The sky is
-                adorned with an enigmatic floating object, possibly a UFO, adding an element of mystery. Warm, glowing
-                windows in the buildings create a sense of life and energy within the quiet night. The artwork
-                beautifully captures the essence of summer nights in the city, blending reality with imagination.
+                &quot;We&apos;ll dream of a longer summer&quot; is a captivating
+                digital artwork that blends surrealism with urban landscapes.
+                The piece features a nighttime city scene with vibrant,
+                dreamlike elements. In the foreground, stylized figures in
+                colorful dresses stand out against the dark background. The sky
+                is adorned with an enigmatic floating object, possibly a UFO,
+                adding an element of mystery. Warm, glowing windows in the
+                buildings create a sense of life and energy within the quiet
+                night. The artwork beautifully captures the essence of summer
+                nights in the city, blending reality with imagination.
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -182,7 +197,9 @@ export default function NFTPage() {
                   {images.map((_, index) => (
                     <div
                       key={index}
-                      className={`h-2 w-2 rounded-full ${currentImage === index ? "bg-white" : "bg-gray-300"}`}
+                      className={`h-2 w-2 rounded-full ${
+                        currentImage === index ? "bg-white" : "bg-gray-300"
+                      }`}
                     />
                   ))}
                 </div>
