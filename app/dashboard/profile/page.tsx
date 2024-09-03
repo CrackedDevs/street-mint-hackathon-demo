@@ -4,9 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { XIcon, UserCircle2Icon, UploadIcon, TwitterIcon, InstagramIcon } from "lucide-react";
+import {
+  XIcon,
+  UserCircle2Icon,
+  UploadIcon,
+  TwitterIcon,
+  InstagramIcon,
+} from "lucide-react";
 import SparklesText from "@/components/magicui/sparkles-text";
 import ShimmerButton from "@/components/magicui/shimmer-button";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -20,10 +32,12 @@ export default function Component() {
     email: "",
     avatar: "",
     twitter: "",
-    instagram: ""
+    instagram: "",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -39,7 +53,9 @@ export default function Component() {
       <div className="min-h-screen bg-background text-foreground p-8 flex flex-col items-center justify-center">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-center">Connect Your Wallet</CardTitle>
+            <CardTitle className="text-2xl font-semibold text-center">
+              Connect Your Wallet
+            </CardTitle>
             <CardDescription className="text-center">
               Please connect your wallet to access the profile creation page.
             </CardDescription>
@@ -62,15 +78,22 @@ export default function Component() {
   return (
     <div className="min-h-screen bg-background text-foreground p-8">
       <Card className="max-w-4xl mx-auto flex flex-col  w-full h-full gap-4">
-        <SparklesText sparklesCount={5} className="w-full items-center text-center m-6" text="Create Profile" />
+        <SparklesText
+          sparklesCount={5}
+          className="w-full items-center text-center m-6"
+          text="Create Profile"
+        />
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-primary">Connect your socials</CardTitle>
+                <CardTitle className="text-xl font-semibold text-primary">
+                  Connect your socials
+                </CardTitle>
                 <CardDescription>
-                  Boost your credibility by connecting one or more socials, this helps us verify that you are the
-                  creator of the work you&apos;re submitting.
+                  Boost your credibility by connecting one or more socials, this
+                  helps us verify that you are the creator of the work
+                  you&apos;re submitting.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -101,7 +124,10 @@ export default function Component() {
             <div className="space-y-2 flex w-full gap-10 h-full">
               <div className="flex flex-col h-full justify-center items-center align-middle">
                 <Avatar className="h-28 w-28">
-                  <AvatarImage src={formData.avatar || "/placeholder.svg"} alt="Avatar" />
+                  <AvatarImage
+                    src={formData.avatar || "/placeholder.svg"}
+                    alt="Avatar"
+                  />
                   <AvatarFallback>
                     <UserCircle2Icon className="h-28 w-28" />
                   </AvatarFallback>
@@ -111,7 +137,9 @@ export default function Component() {
                 <Label htmlFor="avatar" className="text-lg font-semibold">
                   Avatar <span className="text-destructive">*</span>
                 </Label>
-                <p className="text-sm text-muted-foreground">Recommended 500x500, 2.5mb max size</p>
+                <p className="text-sm text-muted-foreground">
+                  Recommended 500x500, 2.5mb max size
+                </p>
                 <div className="flex items-center ">
                   <input
                     type="file"
@@ -123,13 +151,21 @@ export default function Component() {
                       if (file) {
                         const reader = new FileReader();
                         reader.onload = (event) => {
-                          setFormData((prev) => ({ ...prev, avatar: event.target?.result as string }));
+                          setFormData((prev) => ({
+                            ...prev,
+                            avatar: event.target?.result as string,
+                          }));
                         };
                         reader.readAsDataURL(file);
                       }
                     }}
                   />
-                  <Button variant="outline" onClick={() => document.getElementById("avatar-upload")?.click()}>
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      document.getElementById("avatar-upload")?.click()
+                    }
+                  >
                     <UploadIcon className="mr-2 h-4 w-4" />
                     Upload
                   </Button>
@@ -160,7 +196,9 @@ export default function Component() {
                 onChange={handleInputChange}
                 className="bg-background h-32"
               />
-              <p className="text-sm text-muted-foreground">{1500 - formData.bio.length} characters remaining</p>
+              <p className="text-sm text-muted-foreground">
+                {1500 - formData.bio.length} characters remaining
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email" className="text-lg font-semibold">
@@ -175,7 +213,8 @@ export default function Component() {
                 className="bg-background"
               />
               <p className="text-sm text-muted-foreground">
-                This will not be shown on your profile. We will only provide you important notifications via email.
+                This will not be shown on your profile. We will only provide you
+                important notifications via email.
               </p>
             </div>
             <ShimmerButton borderRadius="6px" className="rounded w-full">

@@ -14,9 +14,12 @@ const ArtistJoinPage = () => {
 
         {/* Content */}
         <div className="text-center relative z-10 px-4">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-6 ">Join us as an Artist</h1>
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-6 ">
+            Join us as an Artist
+          </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto font-raleway">
-            Join the leading digital art marketplace. Let&apos;s build your profile. This should only take 2-3 minutes.
+            Join the leading digital art marketplace. Let&apos;s build your
+            profile. This should only take 2-3 minutes.
           </p>
 
           <Button

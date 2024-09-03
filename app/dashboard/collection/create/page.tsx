@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { UploadIcon, XIcon, ArrowLeftIcon } from "lucide-react";
 import SparklesText from "@/components/magicui/sparkles-text";
 import ShimmerButton from "@/components/magicui/shimmer-button";
@@ -46,7 +52,10 @@ export default function CreateCollection() {
       const reader = new FileReader();
       reader.onload = (event) => {
         const updatedNfts = [...collectionData.nfts];
-        updatedNfts[index] = { ...updatedNfts[index], [fieldName]: event?.target?.result };
+        updatedNfts[index] = {
+          ...updatedNfts[index],
+          [fieldName]: event?.target?.result,
+        };
         setCollectionData((prev) => ({ ...prev, nfts: updatedNfts }));
       };
       reader.readAsDataURL(file);
@@ -83,14 +92,21 @@ export default function CreateCollection() {
 
   return (
     <div className="min-h-screen bg-background text-foreground p-8">
-      <Link href="/dashboard/collection" className="inline-flex items-center mb-4 text-primary hover:underline">
+      <Link
+        href="/dashboard/collection"
+        className="inline-flex items-center mb-4 text-primary hover:underline"
+      >
         <Button>
           <ArrowLeftIcon className="mr-2 h-4 w-4" />
           Back to Collections
         </Button>
       </Link>
       <Card className="max-w-4xl mx-auto flex flex-col w-full h-full gap-4">
-        <SparklesText sparklesCount={5} className="w-full items-center text-center m-6" text="Create Collection" />
+        <SparklesText
+          sparklesCount={5}
+          className="w-full items-center text-center m-6"
+          text="Create Collection"
+        />
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -107,8 +123,12 @@ export default function CreateCollection() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="collectionDescription" className="text-lg font-semibold">
-                Collection Description <span className="text-destructive">*</span>
+              <Label
+                htmlFor="collectionDescription"
+                className="text-lg font-semibold"
+              >
+                Collection Description{" "}
+                <span className="text-destructive">*</span>
               </Label>
               <Textarea
                 id="collectionDescription"
@@ -122,7 +142,9 @@ export default function CreateCollection() {
             {collectionData.nfts.map((nft, index) => (
               <div key={index} className="space-y-6 border-t pt-6">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-semibold text-primary">NFT #{index + 1}</h3>
+                  <h3 className="text-xl font-semibold text-primary">
+                    NFT #{index + 1}
+                  </h3>
                   {collectionData.nfts.length > 1 && (
                     <Button variant="ghost" onClick={() => removeNft(index)}>
                       <XIcon className="h-5 w-5" />
@@ -130,7 +152,10 @@ export default function CreateCollection() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`nftName-${index}`} className="text-lg font-semibold">
+                  <Label
+                    htmlFor={`nftName-${index}`}
+                    className="text-lg font-semibold"
+                  >
                     NFT Name <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -143,7 +168,10 @@ export default function CreateCollection() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`nftQuantity-${index}`} className="text-lg font-semibold">
+                  <Label
+                    htmlFor={`nftQuantity-${index}`}
+                    className="text-lg font-semibold"
+                  >
                     Quantity <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -157,7 +185,10 @@ export default function CreateCollection() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`splitWallets-${index}`} className="text-lg font-semibold">
+                  <Label
+                    htmlFor={`splitWallets-${index}`}
+                    className="text-lg font-semibold"
+                  >
                     Split Wallets <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -170,7 +201,10 @@ export default function CreateCollection() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`location-${index}`} className="text-lg font-semibold">
+                  <Label
+                    htmlFor={`location-${index}`}
+                    className="text-lg font-semibold"
+                  >
                     Location <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -183,8 +217,12 @@ export default function CreateCollection() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`imageArt-${index}`} className="text-lg font-semibold">
-                    Upload Image of the Art <span className="text-destructive">*</span>
+                  <Label
+                    htmlFor={`imageArt-${index}`}
+                    className="text-lg font-semibold"
+                  >
+                    Upload Image of the Art{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <div className="flex items-center">
                     <input
@@ -196,7 +234,11 @@ export default function CreateCollection() {
                     />
                     <Button
                       variant="outline"
-                      onClick={() => document.getElementById(`imageArt-upload-${index}`)?.click()}
+                      onClick={() =>
+                        document
+                          .getElementById(`imageArt-upload-${index}`)
+                          ?.click()
+                      }
                     >
                       <UploadIcon className="mr-2 h-4 w-4" />
                       Upload
@@ -204,8 +246,12 @@ export default function CreateCollection() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`imageWall-${index}`} className="text-lg font-semibold">
-                    Upload Image of the Wall <span className="text-destructive">*</span>
+                  <Label
+                    htmlFor={`imageWall-${index}`}
+                    className="text-lg font-semibold"
+                  >
+                    Upload Image of the Wall{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <div className="flex items-center">
                     <input
@@ -217,7 +263,11 @@ export default function CreateCollection() {
                     />
                     <Button
                       variant="outline"
-                      onClick={() => document.getElementById(`imageWall-upload-${index}`)?.click()}
+                      onClick={() =>
+                        document
+                          .getElementById(`imageWall-upload-${index}`)
+                          ?.click()
+                      }
                     >
                       <UploadIcon className="mr-2 h-4 w-4" />
                       Upload

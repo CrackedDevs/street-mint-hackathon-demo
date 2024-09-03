@@ -17,7 +17,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <header className="w-full py-4 px-6 flex justify-between items-center border-b border-gray-200">
         <div className="flex items-center">
           <Link href="/dashboard">
-            <Image src="/logo.svg" alt="Street mint logo" width={250} height={100} className="h-10 w-auto" />
+            <Image
+              src="/logo.svg"
+              alt="Street mint logo"
+              width={250}
+              height={100}
+              className="h-10 w-auto"
+            />
           </Link>
         </div>
         <WalletMultiButton
