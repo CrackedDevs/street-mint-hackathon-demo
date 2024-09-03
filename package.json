@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "format": "prettier --write . --ignore-unknown",
     "supabase-types": "supabase gen types typescript --project-id iaulwnqmthzvuxfubnsb > lib/types/database.types.ts"
   },
   "dependencies": {
@@ -36,9 +37,11 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^8",
+    "eslint": "^8.41.0",
     "eslint-config-next": "14.2.7",
+    "eslint-config-prettier": "^9.1.0",
     "postcss": "^8",
+    "prettier": "2.8.8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }

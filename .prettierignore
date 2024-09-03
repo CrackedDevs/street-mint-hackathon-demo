@@ -1,0 +1,8 @@
+# ignore all files in .next
+.next/**
+
+# ignore all files in lib
+lib/**
+
+# ignore all files in node_modules
+node_modules/**

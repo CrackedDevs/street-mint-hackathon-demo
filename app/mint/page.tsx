@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from 'react'
-import Image from 'next/image'
-import { Linkedin, Instagram, ChevronLeft, ChevronRight, LogOut, Wallet } from 'lucide-react'
-import MintButton from '@/components/mintButton'
+import { useState } from "react";
+import Image from "next/image";
+import {
+  Linkedin,
+  Instagram,
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+  Wallet,
+} from "lucide-react";
+import MintButton from "@/components/mintButton";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Button } from '@/components/ui/button';
-import { shortenAddress } from '@/lib/shortenAddress';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Button } from "@/components/ui/button";
+import { shortenAddress } from "@/lib/shortenAddress";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 const XIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor">
@@ -17,8 +29,9 @@ const XIcon = ({ className }: { className?: string }) => (
 
 export default function NFTPage() {
   const { connected, publicKey: walletAddress, disconnect } = useWallet();
-  const [currentImage, setCurrentImage] = useState(0)
-  const mainImage = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/1200px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg"
+  const [currentImage, setCurrentImage] = useState(0);
+  const mainImage =
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/1200px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg";
   const images = [
     "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/1200px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
     "https://static01.nyt.com/images/2021/01/22/world/00louvre-dispatch7-promo/00louvre-dispatch7-mediumSquareAt3X.jpg",
@@ -42,11 +55,11 @@ export default function NFTPage() {
       <header className="py-4 px-6 border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex justify-center items-center w-full">
-            <Image 
-              src="/logo.svg" 
-              alt="Street mint logo" 
-              width={150} 
-              height={50} 
+            <Image
+              src="/logo.svg"
+              alt="Street mint logo"
+              width={150}
+              height={50}
               className="h-8 w-auto"
             />
           </div>
@@ -58,9 +71,9 @@ export default function NFTPage() {
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8">
           {/* Left column - Main Image */}
           <div className="relative aspect-square">
-            <Image 
+            <Image
               src={mainImage}
-              alt="We&apos;ll dream of a longer summer - Main Image"
+              alt="We'll dream of a longer summer - Main Image"
               layout="fill"
               objectFit="contain"
             />
@@ -68,9 +81,13 @@ export default function NFTPage() {
 
           {/* Right column - Details */}
           <div>
-            <h1 className="text-3xl font-bold mb-2">We&apos;ll dream of a longer summer,</h1>
-            <p className="text-xl text-gray-600 mb-4">From the &quot;Urban Dreamscapes&quot; Collection</p>
-            
+            <h1 className="text-3xl font-bold mb-2">
+              We&apos;ll dream of a longer summer,
+            </h1>
+            <p className="text-xl text-gray-600 mb-4">
+              From the &quot;Urban Dreamscapes&quot; Collection
+            </p>
+
             {/* Artist Information */}
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-6 h-6 bg-purple-600 rounded-full"></div>
@@ -85,14 +102,16 @@ export default function NFTPage() {
                 <Instagram className="w-5 h-5" />
               </a>
             </div>
-            
+
             {/* Redesigned Limited Edition Section (Black and White) */}
             <div className="bg-black text-white p-4 rounded-lg mb-6">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold">Limited Edition</span>
                 <span className="text-3xl font-bold">43 of 43</span>
               </div>
-              <div className="mt-2 text-sm text-gray-300">Last chance to own this unique piece</div>
+              <div className="mt-2 text-sm text-gray-300">
+                Last chance to own this unique piece
+              </div>
             </div>
 
             <div className="mb-6 p-4 bg-gray-100 rounded-lg">
@@ -106,17 +125,22 @@ export default function NFTPage() {
             <MintButton />
 
             <p className="text-sm text-gray-600 mb-8">
-              This digital collectible is configured for minting. Once minted, it will be added to your collection.
+              This digital collectible is configured for minting. Once minted,
+              it will be added to your collection.
             </p>
 
             <div className="space-y-4 mt-4">
               <p className="text-lg">
-                &quot;We&apos;ll dream of a longer summer&quot; is a captivating digital artwork that blends surrealism with urban landscapes. 
-                The piece features a nighttime city scene with vibrant, dreamlike elements. In the foreground, stylized figures 
-                in colorful dresses stand out against the dark background. The sky is adorned with an enigmatic floating object, 
-                possibly a UFO, adding an element of mystery. Warm, glowing windows in the buildings create a sense of life and 
-                energy within the quiet night. The artwork beautifully captures the essence of summer nights in the city, 
-                blending reality with imagination.
+                &quot;We&apos;ll dream of a longer summer&quot; is a captivating
+                digital artwork that blends surrealism with urban landscapes.
+                The piece features a nighttime city scene with vibrant,
+                dreamlike elements. In the foreground, stylized figures in
+                colorful dresses stand out against the dark background. The sky
+                is adorned with an enigmatic floating object, possibly a UFO,
+                adding an element of mystery. Warm, glowing windows in the
+                buildings create a sense of life and energy within the quiet
+                night. The artwork beautifully captures the essence of summer
+                nights in the city, blending reality with imagination.
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -150,7 +174,7 @@ export default function NFTPage() {
             <div className="mt-8">
               <h3 className="text-lg font-semibold mb-4">Image Gallery</h3>
               <div className="relative aspect-square">
-                <Image 
+                <Image
                   src={images[currentImage]}
                   alt={`Gallery image ${currentImage + 1}`}
                   layout="fill"
@@ -174,7 +198,7 @@ export default function NFTPage() {
                     <div
                       key={index}
                       className={`h-2 w-2 rounded-full ${
-                        currentImage === index ? 'bg-white' : 'bg-gray-300'
+                        currentImage === index ? "bg-white" : "bg-gray-300"
                       }`}
                     />
                   ))}

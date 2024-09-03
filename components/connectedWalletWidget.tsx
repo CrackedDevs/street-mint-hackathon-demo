@@ -23,11 +23,13 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
 
   return (
     <>
-      <div className="sm:hidden"> {/* Visible only on small screens */}
+      <div className="sm:hidden">
+        {" "}
+        {/* Visible only on small screens */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
               className="relative"
               aria-label={`Connected wallet: ${walletAddress}`}
@@ -39,7 +41,9 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem className="flex justify-between items-center">
               <span className="font-medium">Connected</span>
-              <span className="text-sm text-muted-foreground">{shortenAddress(walletAddress)}</span>
+              <span className="text-sm text-muted-foreground">
+                {shortenAddress(walletAddress)}
+              </span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onDisconnect}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -48,24 +52,26 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="hidden sm:block"> {/* Visible on screens sm and larger */}
+      <div className="hidden sm:block">
+        {" "}
+        {/* Visible on screens sm and larger */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="text-sm font-medium"
               aria-label={`Connected wallet: ${walletAddress}`}
             >
-              <span className="w-2 h-2 bg-green-500 rounded-full mr-2" aria-hidden="true" />
+              <span
+                className="w-2 h-2 bg-green-500 rounded-full mr-2"
+                aria-hidden="true"
+              />
               <span className="sr-only">Connected:</span>
               {shortenAddress(walletAddress)}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem 
-              onClick={onDisconnect}
-              className="cursor-pointer"
-            >
+            <DropdownMenuItem onClick={onDisconnect} className="cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Disconnect</span>
             </DropdownMenuItem>
