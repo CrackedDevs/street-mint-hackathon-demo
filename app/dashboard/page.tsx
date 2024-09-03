@@ -18,7 +18,11 @@ const ArtistJoinPage = () => {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto font-raleway">
             Join the leading digital art marketplace. Let&apos;s build your profile. This should only take 2-3 minutes.
           </p>
-          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full text-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg font-raleway">
+
+          <Button
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full text-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg font-raleway"
+            onClick={() => (window.location.href = "/dashboard/profile")}
+          >
             Get started
           </Button>
         </div>
