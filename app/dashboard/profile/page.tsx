@@ -80,7 +80,7 @@ export default function Component() {
       <Card className="max-w-4xl mx-auto flex flex-col  w-full h-full gap-4">
         <SparklesText
           sparklesCount={5}
-          className="w-full items-center text-center m-6"
+          className="items-center text-center m-6"
           text="Create Profile"
         />
         <CardContent>
