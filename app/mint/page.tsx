@@ -50,75 +50,14 @@ export default function NFTPage() {
       {/* Header */}
       <header className="py-4 px-6 border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="w-1/3"></div> {/* Spacer */}
-          <div className="flex justify-center items-center w-1/3">
-            <Image src="/logo.svg" alt="Street mint logo" width={150} height={50} className="h-8 w-auto" />
-          </div>
-          <div className="w-1/3 flex justify-end">
-            {/* <WalletMultiButton
-              style={{
-                background: "linear-gradient(to right, #ffffff, #f0f0f0)",
-                color: "black",
-                border: "2px solid gray",
-                borderRadius: "20px",
-              }}
-            /> */}
-            {connected && walletAddress && (
-              <>
-                <div className="sm:hidden">
-                  {" "}
-                  {/* Visible only on small screens */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="relative"
-                        aria-label={`Connected wallet: ${walletAddress}`}
-                      >
-                        <Wallet className="h-5 w-5" />
-                        <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem className="flex justify-between items-center">
-                        <span className="font-medium">Connected</span>
-                        <span className="text-sm text-muted-foreground">
-                          {shortenAddress(walletAddress.toString())}
-                        </span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={onDisconnect}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Disconnect</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                <div className="hidden sm:block">
-                  {" "}
-                  {/* Visible on screens sm and larger */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="text-sm font-medium"
-                        aria-label={`Connected wallet: ${walletAddress}`}
-                      >
-                        <span className="w-2 h-2 bg-green-500 rounded-full mr-2" aria-hidden="true" />
-                        <span className="sr-only">Connected:</span>
-                        {shortenAddress(walletAddress.toString())}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={onDisconnect} className="cursor-pointer">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Disconnect</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </>
-            )}
+          <div className="flex justify-center items-center w-full">
+            <Image 
+              src="/logo.svg" 
+              alt="Street mint logo" 
+              width={150} 
+              height={50} 
+              className="h-8 w-auto"
+            />
           </div>
         </div>
       </header>
