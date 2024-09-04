@@ -30,9 +30,7 @@ const ArtistJoinPage = () => {
   };
 
   const handleConnect = () => {
-    const button = document.querySelector(
-      ".wallet-adapter-button"
-    ) as HTMLElement;
+    const button = document.querySelector(".wallet-adapter-button") as HTMLElement;
     if (button) {
       button.click();
     }
@@ -54,9 +52,9 @@ const ArtistJoinPage = () => {
               Connect Wallet
             </span>
           </ShimmerButton>
-          {/* <div className="hidden">
+          <div className="hidden">
             <WalletMultiButton />
-          </div> */}
+          </div>
         </div>
       </div>
       <style jsx>{`
