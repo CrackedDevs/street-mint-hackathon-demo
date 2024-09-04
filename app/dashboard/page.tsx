@@ -21,7 +21,10 @@ const ArtistJoinPage = () => {
   }, [connected, publicKey]);
 
   const checkProfile = async (walletAddress: string) => {
-    const { data, error } = await supabase.from("artists").select("*").eq("wallet_address", walletAddress);
+    const { data, error } = await supabase
+      .from("artists")
+      .select("*")
+      .eq("wallet_address", walletAddress);
     if (error) {
       console.error("Error fetching profile:", error);
     } else if (data[0]) {
@@ -34,7 +37,9 @@ const ArtistJoinPage = () => {
   };
 
   const handleConnect = () => {
-    const button = document.querySelector(".wallet-adapter-button") as HTMLElement;
+    const button = document.querySelector(
+      ".wallet-adapter-button"
+    ) as HTMLElement;
     if (button) {
       button.click();
     }

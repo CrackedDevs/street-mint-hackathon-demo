@@ -1,17 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import SparklesText from "@/components/magicui/sparkles-text";
 import Link from "next/link";
-import {  supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 import AnimatedGridPattern from "@/components/magicui/animated-grid-pattern";
 import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@solana/wallet-adapter-react";
 import withAuth from "../withAuth";
 
- type Collection = {
+type Collection = {
   id?: number;
   name: string;
   description: string;
@@ -40,10 +46,11 @@ function CollectionsPage() {
           setLoading(false);
           return;
         }
-        const { data: collectionsData, error: collectionsError } = await supabase
-          .from("collections")
-          .select("*")
-          .eq("artist", artistData.id);
+        const { data: collectionsData, error: collectionsError } =
+          await supabase
+            .from("collections")
+            .select("*")
+            .eq("artist", artistData.id);
 
         if (collectionsError) throw collectionsError;
 
@@ -60,7 +67,11 @@ function CollectionsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground p-8 w-full">
       <div className="flex justify-between flex-wrap gap-6 items-center mb-8">
-        <SparklesText sparklesCount={5} className="text-3xl font-bold" text="My Collections" />
+        <SparklesText
+          sparklesCount={5}
+          className="text-3xl font-bold"
+          text="My Collections"
+        />
         <Link href="/dashboard/collection/create">
           <Button variant="outline" className="text-sm">
             Create New Collection
@@ -77,8 +88,12 @@ function CollectionsPage() {
               className="hover:shadow-lg flex w-fit flex-col justify-between transition-shadow duration-200"
             >
               <CardHeader>
-                <CardTitle className="text-3xl font-semibold">{collection.name}</CardTitle>
-                <CardDescription className="text-lg">{collection.description}</CardDescription>
+                <CardTitle className="text-3xl font-semibold">
+                  {collection.name}
+                </CardTitle>
+                <CardDescription className="text-lg">
+                  {collection.description}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Link href={`/dashboard/collection/${collection.id}`}>
@@ -86,8 +101,16 @@ function CollectionsPage() {
                     buttonColor="#000000"
                     buttonTextColor="#ffffff"
                     subscribeStatus={false}
-                    initialText={<span className="group inline-flex items-center">View Collection </span>}
-                    changeText={<span className="group inline-flex items-center">Opening...</span>}
+                    initialText={
+                      <span className="group inline-flex items-center">
+                        View Collection{" "}
+                      </span>
+                    }
+                    changeText={
+                      <span className="group inline-flex items-center">
+                        Opening...
+                      </span>
+                    }
                   />
                 </Link>
               </CardContent>
@@ -95,7 +118,9 @@ function CollectionsPage() {
           ))}
         </div>
       ) : (
-        <p className="text-center text-lg mt-8">You haven&apos;t created any collections yet. Create your first one!</p>
+        <p className="text-center text-lg mt-8">
+          You haven&apos;t created any collections yet. Create your first one!
+        </p>
       )}
       <AnimatedGridPattern
         numSquares={20}

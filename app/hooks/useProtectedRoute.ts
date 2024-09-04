@@ -8,7 +8,7 @@ export function useProtectedRoute() {
 
   useEffect(() => {
     if (!connected) {
-      router.push('/'); // Redirect to home page if not connected
+      router.push("/"); // Redirect to home page if not connected
     }
   }, [connected, router]);
 
