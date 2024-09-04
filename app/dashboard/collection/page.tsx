@@ -10,7 +10,11 @@ import {
 } from "@/components/ui/card";
 import SparklesText from "@/components/magicui/sparkles-text";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import {
+  fetchProfileData,
+  getCollectionsByArtistId,
+  supabase,
+} from "@/lib/supabaseClient";
 import AnimatedGridPattern from "@/components/magicui/animated-grid-pattern";
 import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
 import { cn } from "@/lib/utils";
@@ -35,26 +39,24 @@ function CollectionsPage() {
       if (!publicKey) return;
       setLoading(true);
       try {
-        const { data: artistData, error: artistError } = await supabase
-          .from("artists")
-          .select("id")
-          .eq("wallet_address", publicKey.toString())
-          .single();
+        const {
+          exists,
+          data: artistData,
+          error: artistError,
+        } = await fetchProfileData(publicKey.toString());
         if (artistError) throw artistError;
-        if (!artistData) {
+        if (!exists || !artistData) {
           console.error("Artist not found");
           setLoading(false);
           return;
         }
-        const { data: collectionsData, error: collectionsError } =
-          await supabase
-            .from("collections")
-            .select("*")
-            .eq("artist", artistData.id);
-
-        if (collectionsError) throw collectionsError;
-
-        setCollections(collectionsData as Collection[]);
+        const collectionsData = await getCollectionsByArtistId(artistData.id);
+        if (!collectionsData) {
+          console.error("No collections found");
+          setLoading(false);
+          return;
+        }
+        setCollections(collectionsData);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {

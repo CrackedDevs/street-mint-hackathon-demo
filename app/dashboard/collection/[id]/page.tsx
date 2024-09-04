@@ -11,8 +11,21 @@ import {
 } from "@/components/ui/card";
 import SparklesText from "@/components/magicui/sparkles-text";
 import Link from "next/link";
-import { Collection, NFT, supabase } from "@/lib/supabaseClient";
+import {
+  fetchNFTsByCollectionId,
+  getCollectionById,
+  NFT,
+  supabase,
+} from "@/lib/supabaseClient";
 import Image from "next/image";
+
+type Collection = {
+  id: number;
+  name: string;
+  description: string;
+  artist: number;
+  nfts: number[];
+};
 
 export default function CollectionPage() {
   const { id } = useParams();
@@ -22,26 +35,19 @@ export default function CollectionPage() {
   useEffect(() => {
     async function fetchCollectionAndNFTs() {
       // Fetch collection
-      const { data: collectionData, error: collectionError } = await supabase
-        .from("collections")
-        .select("*")
-        .eq("id", id)
-        .single();
 
-      if (collectionError) {
-        console.error("Error fetching collection:", collectionError);
+      const collectionData = await getCollectionById(Number(id));
+      if (!collectionData) {
+        console.error("Error fetching collection: Collection not found");
       } else {
-        setCollection(collectionData as any);
+        setCollection(collectionData);
       }
 
       // Fetch NFTs
-      const { data: nftsData, error: nftsError } = await supabase
-        .from("nfts")
-        .select("*")
-        .eq("collection_id", id);
-
-      if (nftsError) {
-        console.error("Error fetching NFTs:", nftsError);
+      const nftsData = await fetchNFTsByCollectionId(Number(id));
+      if (!nftsData) {
+        console.error("Error fetching NFTs: No data returned");
+        return;
       } else {
         setNfts(nftsData as NFT[]);
       }

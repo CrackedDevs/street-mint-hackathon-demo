@@ -16,16 +16,24 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UploadIcon, InstagramIcon, Loader2, EditIcon } from "lucide-react";
 import X from "@/components/x";
 import withAuth from "../withAuth";
-import { Artist, supabase, uploadImage } from "@/lib/supabaseClient";
+import {
+  Artist,
+  createProfile,
+  fetchProfileData,
+  updateProfile,
+  uploadImage,
+} from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/navigation";
+import { NumericUUID } from "@/lib/utils";
 
 function ProfileForm() {
   const { toast } = useToast();
   const { publicKey } = useWallet();
   const router = useRouter();
   const [formData, setFormData] = useState<Artist>({
+    id: NumericUUID(),
     username: "",
     bio: "",
     email: "",
@@ -46,36 +54,21 @@ function ProfileForm() {
     }
   }, [publicKey]);
 
-  const fetchProfileData = async (walletAddress: string) => {
-    const { data, error } = await supabase
-      .from("artists")
-      .select("*")
-      .eq("wallet_address", walletAddress);
-    if (!data || !data[0]) {
-      return;
-    }
-    const artist = data[0];
-    if (error) {
-      console.error("Error fetching profile:", error);
-      setProfileExists(false);
-      setIsEditing(true); // Automatically set to edit mode if profile doesn't exist
-    } else if (data && data.length > 0) {
-      setFormData({
-        username: artist.username || "",
-        bio: artist.bio || "",
-        email: artist.email || "",
-        avatar_url: artist.avatar_url || "",
-        x_username: artist.x_username || "",
-        instagram_username: artist.instagram_username || "",
-        wallet_address: artist.wallet_address || "",
+  useEffect(() => {
+    if (publicKey) {
+      fetchProfileData(publicKey.toString()).then(({ exists, data }) => {
+        if (exists && data) {
+          setFormData(data);
+          setProfileExists(true);
+          setIsEditing(false);
+        } else {
+          setProfileExists(false);
+          setIsEditing(true);
+        }
       });
-      setProfileExists(true);
-      setIsEditing(false); // Profile exists, so start in view mode
-    } else {
-      setProfileExists(false);
-      setIsEditing(true); // Automatically set to edit mode if profile doesn't exist
+      setFormData({ ...formData, wallet_address: publicKey.toString() });
     }
-  };
+  }, [publicKey]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -97,18 +90,22 @@ function ProfileForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const checkUsernameUniqueness = async (username: string) => {
-    const { data, error } = await supabase
-      .from("artists")
-      .select("username")
-      .eq("username", username)
-      .neq("wallet_address", formData.wallet_address)
-      .single();
-    if (error && error.code !== "PGRST116") {
-      console.error("Error checking username:", error);
+  const checkUsernameUniqueness = async () => {
+    if (!publicKey || profileExists) {
+      return true;
+    }
+    const { exists, data, error } = await fetchProfileData(
+      publicKey.toString()
+    );
+    if (exists && data && data.username === formData.username) {
       return false;
     }
-    return data === null;
+
+    if (error) {
+      console.error("Error checking username:", error);
+      return true;
+    }
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -124,19 +121,21 @@ function ProfileForm() {
 
     setIsSubmitting(true);
 
-    const isUsernameUnique = await checkUsernameUniqueness(formData.username);
-    if (!isUsernameUnique) {
-      setErrors((prev) => ({
-        ...prev,
-        username: "This username is already taken",
-      }));
-      toast({
-        title: "Error",
-        description:
-          "Username is already taken. Please choose a different one.",
-      });
-      setIsSubmitting(false);
-      return;
+    if (!profileExists) {
+      const isUsernameUnique = await checkUsernameUniqueness();
+      if (!isUsernameUnique) {
+        setErrors((prev) => ({
+          ...prev,
+          username: "This username is already taken",
+        }));
+        toast({
+          title: "Error",
+          description:
+            "Username is already taken. Please choose a different one.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     let uploadedUrl: string | null = formData.avatar_url;
@@ -151,37 +150,34 @@ function ProfileForm() {
       }
     }
 
-    const profileData = {
+    const profileData: Artist = {
       ...formData,
       avatar_url: uploadedUrl,
     };
 
-    const { data, error } = profileExists
-      ? await supabase
-          .from("artists")
-          .update(profileData)
-          .eq("wallet_address", formData.wallet_address)
-      : await supabase.from("artists").insert(profileData);
-
-    if (error) {
-      console.error("Error submitting profile:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save profile. Please try again.",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Success",
-        description: `Your profile has been ${
-          profileExists ? "updated" : "created"
-        } successfully!`,
-        variant: "default",
-      });
-      setIsEditing(false);
-      setProfileExists(true);
+    if (publicKey) {
+      const { data, error } = profileExists
+        ? await updateProfile(profileData, publicKey?.toString())
+        : await createProfile(profileData);
+      if (error) {
+        console.error("Error submitting profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to save profile. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `Your profile has been ${
+            profileExists ? "updated" : "created"
+          } successfully!`,
+          variant: "default",
+        });
+        setIsEditing(false);
+        setProfileExists(true);
+      }
     }
-
     setIsSubmitting(false);
   };
 
@@ -370,7 +366,7 @@ function ProfileForm() {
                   <Input
                     id="x_username"
                     name="x_username"
-                    value={formData.x_username}
+                    value={formData.x_username || ""}
                     onChange={handleInputChange}
                     className="bg-background"
                     placeholder="X username"
@@ -382,7 +378,7 @@ function ProfileForm() {
                   <Input
                     id="instagram_username"
                     name="instagram_username"
-                    value={formData.instagram_username}
+                    value={formData.instagram_username || ""}
                     onChange={handleInputChange}
                     className="bg-background"
                     placeholder="Instagram username"

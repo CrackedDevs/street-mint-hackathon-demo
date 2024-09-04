@@ -11,14 +11,15 @@ import {
   Collection,
   createCollection,
   QuantityType,
-  supabase,
   uploadImage,
   NFT,
+  fetchProfileData,
 } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import ShimmerButton from "@/components/magicui/shimmer-button";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { NumericUUID } from "@/lib/utils";
 
 export default function CreateCollectionPage() {
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function CreateCollectionPage() {
   const [artistId, setArtistId] = useState<number | null>(null);
 
   const [newNFT, setNewNFT] = useState<NFT>({
-    id: parseInt(Date.now().toString().slice(-4)),
+    id: NumericUUID(),
     name: "",
     description: "",
     primary_image_url: "",
@@ -48,11 +49,9 @@ export default function CreateCollectionPage() {
   useEffect(() => {
     const fetchArtistId = async () => {
       if (publicKey) {
-        const { data, error } = await supabase
-          .from("artists")
-          .select("id")
-          .eq("wallet_address", publicKey.toString())
-          .single();
+        const { exists, data, error } = await fetchProfileData(
+          publicKey.toString()
+        );
 
         if (error) {
           console.error("Error fetching artist:", error);
@@ -61,8 +60,15 @@ export default function CreateCollectionPage() {
             description: "Failed to fetch artist information",
             variant: "destructive",
           });
-        } else if (data) {
+        } else if (exists && data) {
           setArtistId(data.id);
+        } else {
+          console.error("Artist not found");
+          toast({
+            title: "Error",
+            description: "Artist profile not found",
+            variant: "destructive",
+          });
         }
       }
     };
@@ -91,14 +97,14 @@ export default function CreateCollectionPage() {
         ...prev,
         {
           ...newNFT,
-          id: parseInt(Date.now().toString().slice(-4)),
+          id: NumericUUID(),
           gallery_urls: newNFTGalleryImages.map((file) =>
             URL.createObjectURL(file)
           ),
         },
       ]);
       setNewNFT({
-        id: parseInt(Date.now().toString().slice(-4)),
+        id: NumericUUID(),
         name: "",
         description: "",
         primary_image_url: "",
@@ -180,6 +186,7 @@ export default function CreateCollectionPage() {
 
       setSubmitState("Creating collection...");
       const newCollection: Collection | null = await createCollection({
+        id: NumericUUID(),
         name: collectionName,
         description: collectionDescription,
         artist: artistId,

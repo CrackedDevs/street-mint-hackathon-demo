@@ -1,45 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Linkedin,
   Instagram,
   ChevronLeft,
   ChevronRight,
-  LogOut,
-  Wallet,
+  XIcon,
 } from "lucide-react";
 import MintButton from "@/components/mintButton";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useParams } from "next/navigation";
+import {
+  fetchNFTById,
+  getCollectionById,
+  getArtistById,
+} from "@/lib/supabaseClient";
 
-const XIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932L18.901 1.153ZM17.61 20.644h2.039L6.486 3.24H4.298L17.61 20.644Z" />
-  </svg>
-);
-
-export default function NFTPage() {
+const NFTPage = () => {
   const { connected, publicKey: walletAddress, disconnect } = useWallet();
   const [currentImage, setCurrentImage] = useState(0);
-  const mainImage =
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/1200px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg";
-  const images = [
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/1200px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
-    "https://static01.nyt.com/images/2021/01/22/world/00louvre-dispatch7-promo/00louvre-dispatch7-mediumSquareAt3X.jpg",
-  ];
+  const [nftData, setNftData] = useState<any>(null);
+  const [collectionData, setCollectionData] = useState<any>(null);
+  const [artistData, setArtistData] = useState<any>(null);
+  const { id } = useParams();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (id) {
+        const nft = await fetchNFTById(Number(id));
+        if (nft) {
+          setNftData(nft);
+          const collection = await getCollectionById(nft.collection_id);
+          if (collection) {
+            setCollectionData(collection);
+            const artist = await getArtistById(collection.artist);
+            if (artist) {
+              setArtistData(artist);
+            }
+          }
+        }
+      }
+    };
+    fetchData();
+  }, [id]);
 
   const nextImage = () => {
-    setCurrentImage((prev) => (prev + 1) % images.length);
+    if (nftData && nftData.gallery_urls) {
+      setCurrentImage((prev) => (prev + 1) % nftData.gallery_urls.length);
+    }
   };
 
   const prevImage = () => {
-    setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
+    if (nftData && nftData.gallery_urls) {
+      setCurrentImage(
+        (prev) =>
+          (prev - 1 + nftData.gallery_urls.length) % nftData.gallery_urls.length
+      );
+    }
   };
 
   const onDisconnect = () => {
     disconnect();
   };
+
+  if (!nftData || !collectionData || !artistData) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -64,8 +92,8 @@ export default function NFTPage() {
           {/* Left column - Main Image */}
           <div className="relative aspect-square">
             <Image
-              src={mainImage}
-              alt="We'll dream of a longer summer - Main Image"
+              src={nftData.gallery_urls[currentImage]}
+              alt={`${nftData.name} - Main Image`}
               layout="fill"
               objectFit="contain"
             />
@@ -73,17 +101,15 @@ export default function NFTPage() {
 
           {/* Right column - Details */}
           <div>
-            <h1 className="text-3xl font-bold mb-2">
-              We&apos;ll dream of a longer summer,
-            </h1>
+            <h1 className="text-3xl font-bold mb-2">{nftData.name}</h1>
             <p className="text-xl text-gray-600 mb-4">
-              From the &quot;Urban Dreamscapes&quot; Collection
+              From the &quot;{collectionData.name}&quot; Collection
             </p>
 
             {/* Artist Information */}
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-6 h-6 bg-purple-600 rounded-full"></div>
-              <span className="font-semibold">nearbound</span>
+              <span className="font-semibold">{artistData.username}</span>
               <a href="#" className="text-gray-600 hover:text-black">
                 <XIcon className="w-5 h-5" />
               </a>
@@ -95,7 +121,7 @@ export default function NFTPage() {
               </a>
             </div>
 
-            {/* Redesigned Limited Edition Section (Black and White) */}
+            {/* Limited Edition Section */}
             <div className="bg-black text-white p-4 rounded-lg mb-6">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold">Limited Edition</span>
@@ -109,8 +135,10 @@ export default function NFTPage() {
             <div className="mb-6 p-4 bg-gray-100 rounded-lg">
               <span className="text-gray-600 text-lg">Mint price:</span>
               <div className="flex items-baseline">
-                <span className="text-4xl font-bold mr-2">$533.70</span>
-                <span className="text-gray-500">(4.2 SOL)</span>
+                <span className="text-4xl font-bold mr-2">
+                  ${nftData.price_usd.toFixed(2)}
+                </span>
+                <span className="text-gray-500">({nftData.price_sol} SOL)</span>
               </div>
             </div>
 
@@ -122,38 +150,35 @@ export default function NFTPage() {
             </p>
 
             <div className="space-y-4 mt-4">
-              <p className="text-lg">
-                &quot;We&apos;ll dream of a longer summer&quot; is a captivating
-                digital artwork that blends surrealism with urban landscapes.
-                The piece features a nighttime city scene with vibrant,
-                dreamlike elements. In the foreground, stylized figures in
-                colorful dresses stand out against the dark background. The sky
-                is adorned with an enigmatic floating object, possibly a UFO,
-                adding an element of mystery. Warm, glowing windows in the
-                buildings create a sense of life and energy within the quiet
-                night. The artwork beautifully captures the essence of summer
-                nights in the city, blending reality with imagination.
-              </p>
+              <p className="text-lg">{nftData.description}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-600">Art title</p>
-                  <p>We&apos;ll dream of a longer summer</p>
+                  <p>{nftData.name}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">Artist</p>
-                  <p>nearbound</p>
+                  <p>{artistData.username}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">Location minted</p>
-                  <p>NFT.NYC 2023</p>
+                  <p>{nftData.location || "N/A"}</p>
                 </div>
-                <div>
-                  <p className="text-gray-600">Limited Edition</p>
-                  <p>Run of 43 Digital Collectibles</p>
-                </div>
+                {/* <div>
+                  <p className="text-gray-600">Edition Type</p>
+                  <p>{collectionData.quantity_type.charAt(0).toUpperCase() + collectionData.quantity_type.slice(1)}</p>
+                </div> */}
+                {/* {collectionData.quantity_type === "limited" && (
+                  <div>
+                    <p className="text-gray-600">Limited Edition</p>
+                    <p>Run of {collectionData.total_supply} Digital Collectibles</p>
+                  </div>
+                )} */}
                 <div>
                   <p className="text-gray-600">Price per edition</p>
-                  <p>$533.70 (4.2 SOL)</p>
+                  <p>
+                    ${nftData.price_usd.toFixed(2)} ({nftData.price_sol} SOL)
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-600">Blockchain</p>
@@ -167,7 +192,7 @@ export default function NFTPage() {
               <h3 className="text-lg font-semibold mb-4">Image Gallery</h3>
               <div className="relative aspect-square">
                 <Image
-                  src={images[currentImage]}
+                  src={nftData.gallery_urls[currentImage]}
                   alt={`Gallery image ${currentImage + 1}`}
                   layout="fill"
                   objectFit="cover"
@@ -186,7 +211,7 @@ export default function NFTPage() {
                   <ChevronRight className="w-6 h-6" />
                 </button>
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-                  {images.map((_, index) => (
+                  {nftData.gallery_urls.map((_: any, index: number) => (
                     <div
                       key={index}
                       className={`h-2 w-2 rounded-full ${
@@ -202,4 +227,6 @@ export default function NFTPage() {
       </main>
     </div>
   );
-}
+};
+
+export default NFTPage;

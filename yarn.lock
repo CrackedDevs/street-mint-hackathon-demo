@@ -7443,6 +7443,7 @@ strict-uri-encode@^2.0.0:
   integrity sha512-QwiXZgpRcKkhTj2Scnn++4PKtWsH0kpzZ62L2R6c/LUVYv7hVnZqcg2+sMuT6R7Jusu1vviK/MFsu6kNJfWlEQ==
 
 "string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0:
+  name string-width-cjs
   version "4.2.3"
   resolved "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -7603,7 +7604,7 @@ sucrase@^3.32.0:
 
 supabase@^1.191.3:
   version "1.191.3"
-  resolved "https://registry.npmjs.org/supabase/-/supabase-1.191.3.tgz"
+  resolved "https://registry.yarnpkg.com/supabase/-/supabase-1.191.3.tgz#9e28643b10bc458f8c13a1e3f3ba9172679093f0"
   integrity sha512-5tIG7mPc5lZ9QRbkZssyHiOsx42qGFaVqclauXv+1fJAkZnfA28d0pzEDvfs33+w8YTReO5nNaWAgyzkWQQwfA==
   dependencies:
     bin-links "^4.0.3"

@@ -10,7 +10,7 @@ import { Wallet, LogOut, Plug, User } from "lucide-react";
 import { shortenAddress } from "@/lib/shortenAddress";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { supabase } from "@/lib/supabaseClient";
+import { fetchProfileData } from "@/lib/supabaseClient";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ConnectedWalletWidgetProps {
@@ -30,16 +30,13 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
   useEffect(() => {
     const fetchUserData = async () => {
       if (connected && walletAddress) {
-        const { data, error } = await supabase
-          .from("artists")
-          .select("*")
-          .eq("wallet_address", walletAddress)
-          .single();
-
+        const { exists, data, error } = await fetchProfileData(walletAddress);
         if (error) {
           console.error("Error fetching user data:", error);
-        } else {
+        } else if (exists && data) {
           setUserData(data);
+        } else {
+          console.log("User profile not found");
         }
       }
     };

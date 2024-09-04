@@ -11,67 +11,67 @@ export type Database = {
     Tables: {
       artists: {
         Row: {
-          avatar_url: string | null
-          bio: string | null
-          collections: number[] | null
-          email: string | null
+          avatar_url: string
+          bio: string
+          collection: number[] | null
+          email: string
           farcaster_username: string | null
           id: number
           instagram_username: string | null
           linkedin_username: string | null
-          username: string | null
-          wallet_address: string | null
+          username: string
+          wallet_address: string
           x_username: string | null
         }
         Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          collections?: number[] | null
-          email?: string | null
+          avatar_url: string
+          bio: string
+          collection?: number[] | null
+          email: string
           farcaster_username?: string | null
-          id?: number
+          id: number
           instagram_username?: string | null
           linkedin_username?: string | null
-          username?: string | null
-          wallet_address?: string | null
+          username: string
+          wallet_address: string
           x_username?: string | null
         }
         Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          collections?: number[] | null
-          email?: string | null
+          avatar_url?: string
+          bio?: string
+          collection?: number[] | null
+          email?: string
           farcaster_username?: string | null
           id?: number
           instagram_username?: string | null
           linkedin_username?: string | null
-          username?: string | null
-          wallet_address?: string | null
+          username?: string
+          wallet_address?: string
           x_username?: string | null
         }
         Relationships: []
       }
       collections: {
         Row: {
-          artist: number | null
-          description: string | null
+          artist: number
+          description: string
           id: number
-          name: string | null
-          nfts: number[] | null
+          name: string
+          nfts: number[]
         }
         Insert: {
-          artist?: number | null
-          description?: string | null
-          id?: number
-          name?: string | null
-          nfts?: number[] | null
+          artist: number
+          description: string
+          id: number
+          name: string
+          nfts: number[]
         }
         Update: {
-          artist?: number | null
-          description?: string | null
+          artist?: number
+          description?: string
           id?: number
-          name?: string | null
-          nfts?: number[] | null
+          name?: string
+          nfts?: number[]
         }
         Relationships: [
           {
@@ -85,43 +85,43 @@ export type Database = {
       }
       nfts: {
         Row: {
-          chain: string | null
-          collection_id: number | null
-          description: string | null
-          gallery_urls: string[] | null
+          chain: string
+          collection_id: number
+          description: string
+          gallery_urls: string[]
           id: number
           location: string | null
-          name: string | null
-          price_usd: number | null
-          primary_image_url: string | null
+          name: string
+          price_usd: number
+          primary_image_url: string
           quantity: number | null
-          quantity_type: Database["public"]["Enums"]["quantity_type"] | null
+          quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Insert: {
-          chain?: string | null
-          collection_id?: number | null
-          description?: string | null
-          gallery_urls?: string[] | null
-          id?: number
+          chain?: string
+          collection_id: number
+          description: string
+          gallery_urls: string[]
+          id: number
           location?: string | null
-          name?: string | null
-          price_usd?: number | null
-          primary_image_url?: string | null
+          name: string
+          price_usd: number
+          primary_image_url: string
           quantity?: number | null
-          quantity_type?: Database["public"]["Enums"]["quantity_type"] | null
+          quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Update: {
-          chain?: string | null
-          collection_id?: number | null
-          description?: string | null
-          gallery_urls?: string[] | null
+          chain?: string
+          collection_id?: number
+          description?: string
+          gallery_urls?: string[]
           id?: number
           location?: string | null
-          name?: string | null
-          price_usd?: number | null
-          primary_image_url?: string | null
+          name?: string
+          price_usd?: number
+          primary_image_url?: string
           quantity?: number | null
-          quantity_type?: Database["public"]["Enums"]["quantity_type"] | null
+          quantity_type?: Database["public"]["Enums"]["quantity_type"]
         }
         Relationships: [
           {
