@@ -65,3 +65,17 @@ export const createCollection = async (collection: Collection): Promise<Collecti
 
     return null;
 };
+
+export const uploadImage = async (file: File) => {
+    const fileName = `${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage.from("nft-images").upload(fileName, file);
+    console.log("Image data", data);
+
+    if (error) {
+        return null;
+    }
+
+    const { data: publicUrlData } = supabase.storage.from("nft-images").getPublicUrl(fileName);
+    console.log(publicUrlData.publicUrl);
+    return publicUrlData.publicUrl;
+};

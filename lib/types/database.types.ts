@@ -14,6 +14,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           collections: number[] | null
+          email: string | null
           farcaster_username: string | null
           id: number
           instagram_username: string | null
@@ -26,6 +27,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           collections?: number[] | null
+          email?: string | null
           farcaster_username?: string | null
           id?: number
           instagram_username?: string | null
@@ -38,6 +40,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           collections?: number[] | null
+          email?: string | null
           farcaster_username?: string | null
           id?: number
           instagram_username?: string | null

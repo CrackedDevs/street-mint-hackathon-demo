@@ -1,19 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusIcon, TrashIcon, UploadIcon, Loader2 } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
+import { PlusIcon, TrashIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { Collection, createCollection, supabase } from "@/lib/supabaseClient";
+import { Collection, createCollection, supabase, uploadImage } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import ShimmerButton from "@/components/magicui/shimmer-button";
 import { useRouter } from "next/navigation";
-
-// Initialize Supabase client
+import { useWallet } from "@solana/wallet-adapter-react";
 
 type NFT = {
   id: number;
@@ -29,6 +27,7 @@ type NFT = {
 export default function CreateCollectionPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { publicKey } = useWallet();
   const [collectionName, setCollectionName] = useState("");
   const [collectionDescription, setCollectionDescription] = useState("");
   const [nfts, setNfts] = useState<NFT[]>([]);
@@ -42,6 +41,32 @@ export default function CreateCollectionPage() {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [artistId, setArtistId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchArtistId = async () => {
+      if (publicKey) {
+        const { data, error } = await supabase
+          .from("artists")
+          .select("id")
+          .eq("wallet_address", publicKey.toString())
+          .single();
+
+        if (error) {
+          console.error("Error fetching artist:", error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch artist information",
+            variant: "destructive",
+          });
+        } else if (data) {
+          setArtistId(data.id);
+        }
+      }
+    };
+
+    fetchArtistId();
+  }, [publicKey, toast]);
 
   const handleNFTChange = (field: keyof NFT, value: any) => {
     setNewNFT((prev) => ({ ...prev, [field]: value }));
@@ -52,24 +77,6 @@ export default function CreateCollectionPage() {
       setImageFile(e.target.files[0]);
       handleNFTChange("primary_image_url", e.target.files[0]);
     }
-  };
-
-  const uploadImage = async (file: File) => {
-    const fileName = `${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage.from("nft-images").upload(fileName, file);
-    console.log("Image data", data);
-
-    if (error) {
-      toast({
-        title: "Error uploading image",
-        variant: "destructive",
-      });
-      return null;
-    }
-
-    const { data: publicUrlData } = supabase.storage.from("nft-images").getPublicUrl(fileName);
-    console.log(publicUrlData.publicUrl);
-    return publicUrlData.publicUrl;
   };
 
   const addNFT = (e: React.FormEvent) => {
@@ -112,15 +119,23 @@ export default function CreateCollectionPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("inside handle submit");
     e.preventDefault();
-    const { data, error } = await supabase.from("collections").select("*").limit(1);
-    if (error) {
-      console.error("Error:", error);
-    } else {
-      console.log("Connection successful:", data);
+    if (!publicKey) {
+      toast({
+        title: "Error",
+        description: "Please connect your wallet",
+        variant: "destructive",
+      });
+      return;
     }
-
+    if (!artistId) {
+      toast({
+        title: "Error",
+        description: "Artist information not found",
+        variant: "destructive",
+      });
+      return;
+    }
     if (nfts.length === 0 || !collectionName || !collectionDescription) {
       toast({
         title: "Please fill all required fields and add at least one NFT",
@@ -130,25 +145,34 @@ export default function CreateCollectionPage() {
     }
     setIsSubmitting(true);
     try {
-      // Upload images and update NFTs with URLs
       const updatedNfts = await Promise.all(
         nfts.map(async (nft) => {
           if (nft.primary_image_url instanceof File) {
             const imageUrl = await uploadImage(nft.primary_image_url);
+            if (imageUrl === null) {
+              toast({
+                title: "Failed to upload image",
+                variant: "destructive",
+              });
+              return;
+            }
             return { ...nft, primary_image_url: imageUrl || "" };
           }
           return nft;
         })
       );
-      console.log(updatedNfts);
-
       const newCollection: Collection | null = await createCollection({
         name: collectionName,
         description: collectionDescription,
-        artist: 1,
-        nfts: updatedNfts.map((nft: NFT) => ({
-          ...nft,
-          primary_image_url: nft.primary_image_url as string,
+        artist: artistId,
+        nfts: updatedNfts.map((nft) => ({
+          name: nft!.name || "",
+          description: nft!.description || "",
+          primary_image_url: nft!.primary_image_url as string,
+          quantity_type: nft!.quantity_type || "unlimited",
+          quantity: nft!.quantity,
+          price_usd: nft!.price_usd || 0,
+          location: nft!.location,
         })),
       });
 
