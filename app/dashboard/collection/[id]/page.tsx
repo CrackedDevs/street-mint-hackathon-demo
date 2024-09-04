@@ -2,7 +2,13 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import SparklesText from "@/components/magicui/sparkles-text";
 import Link from "next/link";
 import { Collection, NFT, supabase } from "@/lib/supabaseClient";
@@ -29,7 +35,10 @@ export default function CollectionPage() {
       }
 
       // Fetch NFTs
-      const { data: nftsData, error: nftsError } = await supabase.from("nfts").select("*").eq("collection_id", id);
+      const { data: nftsData, error: nftsError } = await supabase
+        .from("nfts")
+        .select("*")
+        .eq("collection_id", id);
 
       if (nftsError) {
         console.error("Error fetching NFTs:", nftsError);
@@ -39,8 +48,6 @@ export default function CollectionPage() {
     }
     fetchCollectionAndNFTs();
   }, [id]);
-
-  console.log(collection, nfts);
 
   if (!collection) {
     return <div className="p-8">Loading...</div>;
@@ -57,15 +64,24 @@ export default function CollectionPage() {
       <Card className="mb-8">
         <CardHeader>
           <CardTitle>
-            <SparklesText sparklesCount={5} className="text-3xl font-bold" text={collection.name} />
+            <SparklesText
+              sparklesCount={5}
+              className="text-3xl font-bold"
+              text={collection.name}
+            />
           </CardTitle>
-          <CardDescription className="text-lg">{collection.description}</CardDescription>
+          <CardDescription className="text-lg">
+            {collection.description}
+          </CardDescription>
         </CardHeader>
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {nfts.map((nft) => (
-          <Card key={nft.id} className="hover:shadow-lg transition-shadow duration-200">
+          <Card
+            key={nft.id}
+            className="hover:shadow-lg transition-shadow duration-200"
+          >
             <CardContent className="p-4">
               <div className="aspect-square relative mb-4">
                 <Image
@@ -79,7 +95,13 @@ export default function CollectionPage() {
               <h3 className="text-xl font-semibold mb-2">{nft.name}</h3>
               <p className="text-sm text-gray-600 mb-4">{nft.description}</p>
               <div className="flex space-x-4">
-                <p><strong>ID:</strong> {nft.id} | <strong>Quantity Type:</strong> {nft.quantity_type} {nft.quantity_type === "limited" && `| Quantity: ${nft.quantity}`} | <strong>Price (USD):</strong> ${nft.price_usd}</p>
+                <p>
+                  <strong>ID:</strong> {nft.id} |{" "}
+                  <strong>Quantity Type:</strong> {nft.quantity_type}{" "}
+                  {nft.quantity_type === "limited" &&
+                    `| Quantity: ${nft.quantity}`}{" "}
+                  | <strong>Price (USD):</strong> ${nft.price_usd}
+                </p>
               </div>
               {nft.gallery_urls && nft.gallery_urls.length > 0 && (
                 <div className="mt-4">

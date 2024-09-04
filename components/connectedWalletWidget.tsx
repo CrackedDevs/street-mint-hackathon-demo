@@ -19,14 +19,22 @@ interface ConnectedWalletWidgetProps {
   onDisconnect: () => void;
 }
 
-const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({ connected, walletAddress, onDisconnect }) => {
+const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
+  connected,
+  walletAddress,
+  onDisconnect,
+}) => {
   const { select } = useWallet();
   const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (connected && walletAddress) {
-        const { data, error } = await supabase.from("artists").select("*").eq("wallet_address", walletAddress).single();
+        const { data, error } = await supabase
+          .from("artists")
+          .select("*")
+          .eq("wallet_address", walletAddress)
+          .single();
 
         if (error) {
           console.error("Error fetching user data:", error);
@@ -63,7 +71,12 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({ connected
         {/* Visible only on small screens */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative" aria-label={`Connected wallet: ${walletAddress}`}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              aria-label={`Connected wallet: ${walletAddress}`}
+            >
               <Wallet className="h-5 w-5" />
               <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full" />
             </Button>
@@ -73,8 +86,13 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({ connected
               <>
                 <DropdownMenuItem className="flex  items-center">
                   <Avatar className="w-10 h-10 mr-2">
-                    <AvatarImage src={userData.avatar_url} alt={userData.username} />
-                    <AvatarFallback className="text-lg">{userData.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarImage
+                      src={userData.avatar_url}
+                      alt={userData.username}
+                    />
+                    <AvatarFallback className="text-lg">
+                      {userData.username.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   {userData.username}
                 </DropdownMenuItem>
@@ -82,7 +100,9 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({ connected
             ) : (
               <DropdownMenuItem className="flex justify-between items-center">
                 <span className="font-medium">Connected</span>
-                <span className="text-sm text-muted-foreground">{shortenAddress(walletAddress)}</span>
+                <span className="text-sm text-muted-foreground">
+                  {shortenAddress(walletAddress)}
+                </span>
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={onDisconnect}>
@@ -105,14 +125,22 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({ connected
               {userData ? (
                 <>
                   <Avatar className="w-10 h-10 mr-2">
-                    <AvatarImage src={userData.avatar_url} alt={userData.username} />
-                    <AvatarFallback className="text-lg">{userData.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarImage
+                      src={userData.avatar_url}
+                      alt={userData.username}
+                    />
+                    <AvatarFallback className="text-lg">
+                      {userData.username.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   {userData.username}
                 </>
               ) : (
                 <>
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2" aria-hidden="true" />
+                  <span
+                    className="w-2 h-2 bg-green-500 rounded-full mr-2"
+                    aria-hidden="true"
+                  />
                   <span className="sr-only">Connected:</span>
                   {shortenAddress(walletAddress)}
                 </>

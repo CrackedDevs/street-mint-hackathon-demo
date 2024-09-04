@@ -32,12 +32,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Navbar */}
       <header className="w-full py-4 px-6 flex justify-between items-center border-b border-gray-200">
         <div className="flex items-center">
-          <Button variant="ghost" onClick={toggleSidebar} className="mr-2 md:hidden block">
+          <Button
+            variant="ghost"
+            onClick={toggleSidebar}
+            className="mr-2 md:hidden block"
+          >
             <MenuIcon className="h-6 w-6" />
           </Button>
 
           <Link href="/dashboard">
-            <Image src="/logo.svg" alt="Street mint logo" width={250} height={100} className="h-10 w-auto" />
+            <Image
+              src="/logo.svg"
+              alt="Street mint logo"
+              width={250}
+              height={100}
+              className="h-10 w-auto"
+            />
           </Link>
         </div>
         <div className="flex items-center space-x-4">

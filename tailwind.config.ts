@@ -36,7 +36,8 @@ const config: Config = {
             transform: "translate(calc(100cqw - 100%), 0)",
           },
         },
-        grid: { // New grid keyframes
+        grid: {
+          // New grid keyframes
           "0%": { transform: "translateY(-50%)" },
           "100%": { transform: "translateY(0)" },
         },

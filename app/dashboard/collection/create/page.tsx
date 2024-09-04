@@ -7,7 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusIcon, TrashIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { Collection, createCollection, QuantityType, supabase, uploadImage, NFT } from "@/lib/supabaseClient";
+import {
+  Collection,
+  createCollection,
+  QuantityType,
+  supabase,
+  uploadImage,
+  NFT,
+} from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import ShimmerButton from "@/components/magicui/shimmer-button";
 import { useRouter } from "next/navigation";
@@ -21,7 +28,8 @@ export default function CreateCollectionPage() {
   const [collectionDescription, setCollectionDescription] = useState("");
   const [nfts, setNfts] = useState<NFT[]>([]);
 
-  const [primaryImageLocalFile, setPrimaryImageLocalFile] = useState<File | null>(null);
+  const [primaryImageLocalFile, setPrimaryImageLocalFile] =
+    useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitState, setSubmitState] = useState("Submit Collection");
   const [artistId, setArtistId] = useState<number | null>(null);
@@ -69,7 +77,10 @@ export default function CreateCollectionPage() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setPrimaryImageLocalFile(e.target.files[0]);
-      handleNFTChange("primary_image_url", URL.createObjectURL(e.target.files[0]));
+      handleNFTChange(
+        "primary_image_url",
+        URL.createObjectURL(e.target.files[0])
+      );
     }
   };
 
@@ -81,7 +92,9 @@ export default function CreateCollectionPage() {
         {
           ...newNFT,
           id: parseInt(Date.now().toString().slice(-4)),
-          gallery_urls: newNFTGalleryImages.map((file) => URL.createObjectURL(file)),
+          gallery_urls: newNFTGalleryImages.map((file) =>
+            URL.createObjectURL(file)
+          ),
         },
       ]);
       setNewNFT({
@@ -139,22 +152,31 @@ export default function CreateCollectionPage() {
       setSubmitState("Uploading images...");
       const updatedNfts = await Promise.all(
         nfts.map(async (nft) => {
-          const imageBlob = await fetch(nft.primary_image_url).then((r) => r.blob());
-          const imageFile = new File([imageBlob], "image.jpg", { type: imageBlob.type });
+          const imageBlob = await fetch(nft.primary_image_url).then((r) =>
+            r.blob()
+          );
+          const imageFile = new File([imageBlob], "image.jpg", {
+            type: imageBlob.type,
+          });
           const imageUrl = await uploadImage(imageFile);
 
           const uploadedGalleryUrls = await Promise.all(
             nft.gallery_urls.map(async (url) => {
               const galleryBlob = await fetch(url).then((r) => r.blob());
-              const galleryFile = new File([galleryBlob], "gallery_image.jpg", { type: galleryBlob.type });
+              const galleryFile = new File([galleryBlob], "gallery_image.jpg", {
+                type: galleryBlob.type,
+              });
               return (await uploadImage(galleryFile)) || "";
             })
           );
 
-          return { ...nft, primary_image_url: imageUrl || "", gallery_urls: uploadedGalleryUrls.filter(Boolean) };
+          return {
+            ...nft,
+            primary_image_url: imageUrl || "",
+            gallery_urls: uploadedGalleryUrls.filter(Boolean),
+          };
         })
       );
-      console.log(updatedNfts);
 
       setSubmitState("Creating collection...");
       const newCollection: Collection | null = await createCollection({
@@ -212,18 +234,27 @@ export default function CreateCollectionPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground p-8">
-      <Button variant="default" onClick={() => router.push("/dashboard/collection")} className="mb-4">
+      <Button
+        variant="default"
+        onClick={() => router.push("/dashboard/collection")}
+        className="mb-4"
+      >
         ← Back to Collections
       </Button>
       <Card className="max-w-4xl mx-auto w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Create New Collection</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            Create New Collection
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form className="space-y-8" onSubmit={handleSubmit}>
             {/* Collection Details */}
             <div className="space-y-4">
-              <Label htmlFor="collection-name" className="text-lg font-semibold">
+              <Label
+                htmlFor="collection-name"
+                className="text-lg font-semibold"
+              >
                 Collection Name *
               </Label>
               <Input
@@ -234,7 +265,10 @@ export default function CreateCollectionPage() {
               />
             </div>
             <div className="space-y-4">
-              <Label htmlFor="collection-description" className="text-lg font-semibold">
+              <Label
+                htmlFor="collection-description"
+                className="text-lg font-semibold"
+              >
                 Collection Description *
               </Label>
               <Textarea
@@ -253,7 +287,10 @@ export default function CreateCollectionPage() {
               {nfts.length > 0 ? (
                 <div className="space-y-4">
                   {nfts.map((nft) => (
-                    <Card key={nft.id} className="bg-white shadow-md hover:shadow-lg transition-shadow duration-300">
+                    <Card
+                      key={nft.id}
+                      className="bg-white shadow-md hover:shadow-lg transition-shadow duration-300"
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-center">
                           {nft.primary_image_url && (
@@ -268,10 +305,18 @@ export default function CreateCollectionPage() {
                             </div>
                           )}
                           <div className="flex-grow">
-                            <h4 className="text-xl font-semibold">{nft.name}</h4>
-                            <p className="text-sm text-gray-600 mt-1 truncate">{nft.description}</p>
+                            <h4 className="text-xl font-semibold">
+                              {nft.name}
+                            </h4>
+                            <p className="text-sm text-gray-600 mt-1 truncate">
+                              {nft.description}
+                            </p>
                           </div>
-                          <Button variant="destructive" onClick={() => removeNFT(nft.id)} className="h-18 w-18 ml-2">
+                          <Button
+                            variant="destructive"
+                            onClick={() => removeNFT(nft.id)}
+                            className="h-18 w-18 ml-2"
+                          >
                             <TrashIcon />
                           </Button>
                         </div>
@@ -280,7 +325,9 @@ export default function CreateCollectionPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-gray-500 my-4">No NFTs added yet. Add your first NFT above.</p>
+                <p className="text-center text-gray-500 my-4">
+                  No NFTs added yet. Add your first NFT above.
+                </p>
               )}
               {/* New NFT Form */}
               <div className="space-y-4 p-4 border-2 flex flex-col border-gray-300 rounded-lg">
@@ -295,13 +342,18 @@ export default function CreateCollectionPage() {
                     placeholder="Enter the NFT name"
                   />
                 </div>
-                <Label htmlFor="nft-description" className="text-lg font-semibold">
+                <Label
+                  htmlFor="nft-description"
+                  className="text-lg font-semibold"
+                >
                   NFT Description *
                 </Label>
                 <Textarea
                   id="nft-description"
                   value={newNFT.description}
-                  onChange={(e) => handleNFTChange("description", e.target.value)}
+                  onChange={(e) =>
+                    handleNFTChange("description", e.target.value)
+                  }
                   placeholder="Enter a brief description of the NFT"
                   className="h-24"
                 />
@@ -320,15 +372,29 @@ export default function CreateCollectionPage() {
                       />
                     </div>
                   )}
-                  <Input id="nft-image" type="file" accept="image/*" onChange={handleImageChange} className="w-fit" />
+                  <Input
+                    id="nft-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="w-fit"
+                  />
                 </div>
-                <Label htmlFor="nft-quantity-type" className="text-lg font-semibold">
+                <Label
+                  htmlFor="nft-quantity-type"
+                  className="text-lg font-semibold"
+                >
                   Quantity Type *
                 </Label>
                 <select
                   id="nft-quantity-type"
                   value={newNFT.quantity_type}
-                  onChange={(e) => handleNFTChange("quantity_type", e.target.value as QuantityType)}
+                  onChange={(e) =>
+                    handleNFTChange(
+                      "quantity_type",
+                      e.target.value as QuantityType
+                    )
+                  }
                   className="w-full p-2 border rounded-md bg-background"
                 >
                   <option value={QuantityType.Unlimited}>Unlimited</option>
@@ -337,14 +403,19 @@ export default function CreateCollectionPage() {
                 </select>
                 {newNFT.quantity_type === QuantityType.Limited && (
                   <div className="space-y-4">
-                    <Label htmlFor="nft-quantity" className="text-lg font-semibold">
+                    <Label
+                      htmlFor="nft-quantity"
+                      className="text-lg font-semibold"
+                    >
                       Quantity *
                     </Label>
                     <Input
                       id="nft-quantity"
                       type="number"
                       value={newNFT.quantity}
-                      onChange={(e) => handleNFTChange("quantity", Number(e.target.value))}
+                      onChange={(e) =>
+                        handleNFTChange("quantity", Number(e.target.value))
+                      }
                       placeholder="Enter the quantity"
                     />
                   </div>
@@ -356,12 +427,17 @@ export default function CreateCollectionPage() {
                   id="nft-price"
                   type="number"
                   value={newNFT.price_usd}
-                  onChange={(e) => handleNFTChange("price_usd", Number(e.target.value))}
+                  onChange={(e) =>
+                    handleNFTChange("price_usd", Number(e.target.value))
+                  }
                   placeholder="Enter the price in USD"
                 />
               </div>
               <div className="space-y-4">
-                <Label htmlFor="gallery-images" className="text-lg font-semibold">
+                <Label
+                  htmlFor="gallery-images"
+                  className="text-lg font-semibold"
+                >
                   Upload Gallery Images (Max 5)
                 </Label>
                 <div className="flex flex-wrap gap-4">
@@ -392,7 +468,12 @@ export default function CreateCollectionPage() {
                   disabled={newNFTGalleryImages.length >= 5}
                 />
               </div>
-              <Button type="button" variant="outline" className="w-full" onClick={addNFT}>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={addNFT}
+              >
                 <PlusIcon className="mr-2 h-4 w-4" />
                 Add NFT
               </Button>
@@ -400,7 +481,12 @@ export default function CreateCollectionPage() {
           </form>
         </CardContent>
       </Card>
-      <ShimmerButton onClick={handleSubmit} type="submit" className="w-full mt-4" disabled={isSubmitting}>
+      <ShimmerButton
+        onClick={handleSubmit}
+        type="submit"
+        className="w-full mt-4"
+        disabled={isSubmitting}
+      >
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
