@@ -1,19 +1,40 @@
 "use client";
+import { useState, useEffect } from "react";
 import { BorderBeam } from "@/components/magicui/border-beam";
-import GridPattern from "@/components/magicui/grid-pattern";
 import RetroGrid from "@/components/magicui/retro-grid";
 import ShimmerButton from "@/components/magicui/shimmer-button";
-import { Button } from "@/components/ui/button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import ProfileForm from "./profile/page";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 const ArtistJoinPage = () => {
-  const { connected } = useWallet();
+  const { connected, publicKey } = useWallet();
+  const [profileExists, setProfileExists] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (connected && publicKey) {
+      checkProfile(publicKey.toString());
+    }
+  }, [connected, publicKey]);
+
+  const checkProfile = async (walletAddress: string) => {
+    const { data, error } = await supabase.from("artists").select("*").eq("wallet_address", walletAddress);
+    if (error) {
+      console.error("Error fetching profile:", error);
+    } else if (data[0]) {
+      router.push("/dashboard/collection");
+      return;
+    } else {
+      router.push("/dashboard/profile");
+      return;
+    }
+  };
 
   const handleConnect = () => {
-    // target the button with this classname wallet-adapter-butto
-    const button = document.querySelector('.wallet-adapter-button') as HTMLElement;
+    const button = document.querySelector(".wallet-adapter-button") as HTMLElement;
     if (button) {
       button.click();
     }
@@ -23,13 +44,7 @@ const ArtistJoinPage = () => {
     <>
       <div className="h-full flex items-center justify-center bg-gradient-to-br from-white to-gray-100 relative overflow-hidden sm:mx-0 mx-2">
         <RetroGrid />
-        {connected ? (
-              <div className="relative my-12 flex w-fit flex-col items-center justify-center overflow-hidden rounded-lg bg-background md:shadow-xl">
-                <ProfileForm />
-              <BorderBeam colorFrom="#000" colorTo="#000" size={250} duration={12} delay={9} />
-            </div>
-        ) : (
-          <div className="text-center relative z-10 px-4 flex flex-col items-center justify-center mb-6">
+        <div className="text-center relative z-10 px-4 flex flex-col items-center justify-center mb-6">
           <h2 className="pointer-events-none z-10 whitespace-pre-wrap text-black text-center text-7xl font-bold leading-none mb-4">
             Start Selling NFT&apos;s
           </h2>
@@ -45,7 +60,6 @@ const ArtistJoinPage = () => {
             <WalletMultiButton />
           </div>
         </div>
-        )}
       </div>
       <style jsx>{`
         @keyframes blob {

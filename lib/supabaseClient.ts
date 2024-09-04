@@ -12,21 +12,37 @@ export type Collection = {
     nfts: NFT[];
 };
 
+export enum QuantityType {
+    Unlimited = "unlimited",
+    Single = "single",
+    Limited = "limited",
+}
+
+
 export type NFT = {
-    id?: number;
+    id: number;
     name: string;
     description: string;
     primary_image_url: string;
-    quantity_type: "unlimited" | "single" | "limited";
+    quantity_type: QuantityType;
     quantity?: number;
     price_usd: number;
     location?: string;
 };
 
+export type Artist = {
+    username: string;
+    bio: string;
+    email: string;
+    avatar_url: string;
+    x_username: string;
+    instagram_username: string;
+    wallet_address: string;
+};
+
 export const supabase = createClient<Database>(supabaseUrl!, supabaseAnonKey!);
 
 export const createCollection = async (collection: Collection): Promise<Collection | null> => {
-    // Insert the collection
     const { data: collectionData, error: collectionError } = await supabase
         .from('collections')
         .insert({
@@ -64,4 +80,15 @@ export const createCollection = async (collection: Collection): Promise<Collecti
     }
 
     return null;
+};
+
+export const uploadImage = async (file: File) => {
+    const fileName = `${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage.from("nft-images").upload(fileName, file);
+    if (error) {
+        console.error("Error uploading image:", error);
+        return null;
+    }
+    const { data: publicUrlData } = supabase.storage.from("nft-images").getPublicUrl(fileName);
+    return publicUrlData.publicUrl;
 };

@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PaletteIcon, UserIcon, MenuIcon } from "lucide-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import Image from "next/image";
 import Link from "next/link";
 import { Toaster } from "@/components/ui/toaster";
@@ -41,15 +40,28 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Image src="/logo.svg" alt="Street mint logo" width={250} height={100} className="h-10 w-auto" />
           </Link>
         </div>
-        <ConnectedWalletWidget 
-          walletAddress={walletAddress} 
-          onDisconnect={handleDisconnect} 
-          connected={!!walletAddress} 
-        />
+        <div className="flex items-center space-x-4">
+          <Link href="/dashboard/collection">
+            <Button variant="ghost">
+              <PaletteIcon className="h-5 w-5 mr-2" />
+              Collections
+            </Button>
+          </Link>
+          <Link href="/dashboard/profile">
+            <Button variant="ghost">
+              <UserIcon className="h-5 w-5 mr-2" />
+              Profile
+            </Button>
+          </Link>
+          <ConnectedWalletWidget
+            walletAddress={walletAddress}
+            onDisconnect={handleDisconnect}
+            connected={!!walletAddress}
+          />
+        </div>
       </header>
 
       <div className="flex flex-1">
-
         {/* Main Content */}
         <main className="flex-1 w-full">{children}</main>
       </div>
