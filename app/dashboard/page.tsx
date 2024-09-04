@@ -22,10 +22,9 @@ const ArtistJoinPage = () => {
 
   const checkProfile = async (walletAddress: string) => {
     const { data, error } = await supabase.from("artists").select("*").eq("wallet_address", walletAddress);
-
     if (error) {
       console.error("Error fetching profile:", error);
-    } else if (data[0]!) {
+    } else if (data[0]) {
       router.push("/dashboard/collection");
       return;
     } else {

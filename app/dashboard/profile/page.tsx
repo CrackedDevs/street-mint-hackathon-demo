@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UploadIcon, InstagramIcon, Loader2, EditIcon } from "lucide-react";
 import X from "@/components/x";
 import withAuth from "../withAuth";
-import { supabase, uploadImage } from "@/lib/supabaseClient";
+import { Artist, supabase, uploadImage } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useRouter } from "next/navigation";
@@ -18,15 +18,16 @@ function ProfileForm() {
   const { toast } = useToast();
   const { publicKey } = useWallet();
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Artist>({
     username: "",
     bio: "",
     email: "",
-    avatar: "" as string | File,
-    X: "",
-    instagram: "",
+    avatar_url: "",
+    x_username: "",
+    instagram_username: "",
     wallet_address: publicKey?.toString() || "",
   });
+  const [avatarLocalFile, setAvatarLocalFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -40,20 +41,23 @@ function ProfileForm() {
 
   const fetchProfileData = async (walletAddress: string) => {
     const { data, error } = await supabase.from("artists").select("*").eq("wallet_address", walletAddress);
-
+    if (!data || !data[0]) {
+      return;
+    }
+    const artist = data[0];
     if (error) {
       console.error("Error fetching profile:", error);
       setProfileExists(false);
       setIsEditing(true); // Automatically set to edit mode if profile doesn't exist
     } else if (data && data.length > 0) {
       setFormData({
-        username: data[0].username || "",
-        bio: data[0].bio || "",
-        email: data[0].email || "",
-        avatar: data[0].avatar_url || "",
-        X: data[0].x_username || "",
-        instagram: data[0].instagram_username || "",
-        wallet_address: data[0].wallet_address || "",
+        username: artist.username || "",
+        bio: artist.bio || "",
+        email: artist.email || "",
+        avatar_url: artist.avatar_url || "",
+        x_username: artist.x_username || "",
+        instagram_username: artist.instagram_username || "",
+        wallet_address: artist.wallet_address || "",
       });
       setProfileExists(true);
       setIsEditing(false); // Profile exists, so start in view mode
@@ -87,12 +91,10 @@ function ProfileForm() {
       .eq("username", username)
       .neq("wallet_address", formData.wallet_address)
       .single();
-
     if (error && error.code !== "PGRST116") {
       console.error("Error checking username:", error);
       return false;
     }
-
     return data === null;
   };
 
@@ -120,12 +122,10 @@ function ProfileForm() {
       return;
     }
 
-    let avatarUrl = formData.avatar;
-    if (formData.avatar && formData.avatar instanceof File) {
-      const uploadedUrl = await uploadImage(formData.avatar);
-      if (uploadedUrl !== null) {
-        avatarUrl = uploadedUrl;
-      } else {
+    let uploadedUrl: string | null = formData.avatar_url;
+    if (avatarLocalFile) {
+      uploadedUrl = await uploadImage(avatarLocalFile);
+      if (uploadedUrl == null) {
         toast({
           title: "Failed to upload image",
           variant: "destructive",
@@ -135,13 +135,8 @@ function ProfileForm() {
     }
 
     const profileData = {
-      username: formData.username,
-      bio: formData.bio,
-      email: formData.email,
-      avatar_url: avatarUrl as string,
-      x_username: formData.X,
-      instagram_username: formData.instagram,
-      wallet_address: formData.wallet_address,
+      ...formData,
+      avatar_url: uploadedUrl,
     };
 
     const { data, error } = profileExists
@@ -200,23 +195,21 @@ function ProfileForm() {
               <div className="flex flex-col items-center space-y-2">
                 <div className="relative group">
                   <Avatar className="h-24 w-24 border-2 border-dashed border-gray-300 group-hover:border-primary transition-colors duration-200">
-                    {formData.avatar ? (
-                      typeof formData.avatar === "object" ? (
-                        <AvatarImage src={URL.createObjectURL(formData.avatar)} alt="Avatar" />
-                      ) : (
-                        <AvatarImage src={formData.avatar} alt="Avatar" />
-                      )
+                    {isEditing && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-full">
+                        <UploadIcon className="w-8 h-8 text-white" />
+                      </div>
+                    )}
+                    {avatarLocalFile ? (
+                      <AvatarImage src={URL.createObjectURL(avatarLocalFile)} alt="Avatar" />
+                    ) : formData.avatar_url ? (
+                      <AvatarImage src={formData.avatar_url} alt="Avatar" />
                     ) : (
                       <AvatarFallback className="bg-background">
                         <UploadIcon className="w-12 h-12 text-gray-300 group-hover:text-primary transition-colors duration-200" />
                       </AvatarFallback>
                     )}
                   </Avatar>
-                  {isEditing && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-full">
-                      <UploadIcon className="w-8 h-8 text-white" />
-                    </div>
-                  )}
                 </div>
                 {isEditing && (
                   <>
@@ -228,10 +221,7 @@ function ProfileForm() {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          setFormData((prev) => ({
-                            ...prev,
-                            avatar: file,
-                          }));
+                          setAvatarLocalFile(file);
                         }
                       }}
                     />
@@ -328,9 +318,9 @@ function ProfileForm() {
                 <div className="flex items-center space-x-2">
                   <X className="h-4 w-4" />
                   <Input
-                    id="X"
-                    name="X"
-                    value={formData.X}
+                    id="x_username"
+                    name="x_username"
+                    value={formData.x_username}
                     onChange={handleInputChange}
                     className="bg-background"
                     placeholder="X username"
@@ -340,9 +330,9 @@ function ProfileForm() {
                 <div className="flex items-center space-x-2">
                   <InstagramIcon className="h-4 w-4 text-pink-500" />
                   <Input
-                    id="instagram"
-                    name="instagram"
-                    value={formData.instagram}
+                    id="instagram_username"
+                    name="instagram_username"
+                    value={formData.instagram_username}
                     onChange={handleInputChange}
                     className="bg-background"
                     placeholder="Instagram username"

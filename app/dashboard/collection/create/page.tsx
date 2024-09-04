@@ -7,22 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusIcon, TrashIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { Collection, createCollection, supabase, uploadImage } from "@/lib/supabaseClient";
+import { Collection, createCollection, QuantityType, supabase, uploadImage, NFT } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import ShimmerButton from "@/components/magicui/shimmer-button";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
-
-type NFT = {
-  id: number;
-  name: string;
-  description: string;
-  primary_image_url: string | File;
-  quantity_type: "unlimited" | "single" | "limited";
-  quantity?: number;
-  price_usd: number;
-  location?: string;
-};
 
 export default function CreateCollectionPage() {
   const router = useRouter();
@@ -36,10 +25,10 @@ export default function CreateCollectionPage() {
     name: "",
     description: "",
     primary_image_url: "",
-    quantity_type: "unlimited",
+    quantity_type: QuantityType.Unlimited || "unlimited",
     price_usd: 0,
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [primaryImageLocalFile, setPrimaryImageLocalFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [artistId, setArtistId] = useState<number | null>(null);
 
@@ -74,8 +63,8 @@ export default function CreateCollectionPage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setImageFile(e.target.files[0]);
-      handleNFTChange("primary_image_url", e.target.files[0]);
+      setPrimaryImageLocalFile(e.target.files[0]);
+      handleNFTChange("primary_image_url", URL.createObjectURL(e.target.files[0]));
     }
   };
 
@@ -89,10 +78,10 @@ export default function CreateCollectionPage() {
           name: "",
           description: "",
           primary_image_url: "",
-          quantity_type: "unlimited",
+          quantity_type: QuantityType.Unlimited,
           price_usd: 0,
         });
-        setImageFile(null);
+        setPrimaryImageLocalFile(null);
       } else {
         toast({
           title: "Error",
@@ -107,10 +96,10 @@ export default function CreateCollectionPage() {
         name: "",
         description: "",
         primary_image_url: "",
-        quantity_type: "unlimited",
+        quantity_type: QuantityType.Unlimited,
         price_usd: 0,
       });
-      setImageFile(null);
+      setPrimaryImageLocalFile(null);
     }
   };
 
@@ -136,9 +125,10 @@ export default function CreateCollectionPage() {
       });
       return;
     }
-    if (nfts.length === 0 || !collectionName || !collectionDescription) {
+    if (nfts.length === 0) {
       toast({
-        title: "Please fill all required fields and add at least one NFT",
+        title: "Error",
+        description: "Please fill all required fields and add at least one NFT",
         variant: "destructive",
       });
       return;
@@ -147,33 +137,19 @@ export default function CreateCollectionPage() {
     try {
       const updatedNfts = await Promise.all(
         nfts.map(async (nft) => {
-          if (nft.primary_image_url instanceof File) {
-            const imageUrl = await uploadImage(nft.primary_image_url);
-            if (imageUrl === null) {
-              toast({
-                title: "Failed to upload image",
-                variant: "destructive",
-              });
-              return;
-            }
+          if (primaryImageLocalFile) {
+            const imageUrl = await uploadImage(primaryImageLocalFile);
             return { ...nft, primary_image_url: imageUrl || "" };
           }
           return nft;
         })
       );
+
       const newCollection: Collection | null = await createCollection({
         name: collectionName,
         description: collectionDescription,
         artist: artistId,
-        nfts: updatedNfts.map((nft) => ({
-          name: nft!.name || "",
-          description: nft!.description || "",
-          primary_image_url: nft!.primary_image_url as string,
-          quantity_type: nft!.quantity_type || "unlimited",
-          quantity: nft!.quantity,
-          price_usd: nft!.price_usd || 0,
-          location: nft!.location,
-        })),
+        nfts: updatedNfts,
       });
 
       if (newCollection) {
@@ -221,7 +197,6 @@ export default function CreateCollectionPage() {
                 value={collectionName}
                 onChange={(e) => setCollectionName(e.target.value)}
                 placeholder="Enter the collection name"
-                required
               />
             </div>
             <div className="space-y-4">
@@ -234,7 +209,6 @@ export default function CreateCollectionPage() {
                 onChange={(e) => setCollectionDescription(e.target.value)}
                 placeholder="Enter a brief description of the collection"
                 className="h-32"
-                required
               />
             </div>
             {/* NFT Management */}
@@ -250,37 +224,20 @@ export default function CreateCollectionPage() {
                         <div className="flex items-center">
                           {nft.primary_image_url && (
                             <div className="w-24 h-24 mr-4 relative flex-shrink-0">
-                              {typeof nft.primary_image_url === "string" ? (
-                                <Image
-                                  width={128}
-                                  height={128}
-                                  src={nft.primary_image_url}
-                                  alt={nft.name}
-                                  className="rounded"
-                                />
-                              ) : (
-                                <Image
-                                  width={128}
-                                  height={128}
-                                  src={URL.createObjectURL(nft.primary_image_url)}
-                                  alt={nft.name}
-                                  className="rounded"
-                                />
-                              )}
+                              <Image
+                                width={128}
+                                height={128}
+                                src={nft.primary_image_url}
+                                alt={nft.name}
+                                className="rounded"
+                              />
                             </div>
                           )}
                           <div className="flex-grow">
                             <h4 className="text-xl font-semibold">{nft.name}</h4>
                             <p className="text-sm text-gray-600 mt-1 truncate">{nft.description}</p>
-                            <p className="text-sm font-medium text-primary mt-2">Price: ${nft.price_usd}</p>
-                            <p className="text-sm text-gray-600">Type: {nft.quantity_type}</p>
                           </div>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            onClick={() => removeNFT(nft.id)}
-                            className="h-18 w-18 ml-2 "
-                          >
+                          <Button variant="destructive" onClick={() => removeNFT(nft.id)} className="h-18 w-18 ml-2">
                             <TrashIcon />
                           </Button>
                         </div>
@@ -302,7 +259,6 @@ export default function CreateCollectionPage() {
                     value={newNFT.name}
                     onChange={(e) => handleNFTChange("name", e.target.value)}
                     placeholder="Enter the NFT name"
-                    // required
                   />
                 </div>
                 <Label htmlFor="nft-description" className="text-lg font-semibold">
@@ -314,7 +270,6 @@ export default function CreateCollectionPage() {
                   onChange={(e) => handleNFTChange("description", e.target.value)}
                   placeholder="Enter a brief description of the NFT"
                   className="h-24"
-                  //   required
                 />
                 <Label htmlFor="nft-image" className="text-lg font-semibold">
                   NFT Image *
@@ -323,11 +278,7 @@ export default function CreateCollectionPage() {
                   {newNFT.primary_image_url && (
                     <div className="w-60 h-32 border-2 justify-center align-middle items-center border-gray-300 rounded-lg overflow-hidden">
                       <Image
-                        src={
-                          newNFT.primary_image_url instanceof File
-                            ? URL.createObjectURL(newNFT.primary_image_url)
-                            : newNFT.primary_image_url
-                        }
+                        src={newNFT.primary_image_url}
                         alt={newNFT.name || "NFT preview"}
                         width={128}
                         className="items-center h-full w-full object-contain"
@@ -335,14 +286,7 @@ export default function CreateCollectionPage() {
                       />
                     </div>
                   )}
-                  <Input
-                    id="nft-image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="w-fit"
-                    required
-                  />
+                  <Input id="nft-image" type="file" accept="image/*" onChange={handleImageChange} className="w-fit" />
                 </div>
                 <Label htmlFor="nft-quantity-type" className="text-lg font-semibold">
                   Quantity Type *
@@ -350,15 +294,14 @@ export default function CreateCollectionPage() {
                 <select
                   id="nft-quantity-type"
                   value={newNFT.quantity_type}
-                  onChange={(e) => handleNFTChange("quantity_type", e.target.value)}
+                  onChange={(e) => handleNFTChange("quantity_type", e.target.value as QuantityType)}
                   className="w-full p-2 border rounded-md bg-background"
-                  required
                 >
-                  <option value="unlimited">Unlimited</option>
-                  <option value="single">Single</option>
-                  <option value="limited">Limited</option>
+                  <option value={QuantityType.Unlimited}>Unlimited</option>
+                  <option value={QuantityType.Single}>Single</option>
+                  <option value={QuantityType.Limited}>Limited</option>
                 </select>
-                {newNFT.quantity_type === "limited" && (
+                {newNFT.quantity_type === QuantityType.Limited && (
                   <div className="space-y-4">
                     <Label htmlFor="nft-quantity" className="text-lg font-semibold">
                       Quantity *
@@ -369,7 +312,6 @@ export default function CreateCollectionPage() {
                       value={newNFT.quantity}
                       onChange={(e) => handleNFTChange("quantity", Number(e.target.value))}
                       placeholder="Enter the quantity"
-                      required
                     />
                   </div>
                 )}
@@ -382,7 +324,6 @@ export default function CreateCollectionPage() {
                   value={newNFT.price_usd}
                   onChange={(e) => handleNFTChange("price_usd", Number(e.target.value))}
                   placeholder="Enter the price in USD"
-                  required
                 />
               </div>
               <Button type="button" variant="outline" className="w-full" onClick={addNFT}>

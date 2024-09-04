@@ -4,12 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import SparklesText from "@/components/magicui/sparkles-text";
 import Link from "next/link";
-import { Collection, supabase } from "@/lib/supabaseClient";
+import {  supabase } from "@/lib/supabaseClient";
 import AnimatedGridPattern from "@/components/magicui/animated-grid-pattern";
 import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
 import { cn } from "@/lib/utils";
 import { useWallet } from "@solana/wallet-adapter-react";
 import withAuth from "../withAuth";
+
+ type Collection = {
+  id?: number;
+  name: string;
+  description: string;
+  artist: number;
+  nfts: number[];
+};
 
 function CollectionsPage() {
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -19,25 +27,19 @@ function CollectionsPage() {
   useEffect(() => {
     async function fetchCollections() {
       if (!publicKey) return;
-
       setLoading(true);
       try {
-        // First, get the artist data using the wallet address
         const { data: artistData, error: artistError } = await supabase
           .from("artists")
           .select("id")
           .eq("wallet_address", publicKey.toString())
           .single();
-
         if (artistError) throw artistError;
-
         if (!artistData) {
           console.error("Artist not found");
           setLoading(false);
           return;
         }
-
-        // Then, fetch the corresponding collections using the artist's id
         const { data: collectionsData, error: collectionsError } = await supabase
           .from("collections")
           .select("*")
@@ -45,7 +47,7 @@ function CollectionsPage() {
 
         if (collectionsError) throw collectionsError;
 
-        setCollections(collectionsData as any);
+        setCollections(collectionsData as Collection[]);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
