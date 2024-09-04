@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Toaster } from "@/components/ui/toaster";
 import ConnectedWalletWidget from "@/components/connectedWalletWidget";
 import { useWallet } from "@solana/wallet-adapter-react";
+import RetroGrid from "@/components/magicui/retro-grid";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -30,7 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Navbar */}
-      <header className="w-full py-4 px-6 flex justify-between items-center border-b border-gray-200">
+      <header className="w-full py-4 px-6 flex justify-between items-center border-b border-gray-200 bg-white z-50">
         <div className="flex items-center">
           <Button
             variant="ghost"
@@ -51,18 +52,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </Link>
         </div>
         <div className="flex items-center space-x-4">
-          <Link href="/dashboard/collection">
-            <Button variant="ghost">
-              <PaletteIcon className="h-5 w-5 mr-2" />
-              Collections
-            </Button>
-          </Link>
-          <Link href="/dashboard/profile">
-            <Button variant="ghost">
-              <UserIcon className="h-5 w-5 mr-2" />
-              Profile
-            </Button>
-          </Link>
+          {walletAddress && (
+            <>
+              <Link href="/dashboard/collection">
+                <Button variant="ghost">
+                  <PaletteIcon className="h-5 w-5 mr-2" />
+                  Collections
+                </Button>
+              </Link>
+              <Link href="/dashboard/profile">
+                <Button variant="ghost">
+                  <UserIcon className="h-5 w-5 mr-2" />
+                  Profile
+                </Button>
+              </Link>
+            </>
+          )}
           <ConnectedWalletWidget
             walletAddress={walletAddress}
             onDisconnect={handleDisconnect}
@@ -73,7 +78,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       <div className="flex flex-1">
         {/* Main Content */}
-        <main className="flex-1 w-full">{children}</main>
+        <main className="flex-1 w-full">
+        <RetroGrid />{children}</main>
       </div>
       <Toaster />
     </div>
