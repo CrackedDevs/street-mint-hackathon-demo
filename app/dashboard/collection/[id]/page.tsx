@@ -77,7 +77,28 @@ export default function CollectionPage() {
                 />
               </div>
               <h3 className="text-xl font-semibold mb-2">{nft.name}</h3>
-              <p className="text-sm text-gray-600">{nft.description}</p>
+              <p className="text-sm text-gray-600 mb-4">{nft.description}</p>
+              <div className="flex space-x-4">
+                <p><strong>ID:</strong> {nft.id} | <strong>Quantity Type:</strong> {nft.quantity_type} {nft.quantity_type === "limited" && `| Quantity: ${nft.quantity}`} | <strong>Price (USD):</strong> ${nft.price_usd}</p>
+              </div>
+              {nft.gallery_urls && nft.gallery_urls.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-lg font-semibold mb-2">Gallery</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {nft.gallery_urls.map((url, index) => (
+                      <div key={index} className="w-16 h-16 relative">
+                        <Image
+                          src={url}
+                          alt={`Gallery image ${index + 1}`}
+                          layout="fill"
+                          objectFit="cover"
+                          className="rounded-md"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}

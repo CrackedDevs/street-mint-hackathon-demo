@@ -20,6 +20,12 @@ export default function CreateCollectionPage() {
   const [collectionName, setCollectionName] = useState("");
   const [collectionDescription, setCollectionDescription] = useState("");
   const [nfts, setNfts] = useState<NFT[]>([]);
+
+  const [primaryImageLocalFile, setPrimaryImageLocalFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitState, setSubmitState] = useState("Submit Collection");
+  const [artistId, setArtistId] = useState<number | null>(null);
+
   const [newNFT, setNewNFT] = useState<NFT>({
     id: parseInt(Date.now().toString().slice(-4)),
     name: "",
@@ -27,10 +33,9 @@ export default function CreateCollectionPage() {
     primary_image_url: "",
     quantity_type: QuantityType.Unlimited || "unlimited",
     price_usd: 0,
+    gallery_urls: [],
   });
-  const [primaryImageLocalFile, setPrimaryImageLocalFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [artistId, setArtistId] = useState<number | null>(null);
+  const [newNFTGalleryImages, setNewNFTGalleryImages] = useState<File[]>([]);
 
   useEffect(() => {
     const fetchArtistId = async () => {
@@ -70,27 +75,15 @@ export default function CreateCollectionPage() {
 
   const addNFT = (e: React.FormEvent) => {
     e.preventDefault();
-    if (nfts.length === 0) {
-      if (newNFT.name && newNFT.description && newNFT.primary_image_url) {
-        setNfts((prev) => [...prev, { ...newNFT, id: parseInt(Date.now().toString().slice(-4)) }]);
-        setNewNFT({
+    if (newNFT.name && newNFT.description && newNFT.primary_image_url) {
+      setNfts((prev) => [
+        ...prev,
+        {
+          ...newNFT,
           id: parseInt(Date.now().toString().slice(-4)),
-          name: "",
-          description: "",
-          primary_image_url: "",
-          quantity_type: QuantityType.Unlimited,
-          price_usd: 0,
-        });
-        setPrimaryImageLocalFile(null);
-      } else {
-        toast({
-          title: "Error",
-          description: "Please fill all required fields for the first NFT",
-          variant: "destructive",
-        });
-      }
-    } else {
-      setNfts((prev) => [...prev, { ...newNFT, id: parseInt(Date.now().toString().slice(-4)) }]);
+          gallery_urls: newNFTGalleryImages.map((file) => URL.createObjectURL(file)),
+        },
+      ]);
       setNewNFT({
         id: parseInt(Date.now().toString().slice(-4)),
         name: "",
@@ -98,8 +91,16 @@ export default function CreateCollectionPage() {
         primary_image_url: "",
         quantity_type: QuantityType.Unlimited,
         price_usd: 0,
+        gallery_urls: [],
       });
       setPrimaryImageLocalFile(null);
+      setNewNFTGalleryImages([]);
+    } else {
+      toast({
+        title: "Error",
+        description: "Please fill all required fields for the NFT",
+        variant: "destructive",
+      });
     }
   };
 
@@ -135,16 +136,27 @@ export default function CreateCollectionPage() {
     }
     setIsSubmitting(true);
     try {
+      setSubmitState("Uploading images...");
       const updatedNfts = await Promise.all(
         nfts.map(async (nft) => {
-          if (primaryImageLocalFile) {
-            const imageUrl = await uploadImage(primaryImageLocalFile);
-            return { ...nft, primary_image_url: imageUrl || "" };
-          }
-          return nft;
+          const imageBlob = await fetch(nft.primary_image_url).then((r) => r.blob());
+          const imageFile = new File([imageBlob], "image.jpg", { type: imageBlob.type });
+          const imageUrl = await uploadImage(imageFile);
+
+          const uploadedGalleryUrls = await Promise.all(
+            nft.gallery_urls.map(async (url) => {
+              const galleryBlob = await fetch(url).then((r) => r.blob());
+              const galleryFile = new File([galleryBlob], "gallery_image.jpg", { type: galleryBlob.type });
+              return (await uploadImage(galleryFile)) || "";
+            })
+          );
+
+          return { ...nft, primary_image_url: imageUrl || "", gallery_urls: uploadedGalleryUrls.filter(Boolean) };
         })
       );
+      console.log(updatedNfts);
 
+      setSubmitState("Creating collection...");
       const newCollection: Collection | null = await createCollection({
         name: collectionName,
         description: collectionDescription,
@@ -153,6 +165,7 @@ export default function CreateCollectionPage() {
       });
 
       if (newCollection) {
+        setSubmitState("Done!");
         toast({
           title: "Success",
           description: "Collection created successfully",
@@ -173,7 +186,28 @@ export default function CreateCollectionPage() {
       });
     } finally {
       setIsSubmitting(false);
+      setSubmitState("Submit Collection");
     }
+  };
+
+  const handleGalleryImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && newNFTGalleryImages.length < 5) {
+      const filesArray = Array.from(e.target.files);
+      if (filesArray.length + newNFTGalleryImages.length <= 5) {
+        setNewNFTGalleryImages([...newNFTGalleryImages, ...filesArray]);
+      } else {
+        toast({
+          title: "Error",
+          description: "You can only upload a maximum of 5 images per NFT.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+    const updatedImages = newNFTGalleryImages.filter((_, i) => i !== index);
+    setNewNFTGalleryImages(updatedImages);
   };
 
   return (
@@ -326,24 +360,56 @@ export default function CreateCollectionPage() {
                   placeholder="Enter the price in USD"
                 />
               </div>
+              <div className="space-y-4">
+                <Label htmlFor="gallery-images" className="text-lg font-semibold">
+                  Upload Gallery Images (Max 5)
+                </Label>
+                <div className="flex flex-wrap gap-4">
+                  {newNFTGalleryImages.map((file, index) => (
+                    <div key={index} className="relative">
+                      <Image
+                        src={URL.createObjectURL(file)}
+                        alt="Gallery Image Preview"
+                        width={100}
+                        height={100}
+                        className="rounded"
+                      />
+                      <button
+                        onClick={() => removeGalleryImage(index)}
+                        className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <Input
+                  id="gallery-images"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleGalleryImageChange}
+                  disabled={newNFTGalleryImages.length >= 5}
+                />
+              </div>
               <Button type="button" variant="outline" className="w-full" onClick={addNFT}>
                 <PlusIcon className="mr-2 h-4 w-4" />
                 Add NFT
               </Button>
             </div>
-            <ShimmerButton type="submit" className="w-full mt-4" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                "Submit Collection"
-              )}
-            </ShimmerButton>
           </form>
         </CardContent>
       </Card>
+      <ShimmerButton onClick={handleSubmit} type="submit" className="w-full mt-4" disabled={isSubmitting}>
+        {isSubmitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {submitState}
+          </>
+        ) : (
+          submitState
+        )}
+      </ShimmerButton>
     </div>
   );
 }

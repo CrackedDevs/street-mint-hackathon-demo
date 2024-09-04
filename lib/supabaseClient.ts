@@ -28,6 +28,7 @@ export type NFT = {
     quantity?: number;
     price_usd: number;
     location?: string;
+    gallery_urls: string[];
 };
 
 export type Artist = {

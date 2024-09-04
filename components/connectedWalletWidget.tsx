@@ -99,7 +99,7 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({ connected
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="text-sm font-medium w-fit h-fit p-4"
+              className="text-sm font-medium h-fit py-2 px-6"
               aria-label={`Connected wallet: ${walletAddress}`}
             >
               {userData ? (
