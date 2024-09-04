@@ -48,20 +48,7 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
   }, [connected, walletAddress]);
 
   if (!connected || !walletAddress) {
-    return (
-      <WalletMultiButton
-        style={{
-          backgroundColor: "white",
-          color: "black",
-          border: "1px solid black",
-          padding: "10px",
-          borderRadius: "10px",
-        }}
-      >
-        <Plug className="mr-2 h-4 w-4" />
-        Connect Wallet
-      </WalletMultiButton>
-    );
+    return <></>
   }
 
   return (

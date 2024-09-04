@@ -12,65 +12,65 @@ export type Database = {
       artists: {
         Row: {
           avatar_url: string | null
-          bio: string | null
+          bio: string
           collections: number[] | null
           email: string | null
           farcaster_username: string | null
           id: number
           instagram_username: string | null
           linkedin_username: string | null
-          username: string | null
-          wallet_address: string | null
+          username: string
+          wallet_address: string
           x_username: string | null
         }
         Insert: {
           avatar_url?: string | null
-          bio?: string | null
+          bio: string
           collections?: number[] | null
           email?: string | null
           farcaster_username?: string | null
           id?: number
           instagram_username?: string | null
           linkedin_username?: string | null
-          username?: string | null
-          wallet_address?: string | null
+          username: string
+          wallet_address: string
           x_username?: string | null
         }
         Update: {
           avatar_url?: string | null
-          bio?: string | null
+          bio?: string
           collections?: number[] | null
           email?: string | null
           farcaster_username?: string | null
           id?: number
           instagram_username?: string | null
           linkedin_username?: string | null
-          username?: string | null
-          wallet_address?: string | null
+          username?: string
+          wallet_address?: string
           x_username?: string | null
         }
         Relationships: []
       }
       collections: {
         Row: {
-          artist: number | null
-          description: string | null
+          artist: number
+          description: string
           id: number
-          name: string | null
+          name: string
           nfts: number[] | null
         }
         Insert: {
-          artist?: number | null
-          description?: string | null
+          artist: number
+          description: string
           id?: number
-          name?: string | null
+          name: string
           nfts?: number[] | null
         }
         Update: {
-          artist?: number | null
-          description?: string | null
+          artist?: number
+          description?: string
           id?: number
-          name?: string | null
+          name?: string
           nfts?: number[] | null
         }
         Relationships: [

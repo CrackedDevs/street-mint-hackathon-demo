@@ -188,18 +188,14 @@ function ProfileForm() {
   if (!publicKey) {
     return (
       <div className="flex flex-col h-full justify-center align-middle">
-        <Card className="w-full max-w-2xl mx-auto">
-          <CardContent className="p-6">
             <p className="text-center">Connecting...</p>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col h-full justify-center align-middle">
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="w-full max-w-2xl mx-auto z-20 bg-white">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
             {profileExists ? "Your Profile" : "Create Your Profile"}
