@@ -9,23 +9,12 @@ import {
 import { Wallet, LogOut, Plug, User } from "lucide-react";
 import { shortenAddress } from "@/lib/shortenAddress";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { fetchProfileData, supabase } from "@/lib/supabaseClient";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 
-interface ConnectedWalletWidgetProps {
-  connected: boolean;
-  walletAddress: string | null;
-  onDisconnect: () => void;
-}
-
-const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
-  connected,
-  walletAddress,
-  onDisconnect,
-}) => {
-  const { publicKey, signMessage } = useWallet();
+const ConnectedWalletWidget = () => {
+  const { publicKey, signMessage, disconnect, connected } = useWallet();
   const [userData, setUserData] = useState<any>(null);
   const router = useRouter();
 
@@ -54,7 +43,7 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
         body: JSON.stringify({
           publicKey: publicKey?.toString(),
           signature: signature,
-          walletAddress: walletAddress,
+          walletAddress: publicKey,
         }),
       });
 
@@ -66,13 +55,13 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
       }
     } catch (error) {
       console.error("Error logging in:", error);
-      onDisconnect();
+      disconnect();
     }
   };
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (connected && walletAddress && publicKey) {
+      if (connected && publicKey) {
         let token = localStorage.getItem("supabase_token");
         let {
           data: { session },
@@ -84,7 +73,10 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
           !session ||
           (session?.expires_at && session.expires_at * 1000 < Date.now())
         ) {
+          console.log("loginUser");
           await loginUser();
+
+          return;
         }
 
         token = localStorage.getItem("supabase_token");
@@ -97,7 +89,7 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
           });
           if (error) {
             console.error("Error setting Supabase session:", error);
-            onDisconnect();
+            disconnect();
             return;
           }
           const {
@@ -115,21 +107,21 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
           }
         } else {
           console.error("No token found after login attempt");
-          onDisconnect();
+          disconnect();
         }
       }
     };
 
     fetchUserData();
-  }, [connected, walletAddress, publicKey, router]);
+  }, [connected, publicKey, router, loginUser, disconnect]);
 
-  if (!connected || !walletAddress) {
+  if (!connected) {
     return <></>;
   }
 
   const handleDisconnect = () => {
     localStorage.removeItem("supabase_token");
-    onDisconnect();
+    disconnect();
     router.push("/dashboard");
   };
 
@@ -144,7 +136,7 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
               variant="ghost"
               size="icon"
               className="relative"
-              aria-label={`Connected wallet: ${walletAddress}`}
+              aria-label={`Connected wallet: ${publicKey}`}
             >
               <Wallet className="h-5 w-5" />
               <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full" />
@@ -170,7 +162,7 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
               <DropdownMenuItem className="flex justify-between items-center">
                 <span className="font-medium">Connected</span>
                 <span className="text-sm text-muted-foreground">
-                  {shortenAddress(walletAddress)}
+                  {shortenAddress(publicKey?.toString() || '')}
                 </span>
               </DropdownMenuItem>
             )}
@@ -189,7 +181,7 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
             <Button
               variant="outline"
               className="text-sm font-medium h-fit py-2 px-6"
-              aria-label={`Connected wallet: ${walletAddress}`}
+              aria-label={`Connected wallet: ${publicKey}`}
             >
               {userData ? (
                 <>
@@ -211,7 +203,7 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
                     aria-hidden="true"
                   />
                   <span className="sr-only">Connected:</span>
-                  {shortenAddress(walletAddress)}
+                  {shortenAddress(publicKey?.toString() || '')}
                 </>
               )}
             </Button>
@@ -223,7 +215,7 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
                 <span>View Profile</span>
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={onDisconnect} className="cursor-pointer">
+            <DropdownMenuItem onClick={disconnect} className="cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Disconnect</span>
             </DropdownMenuItem>

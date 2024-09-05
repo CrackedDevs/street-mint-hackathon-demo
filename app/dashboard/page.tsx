@@ -8,7 +8,7 @@ import { fetchProfileData } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
 const DashboardPage = () => {
-  const { connected, publicKey } = useWallet();
+  const { connected, connecting } = useWallet();
   const router = useRouter();
 
   const handleConnect = () => {
@@ -23,6 +23,10 @@ const DashboardPage = () => {
   const handleGoToCollection = () => {
     router.push("/dashboard/collection");
   };
+
+  if (connecting) {
+    return <div>Connecting...</div>;
+  }
 
   return (
     <>
@@ -56,37 +60,6 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
-      <style jsx>{`
-        @keyframes blob {
-          0% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-          100% {
-            transform: translate(0px, 0px) scale(1);
-          }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        .font-playfair {
-          font-family: "Playfair Display", serif;
-        }
-        .font-raleway {
-          font-family: "Raleway", sans-serif;
-        }
-      `}</style>
     </>
   );
 };

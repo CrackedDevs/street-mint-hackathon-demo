@@ -20,62 +20,56 @@ import {
   Artist,
   checkUsernameAvailability,
   createProfile,
-  fetchProfileData,
   updateProfile,
   uploadImage,
 } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useRouter } from "next/navigation";
 import { NumericUUID } from "@/lib/utils";
+import { useUserProfile } from "@/app/providers/UserProfileProvider";
 
 function ProfileForm() {
   const { toast } = useToast();
   const { publicKey } = useWallet();
-  const router = useRouter();
-  const [formData, setFormData] = useState<Artist>({
-    id: NumericUUID(),
-    username: "",
-    bio: "",
-    email: "",
-    avatar_url: "",
-    x_username: "",
-    instagram_username: "",
-    wallet_address: publicKey?.toString() || "",
-  });
+  const { userProfile, setUserProfile, isLoading } = useUserProfile();
+  const [formData, setFormData] = useState<Artist | null>(null);
   const [avatarLocalFile, setAvatarLocalFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [profileExists, setProfileExists] = useState(false);
 
   useEffect(() => {
-    if (publicKey) {
-      fetchProfileData().then(({ exists, data }) => {
-        if (exists && data) {
-          setFormData(data);
-          setProfileExists(true);
-          setIsEditing(false);
-        } else {
-          setProfileExists(false);
-          setIsEditing(true);
-        }
+    console.log("userProfile", userProfile);
+    if (userProfile) {
+      setFormData(userProfile);
+      setIsEditing(false);
+    } else if (!isLoading) {
+      setFormData({
+        id: NumericUUID(),
+        username: "",
+        bio: "",
+        email: "",
+        avatar_url: "",
+        x_username: "",
+        instagram_username: "",
+        wallet_address: publicKey?.toString() || "",
       });
-      setFormData({ ...formData, wallet_address: publicKey.toString() });
+      setIsEditing(true);
     }
-  }, [publicKey]);
+  }, [userProfile, isLoading, publicKey]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     e.preventDefault();
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => prev ? { ...prev, [name]: value } : null);
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
+    if (!formData) return false;
     if (!formData.username) newErrors.username = "Username is required";
     if (!formData.bio) newErrors.bio = "Bio is required";
     if (!formData.email) newErrors.email = "Email is required";
@@ -85,12 +79,12 @@ function ProfileForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const checkUsernameUniqueness = async () => {
-    if (!publicKey || profileExists) {
+  const checkUsernameUniqueness = async (username: string) => {
+    if (!publicKey || userProfile) {
       return true;
     }
     const { available, error } = await checkUsernameAvailability(
-      formData.username
+      username
     );
     if (error) {
       console.error("Error checking username:", error);
@@ -101,7 +95,7 @@ function ProfileForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!validateForm()) {
+    if (!formData || !validateForm()) {
       toast({
         title: "Error",
         description: "Please fill in all required fields.",
@@ -112,8 +106,8 @@ function ProfileForm() {
 
     setIsSubmitting(true);
 
-    if (!profileExists) {
-      const isUsernameUnique = await checkUsernameUniqueness();
+    if (!userProfile) {
+      const isUsernameUnique = await checkUsernameUniqueness(formData.username);
       if (!isUsernameUnique) {
         setErrors((prev) => ({
           ...prev,
@@ -147,7 +141,7 @@ function ProfileForm() {
     };
 
     if (publicKey) {
-      const { data, error } = profileExists
+      const { data, error } = userProfile
         ? await updateProfile(profileData, publicKey?.toString())
         : await createProfile(profileData);
       if (error) {
@@ -161,12 +155,12 @@ function ProfileForm() {
         toast({
           title: "Success",
           description: `Your profile has been ${
-            profileExists ? "updated" : "created"
+            userProfile ? "updated" : "created"
           } successfully!`,
           variant: "default",
         });
         setIsEditing(false);
-        setProfileExists(true);
+        setUserProfile(profileData); // Update the context
       }
     }
     setIsSubmitting(false);
@@ -185,10 +179,10 @@ function ProfileForm() {
       <Card className="w-full max-w-2xl mx-auto z-20 bg-white my-12">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            {profileExists ? "Your Profile" : "Create Your Profile"}
+            {userProfile ? "Your Profile" : "Create Your Profile"}
           </CardTitle>
           <CardDescription className="text-center">
-            {profileExists
+            {userProfile
               ? "View your profile information below. Click 'Edit' to make changes."
               : "Fill out the form below to set up your profile and connect your social media accounts."}
           </CardDescription>
@@ -209,7 +203,7 @@ function ProfileForm() {
                         src={URL.createObjectURL(avatarLocalFile)}
                         alt="Avatar"
                       />
-                    ) : formData.avatar_url ? (
+                    ) : formData?.avatar_url ? (
                       <AvatarImage src={formData.avatar_url} alt="Avatar" />
                     ) : (
                       <AvatarFallback className="bg-background">
@@ -257,7 +251,7 @@ function ProfileForm() {
                   <Input
                     id="username"
                     name="username"
-                    value={formData.username}
+                    value={formData?.username || ""}
                     onChange={handleInputChange}
                     className={`bg-background ${
                       errors.username ? "border-red-500" : ""
@@ -279,7 +273,7 @@ function ProfileForm() {
                     id="email"
                     name="email"
                     type="email"
-                    value={formData.email}
+                    value={formData?.email || ""}
                     onChange={handleInputChange}
                     className={`bg-background ${
                       errors.email ? "border-red-500" : ""
@@ -303,7 +297,7 @@ function ProfileForm() {
               <Textarea
                 id="bio"
                 name="bio"
-                value={formData.bio}
+                value={formData?.bio || ""}
                 onChange={handleInputChange}
                 className={`bg-background h-24 ${
                   errors.bio ? "border-red-500" : ""
@@ -314,7 +308,7 @@ function ProfileForm() {
                 <p className="text-xs text-red-500 mt-1">{errors.bio}</p>
               )}
               <p className="text-xs text-muted-foreground mt-1">
-                {1500 - formData.bio.length} characters remaining
+                {1500 - (formData?.bio?.length || 0)} characters remaining
               </p>
             </div>
 
@@ -325,7 +319,7 @@ function ProfileForm() {
               <Input
                 id="wallet_address"
                 name="wallet_address"
-                value={formData.wallet_address}
+                value={formData?.wallet_address || ""}
                 className={`bg-background ${
                   errors.wallet_address ? "border-red-500" : ""
                 }`}
@@ -353,7 +347,7 @@ function ProfileForm() {
                   <Input
                     id="x_username"
                     name="x_username"
-                    value={formData.x_username || ""}
+                    value={formData?.x_username || ""}
                     onChange={handleInputChange}
                     className="bg-background"
                     placeholder="X username"
@@ -365,7 +359,7 @@ function ProfileForm() {
                   <Input
                     id="instagram_username"
                     name="instagram_username"
-                    value={formData.instagram_username || ""}
+                    value={formData?.instagram_username || ""}
                     onChange={handleInputChange}
                     className="bg-background"
                     placeholder="Instagram username"
