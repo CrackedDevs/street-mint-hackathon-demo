@@ -182,7 +182,7 @@ function ProfileForm() {
 
   return (
     <div className="flex flex-col h-full justify-center align-middle">
-      <Card className="w-full max-w-2xl mx-auto z-20 bg-white">
+      <Card className="w-full max-w-2xl mx-auto z-20 bg-white my-12">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
             {profileExists ? "Your Profile" : "Create Your Profile"}

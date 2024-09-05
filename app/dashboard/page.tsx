@@ -7,8 +7,8 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { fetchProfileData } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
-const ArtistJoinPage = () => {
-  const { connected } = useWallet();
+const DashboardPage = () => {
+  const { connected, publicKey } = useWallet();
   const router = useRouter();
 
   const handleConnect = () => {
@@ -91,4 +91,4 @@ const ArtistJoinPage = () => {
   );
 };
 
-export default ArtistJoinPage;
+export default DashboardPage;
