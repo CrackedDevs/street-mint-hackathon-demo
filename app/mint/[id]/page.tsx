@@ -1,73 +1,47 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Linkedin,
   Instagram,
-  ChevronLeft,
-  ChevronRight,
-  XIcon,
 } from "lucide-react";
 import MintButton from "@/components/mintButton";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useParams } from "next/navigation";
 import {
   fetchNFTById,
   getCollectionById,
   getArtistById,
 } from "@/lib/supabaseClient";
+import Gallery from "@/components/gallery";
+import X from "@/components/x";
 
-const NFTPage = () => {
-  const { connected, publicKey: walletAddress, disconnect } = useWallet();
-  const [currentImage, setCurrentImage] = useState(0);
-  const [nftData, setNftData] = useState<any>(null);
-  const [collectionData, setCollectionData] = useState<any>(null);
-  const [artistData, setArtistData] = useState<any>(null);
-  const { id } = useParams();
+async function getNFTData(id: string) {
+  // Fetch SOL price
+  const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+  const data = await response.json();
+  const solPriceUSD = data.solana.usd;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (id) {
-        const nft = await fetchNFTById(Number(id));
-        if (nft) {
-          setNftData(nft);
-          const collection = await getCollectionById(nft.collection_id);
-          if (collection) {
-            setCollectionData(collection);
-            const artist = await getArtistById(collection.artist);
-            if (artist) {
-              setArtistData(artist);
-            }
-          }
-        }
-      }
-    };
-    fetchData();
-  }, [id]);
+  const nft = await fetchNFTById(Number(id));
+  if (!nft) return null;
 
-  const nextImage = () => {
-    if (nftData && nftData.gallery_urls) {
-      setCurrentImage((prev) => (prev + 1) % nftData.gallery_urls.length);
-    }
-  };
+  const collection = await getCollectionById(nft.collection_id);
+  if (!collection) return null;
 
-  const prevImage = () => {
-    if (nftData && nftData.gallery_urls) {
-      setCurrentImage(
-        (prev) =>
-          (prev - 1 + nftData.gallery_urls.length) % nftData.gallery_urls.length
-      );
-    }
-  };
+  const artist = await getArtistById(collection.artist);
+  if (!artist) return null;
 
-  const onDisconnect = () => {
-    disconnect();
-  };
+  // Calculate NFT price in SOL
+  const priceInSOL = nft.price_usd / solPriceUSD;
 
-  if (!nftData || !collectionData || !artistData) {
+  return { nft, collection, artist, priceInSOL };
+}
+
+// Convert to an async Server Component
+export default async function NFTPage({ params }: { params: { id: string } }) {
+  const data = await getNFTData(params.id);
+
+  if (!data) {
     return <div>Loading...</div>;
   }
+
+  const { nft, collection, artist, priceInSOL } = data;
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -92,8 +66,8 @@ const NFTPage = () => {
           {/* Left column - Main Image */}
           <div className="relative aspect-square">
             <Image
-              src={nftData.gallery_urls[currentImage]}
-              alt={`${nftData.name} - Main Image`}
+              src={nft.gallery_urls[0]}
+              alt={`${nft.name} - Main Image`}
               layout="fill"
               objectFit="contain"
             />
@@ -101,24 +75,30 @@ const NFTPage = () => {
 
           {/* Right column - Details */}
           <div>
-            <h1 className="text-3xl font-bold mb-2">{nftData.name}</h1>
+            <h1 className="text-3xl font-bold mb-2">{nft.name}</h1>
             <p className="text-xl text-gray-600 mb-4">
-              From the &quot;{collectionData.name}&quot; Collection
+              From the &quot;{collection.name}&quot; Collection
             </p>
 
             {/* Artist Information */}
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-6 h-6 bg-purple-600 rounded-full"></div>
-              <span className="font-semibold">{artistData.username}</span>
-              <a href="#" className="text-gray-600 hover:text-black">
-                <XIcon className="w-5 h-5" />
+              <span className="font-semibold">{artist.username}</span>
+              {artist.x_username && (
+              <a href={`https://x.com/${artist.x_username}`} className="text-gray-600 hover:text-black">
+                <X className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-600 hover:text-black">
+              )}
+              {artist.linkedin_username && (
+              <a href={`https://www.linkedin.com/in/${artist.linkedin_username}`} className="text-gray-600 hover:text-black">
                 <Linkedin className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-600 hover:text-black">
+              )}
+              {artist.instagram_username && (
+              <a href={`https://www.instagram.com/${artist.instagram_username}`} className="text-gray-600 hover:text-black">
                 <Instagram className="w-5 h-5" />
               </a>
+              )}
             </div>
 
             {/* Limited Edition Section */}
@@ -136,9 +116,9 @@ const NFTPage = () => {
               <span className="text-gray-600 text-lg">Mint price:</span>
               <div className="flex items-baseline">
                 <span className="text-4xl font-bold mr-2">
-                  ${nftData.price_usd.toFixed(2)}
+                  ${nft.price_usd.toFixed(2)}
                 </span>
-                <span className="text-gray-500">({nftData.price_sol} SOL)</span>
+                <span className="text-gray-500">({priceInSOL.toFixed(2)} SOL)</span>
               </div>
             </div>
 
@@ -150,34 +130,34 @@ const NFTPage = () => {
             </p>
 
             <div className="space-y-4 mt-4">
-              <p className="text-lg">{nftData.description}</p>
+              <p className="text-lg">{nft.description}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-600">Art title</p>
-                  <p>{nftData.name}</p>
+                  <p>{nft.name}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">Artist</p>
-                  <p>{artistData.username}</p>
+                  <p>{artist.username}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">Location minted</p>
-                  <p>{nftData.location || "N/A"}</p>
+                  <p>{nft.location || "N/A"}</p>
                 </div>
                 {/* <div>
                   <p className="text-gray-600">Edition Type</p>
-                  <p>{collectionData.quantity_type.charAt(0).toUpperCase() + collectionData.quantity_type.slice(1)}</p>
-                </div> */}
-                {/* {collectionData.quantity_type === "limited" && (
+                  <p>{collection.quantity_type.charAt(0).toUpperCase() + collection.quantity_type.slice(1)}</p>
+                </div>
+                {collection.quantity_type === "limited" && (
                   <div>
                     <p className="text-gray-600">Limited Edition</p>
-                    <p>Run of {collectionData.total_supply} Digital Collectibles</p>
+                    <p>Run of {collection.total_supply} Digital Collectibles</p>
                   </div>
                 )} */}
                 <div>
                   <p className="text-gray-600">Price per edition</p>
                   <p>
-                    ${nftData.price_usd.toFixed(2)} ({nftData.price_sol} SOL)
+                    ${nft.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)} SOL)
                   </p>
                 </div>
                 <div>
@@ -185,48 +165,11 @@ const NFTPage = () => {
                   <p>Solana</p>
                 </div>
               </div>
-            </div>
-
-            {/* Image Gallery */}
-            <div className="mt-8">
-              <h3 className="text-lg font-semibold mb-4">Image Gallery</h3>
-              <div className="relative aspect-square">
-                <Image
-                  src={nftData.gallery_urls[currentImage]}
-                  alt={`Gallery image ${currentImage + 1}`}
-                  layout="fill"
-                  objectFit="cover"
-                  className="rounded-lg"
-                />
-                <button
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md"
-                  onClick={prevImage}
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md"
-                  onClick={nextImage}
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-                  {nftData.gallery_urls.map((_: any, index: number) => (
-                    <div
-                      key={index}
-                      className={`h-2 w-2 rounded-full ${
-                        currentImage === index ? "bg-white" : "bg-gray-300"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
+              <Gallery images={nft.gallery_urls} />
             </div>
           </div>
         </div>
       </main>
     </div>
   );
-};
-
-export default NFTPage;
+}
