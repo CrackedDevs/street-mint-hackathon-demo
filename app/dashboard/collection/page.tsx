@@ -2,12 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
-import AnimatedGridPattern from "@/components/magicui/animated-grid-pattern";
+import {
+  getCollectionsByArtistId,
+  fetchProfileData,
+} from "@/lib/supabaseClient";
 import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
-import { cn } from "@/lib/utils";
 import { useWallet } from "@solana/wallet-adapter-react";
 import withAuth from "../withAuth";
 import { PlusIcon, Loader2Icon } from "lucide-react";
@@ -38,30 +45,25 @@ function CollectionsPage() {
       setError(null);
 
       try {
-        const { data: artistData, error: artistError } = await supabase
-          .from("artists")
-          .select("id")
-          .eq("wallet_address", publicKey.toString())
-          .single();
-
+        const {
+          exists,
+          data: artistData,
+          error: artistError,
+        } = await fetchProfileData();
         if (artistError) {
           console.error("Error fetching artist:", artistError);
           throw new Error("Failed to fetch artist data");
         }
 
-        if (!artistData) {
-          setError("Artist not found. Please ensure your wallet is registered.");
+        if (!exists || !artistData) {
+          setError(
+            "Artist not found. Please ensure your wallet is registered."
+          );
           setLoading(false);
           return;
         }
-
-        const { data: collectionsData, error: collectionsError } = await supabase
-          .from("collections")
-          .select("id, name, description, nfts")
-          .eq("artist", artistData.id);
-
-        if (collectionsError) {
-          console.error("Error fetching collections:", collectionsError);
+        const collectionsData = await getCollectionsByArtistId(artistData.id);
+        if (!collectionsData) {
           throw new Error("Failed to fetch collections data");
         }
 
@@ -91,7 +93,7 @@ function CollectionsPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Your Collections</h1>
-          <Link href="/dashboard/create-collection">
+          <Link href="/dashboard/collection/create">
             <Button>
               <PlusIcon className="mr-2 h-4 w-4" /> Create New Collection
             </Button>
@@ -112,11 +114,16 @@ function CollectionsPage() {
         ) : error ? (
           <Card className="w-full max-w-md mx-auto">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center text-red-500">Error</CardTitle>
+              <CardTitle className="text-2xl font-bold text-center text-red-500">
+                Error
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-center mb-4">{error}</p>
-              <Button className="w-full" onClick={() => window.location.reload()}>
+              <Button
+                className="w-full"
+                onClick={() => window.location.reload()}
+              >
                 Retry
               </Button>
             </CardContent>
@@ -129,8 +136,12 @@ function CollectionsPage() {
                 className="hover:shadow-lg flex flex-col justify-between transition-all duration-200 transform hover:-translate-y-1"
               >
                 <CardHeader>
-                  <CardTitle className="text-2xl font-semibold">{collection.name}</CardTitle>
-                  <CardDescription className="text-sm line-clamp-2">{collection.description}</CardDescription>
+                  <CardTitle className="text-2xl font-semibold">
+                    {collection.name}
+                  </CardTitle>
+                  <CardDescription className="text-sm line-clamp-2">
+                    {collection.description}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-end">
                   <Link href={`/dashboard/collection/${collection.id}`}>
@@ -138,8 +149,16 @@ function CollectionsPage() {
                       buttonColor="bg-primary"
                       buttonTextColor="text-primary-foreground"
                       subscribeStatus={false}
-                      initialText={<span className="group inline-flex items-center">View Collection</span>}
-                      changeText={<span className="group inline-flex items-center">Opening...</span>}
+                      initialText={
+                        <span className="group inline-flex items-center">
+                          View Collection
+                        </span>
+                      }
+                      changeText={
+                        <span className="group inline-flex items-center">
+                          Opening...
+                        </span>
+                      }
                     />
                   </Link>
                 </CardContent>
@@ -148,10 +167,13 @@ function CollectionsPage() {
           </div>
         ) : (
           <div className="text-center">
-            <p className="text-lg mb-4">You haven&apos;t created any collections yet.</p>
-            <Link href="/dashboard/create-collection">
+            <p className="text-lg mb-4">
+              You haven&apos;t created any collections yet.
+            </p>
+            <Link href="/dashboard/collection/create">
               <Button size="lg">
-                <PlusIcon className="mr-2 h-5 w-5" /> Create Your First Collection
+                <PlusIcon className="mr-2 h-5 w-5" /> Create Your First
+                Collection
               </Button>
             </Link>
           </div>

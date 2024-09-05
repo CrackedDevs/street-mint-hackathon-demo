@@ -49,9 +49,7 @@ export default function CreateCollectionPage() {
   useEffect(() => {
     const fetchArtistId = async () => {
       if (publicKey) {
-        const { exists, data, error } = await fetchProfileData(
-          publicKey.toString()
-        );
+        const { exists, data, error } = await fetchProfileData();
 
         if (error) {
           console.error("Error fetching artist:", error);

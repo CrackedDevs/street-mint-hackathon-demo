@@ -79,7 +79,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1">
         {/* Main Content */}
         <main className="flex-1 w-full">
-        <RetroGrid />{children}</main>
+          <RetroGrid />
+          {children}
+        </main>
       </div>
       <Toaster />
     </div>

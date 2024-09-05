@@ -11,17 +11,10 @@ export type Database = {
     Tables: {
       artists: {
         Row: {
-<<<<<<< HEAD
           avatar_url: string
           bio: string
-          collection: number[] | null
-          email: string
-=======
-          avatar_url: string | null
-          bio: string
           collections: number[] | null
-          email: string | null
->>>>>>> e40e64f0413fb2cebbcd6fd5eeac142154d18850
+          email: string
           farcaster_username: string | null
           id: number
           instagram_username: string | null
@@ -31,17 +24,10 @@ export type Database = {
           x_username: string | null
         }
         Insert: {
-<<<<<<< HEAD
           avatar_url: string
           bio: string
-          collection?: number[] | null
-          email: string
-=======
-          avatar_url?: string | null
-          bio: string
           collections?: number[] | null
-          email?: string | null
->>>>>>> e40e64f0413fb2cebbcd6fd5eeac142154d18850
+          email: string
           farcaster_username?: string | null
           id: number
           instagram_username?: string | null
@@ -51,17 +37,10 @@ export type Database = {
           x_username?: string | null
         }
         Update: {
-<<<<<<< HEAD
           avatar_url?: string
           bio?: string
-          collection?: number[] | null
-          email?: string
-=======
-          avatar_url?: string | null
-          bio?: string
           collections?: number[] | null
-          email?: string | null
->>>>>>> e40e64f0413fb2cebbcd6fd5eeac142154d18850
+          email?: string
           farcaster_username?: string | null
           id?: number
           instagram_username?: string | null
@@ -78,35 +57,21 @@ export type Database = {
           description: string
           id: number
           name: string
-<<<<<<< HEAD
           nfts: number[]
-=======
-          nfts: number[] | null
->>>>>>> e40e64f0413fb2cebbcd6fd5eeac142154d18850
         }
         Insert: {
           artist: number
           description: string
-<<<<<<< HEAD
           id: number
           name: string
           nfts: number[]
-=======
-          id?: number
-          name: string
-          nfts?: number[] | null
->>>>>>> e40e64f0413fb2cebbcd6fd5eeac142154d18850
         }
         Update: {
           artist?: number
           description?: string
           id?: number
           name?: string
-<<<<<<< HEAD
           nfts?: number[]
-=======
-          nfts?: number[] | null
->>>>>>> e40e64f0413fb2cebbcd6fd5eeac142154d18850
         }
         Relationships: [
           {

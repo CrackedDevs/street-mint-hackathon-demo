@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+
+import { AuthError, createClient, User } from '@supabase/supabase-js';
 import { Database } from './types/database.types';
-import { NumericUUID } from './utils';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -47,7 +47,30 @@ export type Artist = {
 
 export const supabase = createClient<Database>(supabaseUrl!, supabaseAnonKey!);
 
+const getAuthenticatedUser = async (): Promise<{ user: User | null; error: AuthError | null }> => {
+    const {
+        data: { user },
+        error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) {
+        console.error("Error fetching user:", userError);
+        return { user: null, error: userError };
+    }
+
+    if (!user || !user.user_metadata) {
+        return { user: null, error: null };
+    }
+
+    return { user, error: null };
+};
+
 export const createCollection = async (collection: Collection): Promise<Collection | null> => {
+    const { user, error: authError } = await getAuthenticatedUser();
+    if (!user || authError) {
+        return null;
+    }
+
     const { data: collectionData, error: collectionError } = await supabase
         .from('collections')
         .insert({
@@ -90,6 +113,10 @@ export const createCollection = async (collection: Collection): Promise<Collecti
 };
 
 export const uploadImage = async (file: File) => {
+    const { user, error: authError } = await getAuthenticatedUser();
+    if (!user || authError) {
+        return null;
+    }
     const fileName = `${Date.now()}-${file.name}`;
     const { data, error } = await supabase.storage.from("nft-images").upload(fileName, file);
     if (error) {
@@ -116,21 +143,43 @@ export const getArtistById = async (id: number): Promise<Artist | null> => {
 };
 
 
-export const fetchProfileData = async (walletAddress: string) => {
+export const fetchProfileData = async () => {
+    const { user, error: authError } = await getAuthenticatedUser();
+
+    if (!user || authError) {
+        return { exists: false, data: null, error: authError || null };
+    }
+
     const { data, error } = await supabase
         .from("artists")
         .select("*")
-        .eq("wallet_address", walletAddress)
+        .eq("wallet_address", user.user_metadata.wallet_address)
         .single();
 
     if (error) {
         console.error("Error fetching profile:", error);
         return { exists: false, data: null, error };
     }
-
-
     return { exists: true, data: data, error: null };
+};
 
+export const checkUsernameAvailability = async (username: string) => {
+    const { data, error } = await supabase
+        .from("artists")
+        .select("username")
+        .eq("username", username)
+        .single();
+    if (error) {
+        if (error.code === 'PGRST116') {
+            // PGRST116 means no rows returned, which means the username is available
+            return { available: true, error: null };
+        }
+        console.error("Error checking username:", error);
+        return { available: false, error };
+    }
+
+    // If data is not null, it means the username already exists
+    return { available: !data, error: null };
 };
 
 export const fetchNFTById = async (id: number) => {
@@ -150,14 +199,23 @@ export const fetchNFTById = async (id: number) => {
 
 
 export const updateProfile = async (profileData: Artist, wallet_address: string) => {
+    const { user, error: authError } = await getAuthenticatedUser();
+    if (!user || authError) {
+        return { exists: false, data: null, error: authError || null };
+    }
+
     const { data, error } = await supabase
         .from("artists")
         .update(profileData)
-        .eq("wallet_address", wallet_address);
+        .eq("wallet_address", user.user_metadata.wallet_address);
     return { data, error };
 };
 
 export const createProfile = async (profileData: Artist) => {
+    const { user, error: authError } = await getAuthenticatedUser();
+    if (!user || authError) {
+        return { exists: false, data: null, error: authError || null };
+    }
     const { data, error } = await supabase.from("artists").insert({ ...profileData, collections: [] });
     return { data, error };
 };

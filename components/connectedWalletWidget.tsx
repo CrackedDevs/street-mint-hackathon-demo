@@ -10,8 +10,9 @@ import { Wallet, LogOut, Plug, User } from "lucide-react";
 import { shortenAddress } from "@/lib/shortenAddress";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { fetchProfileData } from "@/lib/supabaseClient";
+import { fetchProfileData, supabase } from "@/lib/supabaseClient";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
 
 interface ConnectedWalletWidgetProps {
   connected: boolean;
@@ -24,29 +25,113 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
   walletAddress,
   onDisconnect,
 }) => {
-  const { select } = useWallet();
+  const { publicKey, signMessage } = useWallet();
   const [userData, setUserData] = useState<any>(null);
+  const router = useRouter();
+
+  const signAndSendMessage = async () => {
+    const message = new TextEncoder().encode(
+      "Please sign this message to authenticate"
+    );
+    const signature = await signMessage?.(message);
+    const encodedSignature = signature
+      ? Buffer.from(signature).toString("base64")
+      : undefined;
+    const encodedPublicKey = publicKey
+      ? Buffer.from(publicKey.toBytes()).toString("base64")
+      : undefined;
+
+    return { publicKey: encodedPublicKey, signature: encodedSignature };
+  };
+
+  const loginUser = async () => {
+    try {
+      const { publicKey, signature } = await signAndSendMessage();
+
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          publicKey: publicKey?.toString(),
+          signature: signature,
+          walletAddress: walletAddress,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.token) {
+        // Store the token in localStorage
+        localStorage.setItem("supabase_token", data.token);
+      }
+    } catch (error) {
+      console.error("Error logging in:", error);
+      onDisconnect();
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (connected && walletAddress) {
-        const { exists, data, error } = await fetchProfileData(walletAddress);
-        if (error) {
-          console.error("Error fetching user data:", error);
-        } else if (exists && data) {
-          setUserData(data);
+      if (connected && walletAddress && publicKey) {
+        let token = localStorage.getItem("supabase_token");
+        let {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (
+          !token ||
+          !session ||
+          (session?.expires_at && session.expires_at * 1000 < Date.now())
+        ) {
+          await loginUser();
+        }
+
+        token = localStorage.getItem("supabase_token");
+
+        if (token) {
+          // Set the session in Supabase
+          const { data, error } = await supabase.auth.setSession({
+            access_token: token,
+            refresh_token: token,
+          });
+          if (error) {
+            console.error("Error setting Supabase session:", error);
+            onDisconnect();
+            return;
+          }
+          const {
+            exists,
+            data: profileData,
+            error: profileError,
+          } = await fetchProfileData();
+          if (profileError) {
+            console.error("Error fetching user data:", profileError);
+            router.push("/dashboard/profile");
+          } else if (exists && profileData) {
+            setUserData(profileData);
+          } else {
+            router.push("/dashboard/profile");
+          }
         } else {
-          console.log("User profile not found");
+          console.error("No token found after login attempt");
+          onDisconnect();
         }
       }
     };
 
     fetchUserData();
-  }, [connected, walletAddress]);
+  }, [connected, walletAddress, publicKey, router]);
 
   if (!connected || !walletAddress) {
-    return <></>
+    return <></>;
   }
+
+  const handleDisconnect = () => {
+    localStorage.removeItem("supabase_token");
+    onDisconnect();
+    router.push("/dashboard");
+  };
 
   return (
     <>
@@ -89,7 +174,7 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
                 </span>
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={onDisconnect}>
+            <DropdownMenuItem onClick={handleDisconnect}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Disconnect</span>
             </DropdownMenuItem>

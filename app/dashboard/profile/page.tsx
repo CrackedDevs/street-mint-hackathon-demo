@@ -18,6 +18,7 @@ import X from "@/components/x";
 import withAuth from "../withAuth";
 import {
   Artist,
+  checkUsernameAvailability,
   createProfile,
   fetchProfileData,
   updateProfile,
@@ -50,13 +51,7 @@ function ProfileForm() {
 
   useEffect(() => {
     if (publicKey) {
-      fetchProfileData(publicKey.toString());
-    }
-  }, [publicKey]);
-
-  useEffect(() => {
-    if (publicKey) {
-      fetchProfileData(publicKey.toString()).then(({ exists, data }) => {
+      fetchProfileData().then(({ exists, data }) => {
         if (exists && data) {
           setFormData(data);
           setProfileExists(true);
@@ -94,18 +89,14 @@ function ProfileForm() {
     if (!publicKey || profileExists) {
       return true;
     }
-    const { exists, data, error } = await fetchProfileData(
-      publicKey.toString()
+    const { available, error } = await checkUsernameAvailability(
+      formData.username
     );
-    if (exists && data && data.username === formData.username) {
-      return false;
-    }
-
     if (error) {
       console.error("Error checking username:", error);
       return true;
     }
-    return true;
+    return available;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -184,7 +175,7 @@ function ProfileForm() {
   if (!publicKey) {
     return (
       <div className="flex flex-col h-full justify-center align-middle">
-            <p className="text-center">Connecting...</p>
+        <p className="text-center">Connecting...</p>
       </div>
     );
   }

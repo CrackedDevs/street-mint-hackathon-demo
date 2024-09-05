@@ -8,32 +8,20 @@ import { fetchProfileData } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
 const ArtistJoinPage = () => {
-  const { connected, publicKey } = useWallet();
+  const { connected } = useWallet();
   const router = useRouter();
 
-  useEffect(() => {
-    if (connected && publicKey) {
-      checkProfile(publicKey.toString());
-    }
-  }, [connected, publicKey]);
-
-  const checkProfile = async (walletAddress: string) => {
-    const { exists, data, error } = await fetchProfileData(walletAddress);
-    if (error) {
-      console.error("Error fetching profile:", error);
-      router.push("/dashboard/profile");
-    } else if (exists) {
-      router.push("/dashboard/collection");
-    } else {
-      router.push("/dashboard/profile");
-    }
-  };
-
   const handleConnect = () => {
-    const button = document.querySelector(".wallet-adapter-button") as HTMLElement;
+    const button = document.querySelector(
+      ".wallet-adapter-button"
+    ) as HTMLElement;
     if (button) {
       button.click();
     }
+  };
+
+  const handleGoToCollection = () => {
+    router.push("/dashboard/collection");
   };
 
   return (
@@ -47,11 +35,22 @@ const ArtistJoinPage = () => {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto font-raleway">
             Start selling your digital collectibles in minutes.
           </p>
-          <ShimmerButton className="shadow-2xl" onClick={handleConnect}>
-            <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-              Connect Wallet
-            </span>
-          </ShimmerButton>
+          {connected ? (
+            <ShimmerButton
+              className="shadow-2xl"
+              onClick={handleGoToCollection}
+            >
+              <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+                Create Collection!
+              </span>
+            </ShimmerButton>
+          ) : (
+            <ShimmerButton className="shadow-2xl" onClick={handleConnect}>
+              <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+                Connect Wallet
+              </span>
+            </ShimmerButton>
+          )}
           <div className="hidden">
             <WalletMultiButton />
           </div>
