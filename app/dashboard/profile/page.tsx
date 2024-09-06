@@ -4,116 +4,79 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UploadIcon, InstagramIcon, Loader2, EditIcon } from "lucide-react";
 import X from "@/components/x";
 import withAuth from "../withAuth";
-import { Artist, supabase, uploadImage } from "@/lib/supabaseClient";
+import { Artist, checkUsernameAvailability, createProfile, updateProfile, uploadImage } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useRouter } from "next/navigation";
+import { NumericUUID } from "@/lib/utils";
+import { useUserProfile } from "@/app/providers/UserProfileProvider";
 
 function ProfileForm() {
   const { toast } = useToast();
   const { publicKey } = useWallet();
-  const router = useRouter();
-  const [formData, setFormData] = useState<Artist>({
-    username: "",
-    bio: "",
-    email: "",
-    avatar_url: "",
-    x_username: "",
-    instagram_username: "",
-    wallet_address: publicKey?.toString() || "",
-  });
+  const { userProfile, setUserProfile, isLoading } = useUserProfile();
+  const [formData, setFormData] = useState<Artist | null>(null);
   const [avatarLocalFile, setAvatarLocalFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [profileExists, setProfileExists] = useState(false);
 
   useEffect(() => {
-    if (publicKey) {
-      fetchProfileData(publicKey.toString());
-    }
-  }, [publicKey]);
-
-  const fetchProfileData = async (walletAddress: string) => {
-    const { data, error } = await supabase
-      .from("artists")
-      .select("*")
-      .eq("wallet_address", walletAddress);
-    if (!data || !data[0]) {
-      return;
-    }
-    const artist = data[0];
-    if (error) {
-      console.error("Error fetching profile:", error);
-      setProfileExists(false);
-      setIsEditing(true); // Automatically set to edit mode if profile doesn't exist
-    } else if (data && data.length > 0) {
+    if (publicKey && userProfile) {
+      setFormData(userProfile);
+      setIsEditing(false);
+    } else if (!isLoading) {
       setFormData({
-        username: artist.username || "",
-        bio: artist.bio || "",
-        email: artist.email || "",
-        avatar_url: artist.avatar_url || "",
-        x_username: artist.x_username || "",
-        instagram_username: artist.instagram_username || "",
-        wallet_address: artist.wallet_address || "",
+        id: NumericUUID(),
+        username: "",
+        bio: "",
+        email: "",
+        avatar_url: "",
+        x_username: "",
+        instagram_username: "",
+        wallet_address: publicKey?.toString() || "",
       });
-      setProfileExists(true);
-      setIsEditing(false); // Profile exists, so start in view mode
-    } else {
-      setProfileExists(false);
-      setIsEditing(true); // Automatically set to edit mode if profile doesn't exist
+      setIsEditing(true);
     }
-  };
+  }, [userProfile]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.preventDefault();
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
+    if (!formData) return false;
     if (!formData.username) newErrors.username = "Username is required";
     if (!formData.bio) newErrors.bio = "Bio is required";
     if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.wallet_address)
-      newErrors.wallet_address = "Wallet address is required";
+    if (!formData.wallet_address) newErrors.wallet_address = "Wallet address is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const checkUsernameUniqueness = async (username: string) => {
-    const { data, error } = await supabase
-      .from("artists")
-      .select("username")
-      .eq("username", username)
-      .neq("wallet_address", formData.wallet_address)
-      .single();
-    if (error && error.code !== "PGRST116") {
-      console.error("Error checking username:", error);
-      return false;
+    if (!publicKey || userProfile) {
+      return true;
     }
-    return data === null;
+    const { available, error } = await checkUsernameAvailability(username);
+    if (error) {
+      console.error("Error checking username:", error);
+      return true;
+    }
+    return available;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!validateForm()) {
+    if (!formData || !validateForm()) {
       toast({
         title: "Error",
         description: "Please fill in all required fields.",
@@ -124,19 +87,20 @@ function ProfileForm() {
 
     setIsSubmitting(true);
 
-    const isUsernameUnique = await checkUsernameUniqueness(formData.username);
-    if (!isUsernameUnique) {
-      setErrors((prev) => ({
-        ...prev,
-        username: "This username is already taken",
-      }));
-      toast({
-        title: "Error",
-        description:
-          "Username is already taken. Please choose a different one.",
-      });
-      setIsSubmitting(false);
-      return;
+    if (!userProfile) {
+      const isUsernameUnique = await checkUsernameUniqueness(formData.username);
+      if (!isUsernameUnique) {
+        setErrors((prev) => ({
+          ...prev,
+          username: "This username is already taken",
+        }));
+        toast({
+          title: "Error",
+          description: "Username is already taken. Please choose a different one.",
+        });
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     let uploadedUrl: string | null = formData.avatar_url;
@@ -151,57 +115,52 @@ function ProfileForm() {
       }
     }
 
-    const profileData = {
+    const profileData: Artist = {
       ...formData,
       avatar_url: uploadedUrl,
     };
 
-    const { data, error } = profileExists
-      ? await supabase
-          .from("artists")
-          .update(profileData)
-          .eq("wallet_address", formData.wallet_address)
-      : await supabase.from("artists").insert(profileData);
-
-    if (error) {
-      console.error("Error submitting profile:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save profile. Please try again.",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Success",
-        description: `Your profile has been ${
-          profileExists ? "updated" : "created"
-        } successfully!`,
-        variant: "default",
-      });
-      setIsEditing(false);
-      setProfileExists(true);
+    if (publicKey) {
+      const { data, error } = userProfile
+        ? await updateProfile(profileData, publicKey?.toString())
+        : await createProfile(profileData);
+      if (error) {
+        console.error("Error submitting profile:", error);
+        toast({
+          title: "Error",
+          description: "Failed to save profile. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `Your profile has been ${userProfile ? "updated" : "created"} successfully!`,
+          variant: "default",
+        });
+        setIsEditing(false);
+        setUserProfile(profileData); // Update the context
+      }
     }
-
     setIsSubmitting(false);
   };
 
   if (!publicKey) {
     return (
       <div className="flex flex-col h-full justify-center align-middle">
-            <p className="text-center">Connecting...</p>
+        <p className="text-center">Connecting...</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col h-full justify-center align-middle">
-      <Card className="w-full max-w-2xl mx-auto z-20 bg-white">
+      <Card className="w-full max-w-2xl mx-auto z-20 bg-white my-12">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            {profileExists ? "Your Profile" : "Create Your Profile"}
+            {userProfile ? "Your Profile" : "Create Your Profile"}
           </CardTitle>
           <CardDescription className="text-center">
-            {profileExists
+            {userProfile
               ? "View your profile information below. Click 'Edit' to make changes."
               : "Fill out the form below to set up your profile and connect your social media accounts."}
           </CardDescription>
@@ -218,11 +177,8 @@ function ProfileForm() {
                       </div>
                     )}
                     {avatarLocalFile ? (
-                      <AvatarImage
-                        src={URL.createObjectURL(avatarLocalFile)}
-                        alt="Avatar"
-                      />
-                    ) : formData.avatar_url ? (
+                      <AvatarImage src={URL.createObjectURL(avatarLocalFile)} alt="Avatar" />
+                    ) : formData?.avatar_url ? (
                       <AvatarImage src={formData.avatar_url} alt="Avatar" />
                     ) : (
                       <AvatarFallback className="bg-background">
@@ -256,9 +212,7 @@ function ProfileForm() {
                       <UploadIcon className="mr-2 h-4 w-4" />
                       Upload
                     </Button>
-                    <p className="text-xs text-muted-foreground text-center">
-                      500x500px, 2.5MB max
-                    </p>
+                    <p className="text-xs text-muted-foreground text-center">500x500px, 2.5MB max</p>
                   </>
                 )}
               </div>
@@ -270,19 +224,13 @@ function ProfileForm() {
                   <Input
                     id="username"
                     name="username"
-                    value={formData.username}
+                    value={formData?.username || ""}
                     onChange={handleInputChange}
-                    className={`bg-background ${
-                      errors.username ? "border-red-500" : ""
-                    }`}
+                    className={`bg-background ${errors.username ? "border-red-500" : ""}`}
                     placeholder="michael"
                     readOnly={!isEditing}
                   />
-                  {errors.username && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.username}
-                    </p>
-                  )}
+                  {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username}</p>}
                 </div>
                 <div>
                   <Label htmlFor="email" className="text-sm font-medium">
@@ -292,16 +240,12 @@ function ProfileForm() {
                     id="email"
                     name="email"
                     type="email"
-                    value={formData.email}
+                    value={formData?.email || ""}
                     onChange={handleInputChange}
-                    className={`bg-background ${
-                      errors.email ? "border-red-500" : ""
-                    }`}
+                    className={`bg-background ${errors.email ? "border-red-500" : ""}`}
                     readOnly={!isEditing}
                   />
-                  {errors.email && (
-                    <p className="text-xs text-red-500 mt-1">{errors.email}</p>
-                  )}
+                  {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
                   <p className="text-xs text-muted-foreground mt-1">
                     Not shown on profile. For important notifications only.
                   </p>
@@ -316,18 +260,14 @@ function ProfileForm() {
               <Textarea
                 id="bio"
                 name="bio"
-                value={formData.bio}
+                value={formData?.bio || ""}
                 onChange={handleInputChange}
-                className={`bg-background h-24 ${
-                  errors.bio ? "border-red-500" : ""
-                }`}
+                className={`bg-background h-24 ${errors.bio ? "border-red-500" : ""}`}
                 readOnly={!isEditing}
               />
-              {errors.bio && (
-                <p className="text-xs text-red-500 mt-1">{errors.bio}</p>
-              )}
+              {errors.bio && <p className="text-xs text-red-500 mt-1">{errors.bio}</p>}
               <p className="text-xs text-muted-foreground mt-1">
-                {1500 - formData.bio.length} characters remaining
+                {1500 - (formData?.bio?.length || 0)} characters remaining
               </p>
             </div>
 
@@ -338,24 +278,16 @@ function ProfileForm() {
               <Input
                 id="wallet_address"
                 name="wallet_address"
-                value={formData.wallet_address}
-                className={`bg-background ${
-                  errors.wallet_address ? "border-red-500" : ""
-                }`}
+                value={formData?.wallet_address || ""}
+                className={`bg-background ${errors.wallet_address ? "border-red-500" : ""}`}
                 readOnly
               />
-              {errors.wallet_address && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.wallet_address}
-                </p>
-              )}
+              {errors.wallet_address && <p className="text-xs text-red-500 mt-1">{errors.wallet_address}</p>}
             </div>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-semibold">
-                  Connect Your Socials
-                </CardTitle>
+                <CardTitle className="text-lg font-semibold">Connect Your Socials</CardTitle>
                 <CardDescription className="text-sm">
                   Connect social accounts to verify your identity as a creator.
                 </CardDescription>
@@ -366,7 +298,7 @@ function ProfileForm() {
                   <Input
                     id="x_username"
                     name="x_username"
-                    value={formData.x_username}
+                    value={formData?.x_username || ""}
                     onChange={handleInputChange}
                     className="bg-background"
                     placeholder="X username"
@@ -378,7 +310,7 @@ function ProfileForm() {
                   <Input
                     id="instagram_username"
                     name="instagram_username"
-                    value={formData.instagram_username}
+                    value={formData?.instagram_username || ""}
                     onChange={handleInputChange}
                     className="bg-background"
                     placeholder="Instagram username"

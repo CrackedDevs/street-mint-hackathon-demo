@@ -1,48 +1,26 @@
 "use client";
 import { useState, useEffect } from "react";
-import { BorderBeam } from "@/components/magicui/border-beam";
 import RetroGrid from "@/components/magicui/retro-grid";
 import ShimmerButton from "@/components/magicui/shimmer-button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import ProfileForm from "./profile/page";
-import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import { useUserProfile } from "../providers/UserProfileProvider";
 
-const ArtistJoinPage = () => {
-  const { connected, publicKey } = useWallet();
-  const [profileExists, setProfileExists] = useState(false);
+const DashboardPage = () => {
+  const { connected, connecting } = useWallet();
+  const { isLoading } = useUserProfile();
   const router = useRouter();
 
-  useEffect(() => {
-    if (connected && publicKey) {
-      checkProfile(publicKey.toString());
-    }
-  }, [connected, publicKey]);
-
-  const checkProfile = async (walletAddress: string) => {
-    const { data, error } = await supabase
-      .from("artists")
-      .select("*")
-      .eq("wallet_address", walletAddress);
-    if (error) {
-      console.error("Error fetching profile:", error);
-    } else if (data[0]) {
-      router.push("/dashboard/collection");
-      return;
-    } else {
-      router.push("/dashboard/profile");
-      return;
-    }
-  };
-
   const handleConnect = () => {
-    const button = document.querySelector(
-      ".wallet-adapter-button"
-    ) as HTMLElement;
+    const button = document.querySelector(".wallet-adapter-button") as HTMLElement;
     if (button) {
       button.click();
     }
+  };
+
+  const handleGoToCollection = () => {
+    router.push("/dashboard/collection");
   };
 
   return (
@@ -56,49 +34,30 @@ const ArtistJoinPage = () => {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto font-raleway">
             Start selling your digital collectibles in minutes.
           </p>
-          <ShimmerButton className="shadow-2xl" onClick={handleConnect}>
-            <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-              Connect Wallet
-            </span>
-          </ShimmerButton>
+          {isLoading ? (
+            <ShimmerButton className="shadow-2xl">
+              <div className="animate-spin text-white rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+            </ShimmerButton>
+          ) : connected ? (
+            <ShimmerButton className="shadow-2xl" onClick={handleGoToCollection}>
+              <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+                Create Collection!
+              </span>
+            </ShimmerButton>
+          ) : (
+            <ShimmerButton className="shadow-2xl" onClick={handleConnect}>
+              <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+                Connect Wallet
+              </span>
+            </ShimmerButton>
+          )}
           <div className="hidden">
             <WalletMultiButton />
           </div>
         </div>
       </div>
-      <style jsx>{`
-        @keyframes blob {
-          0% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-          100% {
-            transform: translate(0px, 0px) scale(1);
-          }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        .font-playfair {
-          font-family: "Playfair Display", serif;
-        }
-        .font-raleway {
-          font-family: "Raleway", sans-serif;
-        }
-      `}</style>
     </>
   );
 };
 
-export default ArtistJoinPage;
+export default DashboardPage;

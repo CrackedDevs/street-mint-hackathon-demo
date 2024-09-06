@@ -1,89 +1,68 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import Link from "next/link"
-import { supabase } from "@/lib/supabaseClient"
-import AnimatedGridPattern from "@/components/magicui/animated-grid-pattern"
-import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button"
-import { cn } from "@/lib/utils"
-import { useWallet } from "@solana/wallet-adapter-react"
-import withAuth from "../withAuth"
-import { PlusIcon, Loader2Icon } from "lucide-react"
-import { toast } from "@/hooks/use-toast"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import Link from "next/link";
+import { getCollectionsByArtistId } from "@/lib/supabaseClient";
+import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
+import { useWallet } from "@solana/wallet-adapter-react";
+import withAuth from "../withAuth";
+import { PlusIcon, Loader2Icon } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { useUserProfile } from "@/app/providers/UserProfileProvider";
 
 type Collection = {
-  id?: number
-  name: string
-  description: string
-  nfts: number[] | null
-}
+  id?: number;
+  name: string;
+  description: string;
+  nfts: number[] | null;
+};
 
 function CollectionsPage() {
-  const [collections, setCollections] = useState<Collection[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const { publicKey, connected } = useWallet()
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { publicKey, connected } = useWallet();
+  const { userProfile } = useUserProfile();
 
   useEffect(() => {
     async function fetchCollections() {
       if (!connected || !publicKey) {
-        setError("Please connect your wallet to view collections.")
-        setLoading(false)
-        return
+        setError("Please connect your wallet to view collections.");
+        setLoading(false);
+        return;
       }
-
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       try {
-        const { data: artistData, error: artistError } = await supabase
-          .from("artists")
-          .select("id")
-          .eq("wallet_address", publicKey.toString())
-          .single()
+        if (userProfile && publicKey) {
+          const collectionsData = await getCollectionsByArtistId(userProfile.id);
+          if (!collectionsData) {
+            throw new Error("Failed to fetch collections data");
+          }
 
-        if (artistError) {
-          console.error("Error fetching artist:", artistError)
-          throw new Error("Failed to fetch artist data")
+          setCollections(collectionsData);
         }
-
-        if (!artistData) {
-          setError("Artist not found. Please ensure your wallet is registered.")
-          setLoading(false)
-          return
-        }
-
-        const { data: collectionsData, error: collectionsError } = await supabase
-          .from("collections")
-          .select("id, name, description, nfts")
-          .eq("artist", artistData.id)
-
-        if (collectionsError) {
-          console.error("Error fetching collections:", collectionsError)
-          throw new Error("Failed to fetch collections data")
-        }
-
-        setCollections(collectionsData)
       } catch (error) {
-        console.error("Error in fetchCollections:", error)
-        setError("An unexpected error occurred. Please try again later.")
+        console.error("Error in fetchCollections:", error);
+        setError("An unexpected error occurred. Please try again later.");
         toast({
           title: "Error",
           description: "Failed to fetch collections. Please try again later.",
           variant: "destructive",
-        })
+        });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchCollections()
-  }, [publicKey, connected])
+    fetchCollections();
+  }, [userProfile, publicKey]);
 
   if (!connected) {
-    return <></>
+    return <></>;
   }
 
   return (
@@ -91,7 +70,7 @@ function CollectionsPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Your Collections</h1>
-          <Link href="/dashboard/create-collection">
+          <Link href="/dashboard/collection/create">
             <Button>
               <PlusIcon className="mr-2 h-4 w-4" /> Create New Collection
             </Button>
@@ -138,16 +117,8 @@ function CollectionsPage() {
                       buttonColor="bg-primary"
                       buttonTextColor="text-primary-foreground"
                       subscribeStatus={false}
-                      initialText={
-                        <span className="group inline-flex items-center">
-                          View Collection
-                        </span>
-                      }
-                      changeText={
-                        <span className="group inline-flex items-center">
-                          Opening...
-                        </span>
-                      }
+                      initialText={<span className="group inline-flex items-center">View Collection</span>}
+                      changeText={<span className="group inline-flex items-center">Opening...</span>}
                     />
                   </Link>
                 </CardContent>
@@ -157,7 +128,7 @@ function CollectionsPage() {
         ) : (
           <div className="text-center">
             <p className="text-lg mb-4">You haven&apos;t created any collections yet.</p>
-            <Link href="/dashboard/create-collection">
+            <Link href="/dashboard/collection/create">
               <Button size="lg">
                 <PlusIcon className="mr-2 h-5 w-5" /> Create Your First Collection
               </Button>
@@ -166,7 +137,7 @@ function CollectionsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default withAuth(CollectionsPage)
+export default withAuth(CollectionsPage);

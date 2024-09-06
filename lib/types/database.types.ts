@@ -11,10 +11,10 @@ export type Database = {
     Tables: {
       artists: {
         Row: {
-          avatar_url: string | null
+          avatar_url: string
           bio: string
           collections: number[] | null
-          email: string | null
+          email: string
           farcaster_username: string | null
           id: number
           instagram_username: string | null
@@ -24,12 +24,12 @@ export type Database = {
           x_username: string | null
         }
         Insert: {
-          avatar_url?: string | null
+          avatar_url: string
           bio: string
           collections?: number[] | null
-          email?: string | null
+          email: string
           farcaster_username?: string | null
-          id?: number
+          id: number
           instagram_username?: string | null
           linkedin_username?: string | null
           username: string
@@ -37,10 +37,10 @@ export type Database = {
           x_username?: string | null
         }
         Update: {
-          avatar_url?: string | null
+          avatar_url?: string
           bio?: string
           collections?: number[] | null
-          email?: string | null
+          email?: string
           farcaster_username?: string | null
           id?: number
           instagram_username?: string | null
@@ -57,21 +57,21 @@ export type Database = {
           description: string
           id: number
           name: string
-          nfts: number[] | null
+          nfts: number[]
         }
         Insert: {
           artist: number
           description: string
-          id?: number
+          id: number
           name: string
-          nfts?: number[] | null
+          nfts: number[]
         }
         Update: {
           artist?: number
           description?: string
           id?: number
           name?: string
-          nfts?: number[] | null
+          nfts?: number[]
         }
         Relationships: [
           {
@@ -85,43 +85,43 @@ export type Database = {
       }
       nfts: {
         Row: {
-          chain: string | null
-          collection_id: number | null
-          description: string | null
-          gallery_urls: string[] | null
+          chain: string
+          collection_id: number
+          description: string
+          gallery_urls: string[]
           id: number
           location: string | null
-          name: string | null
-          price_usd: number | null
-          primary_image_url: string | null
+          name: string
+          price_usd: number
+          primary_image_url: string
           quantity: number | null
-          quantity_type: Database["public"]["Enums"]["quantity_type"] | null
+          quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Insert: {
-          chain?: string | null
-          collection_id?: number | null
-          description?: string | null
-          gallery_urls?: string[] | null
-          id?: number
+          chain?: string
+          collection_id: number
+          description: string
+          gallery_urls: string[]
+          id: number
           location?: string | null
-          name?: string | null
-          price_usd?: number | null
-          primary_image_url?: string | null
+          name: string
+          price_usd: number
+          primary_image_url: string
           quantity?: number | null
-          quantity_type?: Database["public"]["Enums"]["quantity_type"] | null
+          quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Update: {
-          chain?: string | null
-          collection_id?: number | null
-          description?: string | null
-          gallery_urls?: string[] | null
+          chain?: string
+          collection_id?: number
+          description?: string
+          gallery_urls?: string[]
           id?: number
           location?: string | null
-          name?: string | null
-          price_usd?: number | null
-          primary_image_url?: string | null
+          name?: string
+          price_usd?: number
+          primary_image_url?: string
           quantity?: number | null
-          quantity_type?: Database["public"]["Enums"]["quantity_type"] | null
+          quantity_type?: Database["public"]["Enums"]["quantity_type"]
         }
         Relationships: [
           {

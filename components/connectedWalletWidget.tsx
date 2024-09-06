@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,90 +9,49 @@ import {
 import { Wallet, LogOut, Plug, User } from "lucide-react";
 import { shortenAddress } from "@/lib/shortenAddress";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { supabase } from "@/lib/supabaseClient";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
+import { useUserProfile } from "@/app/providers/UserProfileProvider";
 
-interface ConnectedWalletWidgetProps {
-  connected: boolean;
-  walletAddress: string | null;
-  onDisconnect: () => void;
-}
+const ConnectedWalletWidget = () => {
+  const { publicKey, connected } = useWallet();
+  const router = useRouter();
+  const { userProfile, isLoading, handleDisconnect } = useUserProfile();
 
-const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
-  connected,
-  walletAddress,
-  onDisconnect,
-}) => {
-  const { select } = useWallet();
-  const [userData, setUserData] = useState<any>(null);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (connected && walletAddress) {
-        const { data, error } = await supabase
-          .from("artists")
-          .select("*")
-          .eq("wallet_address", walletAddress)
-          .single();
-
-        if (error) {
-          console.error("Error fetching user data:", error);
-        } else {
-          setUserData(data);
-        }
-      }
-    };
-
-    fetchUserData();
-  }, [connected, walletAddress]);
-
-  if (!connected || !walletAddress) {
-    return <></>
+  if (!connected || isLoading) {
+    return <></>;
   }
 
   return (
     <>
       <div className="sm:hidden">
-        {" "}
         {/* Visible only on small screens */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative"
-              aria-label={`Connected wallet: ${walletAddress}`}
-            >
+            <Button variant="ghost" size="icon" className="relative" aria-label={`Connected wallet: ${publicKey}`}>
               <Wallet className="h-5 w-5" />
               <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-full">
-            {userData ? (
+            {userProfile ? (
               <>
                 <DropdownMenuItem className="flex  items-center">
                   <Avatar className="w-10 h-10 mr-2">
-                    <AvatarImage
-                      src={userData.avatar_url}
-                      alt={userData.username}
-                    />
-                    <AvatarFallback className="text-lg">
-                      {userData.username.charAt(0).toUpperCase()}
-                    </AvatarFallback>
+                    <AvatarImage src={userProfile.avatar_url} alt={userProfile.username} />
+                    <AvatarFallback className="text-lg">{userProfile.username.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
-                  {userData.username}
+                  {userProfile.username}
                 </DropdownMenuItem>
               </>
             ) : (
               <DropdownMenuItem className="flex justify-between items-center">
                 <span className="font-medium">Connected</span>
-                <span className="text-sm text-muted-foreground">
-                  {shortenAddress(walletAddress)}
-                </span>
+                <span className="text-sm text-muted-foreground">{shortenAddress(publicKey?.toString() || "")}</span>
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={onDisconnect}>
+            <DropdownMenuItem onClick={handleDisconnect}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Disconnect</span>
             </DropdownMenuItem>
@@ -100,48 +59,39 @@ const ConnectedWalletWidget: React.FC<ConnectedWalletWidgetProps> = ({
         </DropdownMenu>
       </div>
       <div className="hidden sm:block">
-        {" "}
         {/* Visible on screens sm and larger */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
               className="text-sm font-medium h-fit py-2 px-6"
-              aria-label={`Connected wallet: ${walletAddress}`}
+              aria-label={`Connected wallet: ${publicKey}`}
             >
-              {userData ? (
+              {userProfile ? (
                 <>
                   <Avatar className="w-10 h-10 mr-2">
-                    <AvatarImage
-                      src={userData.avatar_url}
-                      alt={userData.username}
-                    />
-                    <AvatarFallback className="text-lg">
-                      {userData.username.charAt(0).toUpperCase()}
-                    </AvatarFallback>
+                    <AvatarImage src={userProfile.avatar_url} alt={userProfile.username} />
+                    <AvatarFallback className="text-lg">{userProfile.username.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
-                  {userData.username}
+                  {userProfile.username}
                 </>
               ) : (
                 <>
-                  <span
-                    className="w-2 h-2 bg-green-500 rounded-full mr-2"
-                    aria-hidden="true"
-                  />
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2" aria-hidden="true" />
                   <span className="sr-only">Connected:</span>
-                  {shortenAddress(walletAddress)}
+                  {shortenAddress(publicKey?.toString() || "")}
                 </>
               )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {userData && (
-              <DropdownMenuItem>
+            {userProfile && (
+              <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
                 <User className="mr-2 h-4 w-4" />
                 <span>View Profile</span>
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={onDisconnect} className="cursor-pointer">
+            <DropdownMenuItem onClick={handleDisconnect} className="cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Disconnect</span>
             </DropdownMenuItem>
