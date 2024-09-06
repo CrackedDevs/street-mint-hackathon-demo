@@ -4,25 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UploadIcon, InstagramIcon, Loader2, EditIcon } from "lucide-react";
 import X from "@/components/x";
 import withAuth from "../withAuth";
-import {
-  Artist,
-  checkUsernameAvailability,
-  createProfile,
-  updateProfile,
-  uploadImage,
-} from "@/lib/supabaseClient";
+import { Artist, checkUsernameAvailability, createProfile, updateProfile, uploadImage } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { NumericUUID } from "@/lib/utils";
@@ -39,8 +26,7 @@ function ProfileForm() {
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    console.log("userProfile", userProfile);
-    if (userProfile) {
+    if (publicKey && userProfile) {
       setFormData(userProfile);
       setIsEditing(false);
     } else if (!isLoading) {
@@ -56,14 +42,12 @@ function ProfileForm() {
       });
       setIsEditing(true);
     }
-  }, [userProfile, isLoading, publicKey]);
+  }, [userProfile]);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.preventDefault();
     const { name, value } = e.target;
-    setFormData((prev) => prev ? { ...prev, [name]: value } : null);
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -73,8 +57,7 @@ function ProfileForm() {
     if (!formData.username) newErrors.username = "Username is required";
     if (!formData.bio) newErrors.bio = "Bio is required";
     if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.wallet_address)
-      newErrors.wallet_address = "Wallet address is required";
+    if (!formData.wallet_address) newErrors.wallet_address = "Wallet address is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -83,9 +66,7 @@ function ProfileForm() {
     if (!publicKey || userProfile) {
       return true;
     }
-    const { available, error } = await checkUsernameAvailability(
-      username
-    );
+    const { available, error } = await checkUsernameAvailability(username);
     if (error) {
       console.error("Error checking username:", error);
       return true;
@@ -115,8 +96,7 @@ function ProfileForm() {
         }));
         toast({
           title: "Error",
-          description:
-            "Username is already taken. Please choose a different one.",
+          description: "Username is already taken. Please choose a different one.",
         });
         setIsSubmitting(false);
         return;
@@ -154,9 +134,7 @@ function ProfileForm() {
       } else {
         toast({
           title: "Success",
-          description: `Your profile has been ${
-            userProfile ? "updated" : "created"
-          } successfully!`,
+          description: `Your profile has been ${userProfile ? "updated" : "created"} successfully!`,
           variant: "default",
         });
         setIsEditing(false);
@@ -199,10 +177,7 @@ function ProfileForm() {
                       </div>
                     )}
                     {avatarLocalFile ? (
-                      <AvatarImage
-                        src={URL.createObjectURL(avatarLocalFile)}
-                        alt="Avatar"
-                      />
+                      <AvatarImage src={URL.createObjectURL(avatarLocalFile)} alt="Avatar" />
                     ) : formData?.avatar_url ? (
                       <AvatarImage src={formData.avatar_url} alt="Avatar" />
                     ) : (
@@ -237,9 +212,7 @@ function ProfileForm() {
                       <UploadIcon className="mr-2 h-4 w-4" />
                       Upload
                     </Button>
-                    <p className="text-xs text-muted-foreground text-center">
-                      500x500px, 2.5MB max
-                    </p>
+                    <p className="text-xs text-muted-foreground text-center">500x500px, 2.5MB max</p>
                   </>
                 )}
               </div>
@@ -253,17 +226,11 @@ function ProfileForm() {
                     name="username"
                     value={formData?.username || ""}
                     onChange={handleInputChange}
-                    className={`bg-background ${
-                      errors.username ? "border-red-500" : ""
-                    }`}
+                    className={`bg-background ${errors.username ? "border-red-500" : ""}`}
                     placeholder="michael"
                     readOnly={!isEditing}
                   />
-                  {errors.username && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {errors.username}
-                    </p>
-                  )}
+                  {errors.username && <p className="text-xs text-red-500 mt-1">{errors.username}</p>}
                 </div>
                 <div>
                   <Label htmlFor="email" className="text-sm font-medium">
@@ -275,14 +242,10 @@ function ProfileForm() {
                     type="email"
                     value={formData?.email || ""}
                     onChange={handleInputChange}
-                    className={`bg-background ${
-                      errors.email ? "border-red-500" : ""
-                    }`}
+                    className={`bg-background ${errors.email ? "border-red-500" : ""}`}
                     readOnly={!isEditing}
                   />
-                  {errors.email && (
-                    <p className="text-xs text-red-500 mt-1">{errors.email}</p>
-                  )}
+                  {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
                   <p className="text-xs text-muted-foreground mt-1">
                     Not shown on profile. For important notifications only.
                   </p>
@@ -299,14 +262,10 @@ function ProfileForm() {
                 name="bio"
                 value={formData?.bio || ""}
                 onChange={handleInputChange}
-                className={`bg-background h-24 ${
-                  errors.bio ? "border-red-500" : ""
-                }`}
+                className={`bg-background h-24 ${errors.bio ? "border-red-500" : ""}`}
                 readOnly={!isEditing}
               />
-              {errors.bio && (
-                <p className="text-xs text-red-500 mt-1">{errors.bio}</p>
-              )}
+              {errors.bio && <p className="text-xs text-red-500 mt-1">{errors.bio}</p>}
               <p className="text-xs text-muted-foreground mt-1">
                 {1500 - (formData?.bio?.length || 0)} characters remaining
               </p>
@@ -320,23 +279,15 @@ function ProfileForm() {
                 id="wallet_address"
                 name="wallet_address"
                 value={formData?.wallet_address || ""}
-                className={`bg-background ${
-                  errors.wallet_address ? "border-red-500" : ""
-                }`}
+                className={`bg-background ${errors.wallet_address ? "border-red-500" : ""}`}
                 readOnly
               />
-              {errors.wallet_address && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.wallet_address}
-                </p>
-              )}
+              {errors.wallet_address && <p className="text-xs text-red-500 mt-1">{errors.wallet_address}</p>}
             </div>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-semibold">
-                  Connect Your Socials
-                </CardTitle>
+                <CardTitle className="text-lg font-semibold">Connect Your Socials</CardTitle>
                 <CardDescription className="text-sm">
                   Connect social accounts to verify your identity as a creator.
                 </CardDescription>

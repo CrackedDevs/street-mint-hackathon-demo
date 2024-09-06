@@ -19,10 +19,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-      <AppWalletProvider>
-        <UserProfileProvider>
-        {children}
-        </UserProfileProvider>
+        <AppWalletProvider>
+          <UserProfileProvider>{children}</UserProfileProvider>
         </AppWalletProvider>
       </body>
     </html>

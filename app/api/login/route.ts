@@ -2,11 +2,46 @@ import * as nacl from "tweetnacl";
 import { createClient } from "@supabase/supabase-js";
 import { NextApiResponse } from "next";
 import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabaseClient";
+import { NumericUUID } from "@/lib/utils";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+
+const getOrCreateArtist = async (walletAddress: string) => {
+  try {
+    let { data: user, error } = await supabase
+      .from("artists")
+      .select("*")
+      .eq("wallet_address", walletAddress)
+      .single();
+
+    if (!user) {
+      const { data, error } = await supabase
+        .from("artists")
+        .insert({
+          id: NumericUUID(),
+          wallet_address: walletAddress,
+          avatar_url: '',
+          bio: '',
+          email: "",
+          username: walletAddress.slice(0, 8)
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error inserting new artist:", error);
+        throw new Error("Failed to create new artist");
+      }
+
+      user = data;
+    }
+
+    return user;
+  } catch (error) {
+    console.error("Error in getOrCreateArtist:", error);
+    throw new Error("Failed to get or create artist");
+  }
+};
 
 export async function POST(req: any, res: NextApiResponse) {
   const body = await req.json();
@@ -29,17 +64,11 @@ export async function POST(req: any, res: NextApiResponse) {
     return NextResponse.json({ error: "Invalid signature" });
   }
 
-  let { data: user, error } = await supabase
-    .from("artists")
-    .select("*")
-    .eq("wallet_address", publicKey)
-    .single();
-  if (!user) {
-    const { data, error } = await supabase
-      .from("artists")
-      .insert([{ wallet_address: publicKey }])
-      .single();
-    user = data;
+
+  try {
+    const user = await getOrCreateArtist(walletAddress);
+  } catch (error) {
+    return NextResponse.json({ error: (error as Error).message });
   }
   const email = `${walletAddress}@example.com`;
   const { data: signInData, error: signInError } =

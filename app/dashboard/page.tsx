@@ -4,17 +4,16 @@ import RetroGrid from "@/components/magicui/retro-grid";
 import ShimmerButton from "@/components/magicui/shimmer-button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { fetchProfileData } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import { useUserProfile } from "../providers/UserProfileProvider";
 
 const DashboardPage = () => {
   const { connected, connecting } = useWallet();
+  const { isLoading } = useUserProfile();
   const router = useRouter();
 
   const handleConnect = () => {
-    const button = document.querySelector(
-      ".wallet-adapter-button"
-    ) as HTMLElement;
+    const button = document.querySelector(".wallet-adapter-button") as HTMLElement;
     if (button) {
       button.click();
     }
@@ -23,10 +22,6 @@ const DashboardPage = () => {
   const handleGoToCollection = () => {
     router.push("/dashboard/collection");
   };
-
-  if (connecting) {
-    return <div>Connecting...</div>;
-  }
 
   return (
     <>
@@ -39,11 +34,12 @@ const DashboardPage = () => {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto font-raleway">
             Start selling your digital collectibles in minutes.
           </p>
-          {connected ? (
-            <ShimmerButton
-              className="shadow-2xl"
-              onClick={handleGoToCollection}
-            >
+          {isLoading ? (
+            <ShimmerButton className="shadow-2xl">
+              <div className="animate-spin text-white rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+            </ShimmerButton>
+          ) : connected ? (
+            <ShimmerButton className="shadow-2xl" onClick={handleGoToCollection}>
               <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
                 Create Collection!
               </span>

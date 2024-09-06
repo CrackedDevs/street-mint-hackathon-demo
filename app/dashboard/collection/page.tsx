@@ -2,23 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
-import {
-  getCollectionsByArtistId,
-  fetchProfileData,
-} from "@/lib/supabaseClient";
+import { getCollectionsByArtistId } from "@/lib/supabaseClient";
 import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import withAuth from "../withAuth";
 import { PlusIcon, Loader2Icon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useUserProfile } from "@/app/providers/UserProfileProvider";
 
 type Collection = {
   id?: number;
@@ -32,6 +24,7 @@ function CollectionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { publicKey, connected } = useWallet();
+  const { userProfile } = useUserProfile();
 
   useEffect(() => {
     async function fetchCollections() {
@@ -40,34 +33,18 @@ function CollectionsPage() {
         setLoading(false);
         return;
       }
-
       setLoading(true);
       setError(null);
 
       try {
-        const {
-          exists,
-          data: artistData,
-          error: artistError,
-        } = await fetchProfileData();
-        if (artistError) {
-          console.error("Error fetching artist:", artistError);
-          throw new Error("Failed to fetch artist data");
-        }
+        if (userProfile && publicKey) {
+          const collectionsData = await getCollectionsByArtistId(userProfile.id);
+          if (!collectionsData) {
+            throw new Error("Failed to fetch collections data");
+          }
 
-        if (!exists || !artistData) {
-          setError(
-            "Artist not found. Please ensure your wallet is registered."
-          );
-          setLoading(false);
-          return;
+          setCollections(collectionsData);
         }
-        const collectionsData = await getCollectionsByArtistId(artistData.id);
-        if (!collectionsData) {
-          throw new Error("Failed to fetch collections data");
-        }
-
-        setCollections(collectionsData);
       } catch (error) {
         console.error("Error in fetchCollections:", error);
         setError("An unexpected error occurred. Please try again later.");
@@ -82,7 +59,7 @@ function CollectionsPage() {
     }
 
     fetchCollections();
-  }, [publicKey, connected]);
+  }, [userProfile, publicKey]);
 
   if (!connected) {
     return <></>;
@@ -114,16 +91,11 @@ function CollectionsPage() {
         ) : error ? (
           <Card className="w-full max-w-md mx-auto">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center text-red-500">
-                Error
-              </CardTitle>
+              <CardTitle className="text-2xl font-bold text-center text-red-500">Error</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-center mb-4">{error}</p>
-              <Button
-                className="w-full"
-                onClick={() => window.location.reload()}
-              >
+              <Button className="w-full" onClick={() => window.location.reload()}>
                 Retry
               </Button>
             </CardContent>
@@ -136,12 +108,8 @@ function CollectionsPage() {
                 className="hover:shadow-lg flex flex-col justify-between transition-all duration-200 transform hover:-translate-y-1"
               >
                 <CardHeader>
-                  <CardTitle className="text-2xl font-semibold">
-                    {collection.name}
-                  </CardTitle>
-                  <CardDescription className="text-sm line-clamp-2">
-                    {collection.description}
-                  </CardDescription>
+                  <CardTitle className="text-2xl font-semibold">{collection.name}</CardTitle>
+                  <CardDescription className="text-sm line-clamp-2">{collection.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-end">
                   <Link href={`/dashboard/collection/${collection.id}`}>
@@ -149,16 +117,8 @@ function CollectionsPage() {
                       buttonColor="bg-primary"
                       buttonTextColor="text-primary-foreground"
                       subscribeStatus={false}
-                      initialText={
-                        <span className="group inline-flex items-center">
-                          View Collection
-                        </span>
-                      }
-                      changeText={
-                        <span className="group inline-flex items-center">
-                          Opening...
-                        </span>
-                      }
+                      initialText={<span className="group inline-flex items-center">View Collection</span>}
+                      changeText={<span className="group inline-flex items-center">Opening...</span>}
                     />
                   </Link>
                 </CardContent>
@@ -167,13 +127,10 @@ function CollectionsPage() {
           </div>
         ) : (
           <div className="text-center">
-            <p className="text-lg mb-4">
-              You haven&apos;t created any collections yet.
-            </p>
+            <p className="text-lg mb-4">You haven&apos;t created any collections yet.</p>
             <Link href="/dashboard/collection/create">
               <Button size="lg">
-                <PlusIcon className="mr-2 h-5 w-5" /> Create Your First
-                Collection
+                <PlusIcon className="mr-2 h-5 w-5" /> Create Your First Collection
               </Button>
             </Link>
           </div>
