@@ -17,7 +17,7 @@ import { useUserProfile } from "@/app/providers/UserProfileProvider";
 
 function ProfileForm() {
   const { toast } = useToast();
-  const { publicKey } = useWallet();
+  const { publicKey, connected } = useWallet();
   const { userProfile, setUserProfile, isLoading } = useUserProfile();
   const [formData, setFormData] = useState<Artist | null>(null);
   const [avatarLocalFile, setAvatarLocalFile] = useState<File | null>(null);
@@ -28,7 +28,11 @@ function ProfileForm() {
   useEffect(() => {
     if (publicKey && userProfile) {
       setFormData(userProfile);
-      setIsEditing(false);
+      if (connected && !isLoading && userProfile && !userProfile.email) {
+        setIsEditing(true);
+      } else {
+        setIsEditing(false);
+      }
     } else if (!isLoading) {
       setFormData({
         id: NumericUUID(),
@@ -153,7 +157,7 @@ function ProfileForm() {
   }
 
   return (
-    <div className="flex flex-col h-full justify-center align-middle">
+    <div className="flex w-full flex-col h-full justify-center align-middle">
       <Card className="w-full max-w-2xl mx-auto z-20 bg-white my-12">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
