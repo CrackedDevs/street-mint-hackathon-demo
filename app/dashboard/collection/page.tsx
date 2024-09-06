@@ -59,7 +59,7 @@ function CollectionsPage() {
     }
 
     fetchCollections();
-  }, [userProfile, publicKey]);
+  }, [userProfile]);
 
   if (!connected) {
     return <></>;

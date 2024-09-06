@@ -146,6 +146,7 @@ export default function CreateCollectionPage() {
             ...nft,
             primary_image_url: imageUrl || "",
             gallery_urls: uploadedGalleryUrls.filter(Boolean),
+            price_usd: nft.price_usd || 0,
           };
         })
       );
@@ -203,6 +204,13 @@ export default function CreateCollectionPage() {
   const removeGalleryImage = (index: number) => {
     const updatedImages = newNFTGalleryImages.filter((_, i) => i !== index);
     setNewNFTGalleryImages(updatedImages);
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === "" || /^\d+(\.\d*)?$/.test(value)) {
+      handleNFTChange("price_usd", value);
+    }
   };
 
   return (
@@ -349,9 +357,9 @@ export default function CreateCollectionPage() {
                 </Label>
                 <Input
                   id="nft-price"
-                  type="number"
-                  value={newNFT.price_usd}
-                  onChange={(e) => handleNFTChange("price_usd", Number(e.target.value))}
+                  type="text"
+                  value={newNFT.price_usd.toString()}
+                  onChange={handlePriceChange}
                   placeholder="Enter the price in USD"
                 />
               </div>
@@ -393,18 +401,18 @@ export default function CreateCollectionPage() {
               </Button>
             </div>
           </form>
+        <ShimmerButton onClick={handleSubmit} type="submit" className="w-full mt-4" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {submitState}
+            </>
+          ) : (
+            submitState
+          )}
+        </ShimmerButton>
         </CardContent>
       </Card>
-      <ShimmerButton onClick={handleSubmit} type="submit" className="w-full mt-4" disabled={isSubmitting}>
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {submitState}
-          </>
-        ) : (
-          submitState
-        )}
-      </ShimmerButton>
     </div>
   );
 }
