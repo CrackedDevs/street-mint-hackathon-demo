@@ -5,8 +5,8 @@ import ShimmerButton from "@/components/magicui/shimmer-button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useRouter } from "next/navigation";
-import { useUserProfile } from "../providers/UserProfileProvider";
-import Page from "./profile/page";
+import { useUserProfile } from "@/app/providers/UserProfileProvider";
+import Page from "@/app/dashboard/profile/page";
 
 const DashboardPage = () => {
   const { connected, connecting } = useWallet();
