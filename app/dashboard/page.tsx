@@ -32,9 +32,65 @@ const DashboardPage = () => {
     }
   };
 
-  const handleCreateCandyMachine = () => {
-    if (umi && wallet) {
-      setupCandyMachineAndCreateCollection();
+  const [collectionData, setCollectionData] = useState<{
+    candyMachinePublicKey: string;
+    collectionMintPublicKey: string;
+    treasuryPublicKey: string;
+  } | null>(null);
+
+  const handleCreateCandyMachine = async () => {
+    try {
+      const response = await fetch("/api/collection/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (data.success) {
+        setCollectionData({
+          candyMachinePublicKey: data.result.candyMachinePublicKey,
+          collectionMintPublicKey: data.result.collectionMintPublicKey,
+          treasuryPublicKey: data.result.treasuryPublicKey,
+        });
+      } else {
+        console.error("Failed to create candy machine:", data.error);
+      }
+    } catch (error) {
+      console.error("Error creating candy machine:", error);
+    }
+  };
+
+  const handleMintNFT = async () => {
+    if (!collectionData) {
+      console.error("Collection data is not available. Please create a candy machine first.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/collection/mint", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          candyMachinePublicKey: collectionData.candyMachinePublicKey,
+          collectionMintPublicKey: collectionData.collectionMintPublicKey,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log("NFT minted successfully:", data.result);
+        // You can add further actions here, such as updating the UI or showing a success message
+      } else {
+        console.error("Failed to mint NFT:", data.error);
+        // Handle the error, maybe show an error message to the user
+      }
+    } catch (error) {
+      console.error("Error minting NFT:", error);
+      // Handle any network or unexpected errors
     }
   };
 
@@ -81,6 +137,28 @@ const DashboardPage = () => {
             </div>
           )}
           <Button onClick={handleCreateCandyMachine}>Create Candy Machine</Button>
+          <Button className="mt-2" onClick={handleMintNFT}>
+            Mint NFT
+          </Button>
+          {collectionData && (
+            <div className="mt-8 p-6 bg-white rounded-lg shadow-md">
+              <h3 className="text-2xl font-bold mb-4">Collection Data</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="font-semibold">Candy Machine Public Key:</p>
+                  <p className="text-sm break-all">{collectionData.candyMachinePublicKey}</p>
+                </div>
+                <div>
+                  <p className="font-semibold">Collection Mint Public Key:</p>
+                  <p className="text-sm break-all">{collectionData.collectionMintPublicKey}</p>
+                </div>
+                <div>
+                  <p className="font-semibold">Treasury Public Key:</p>
+                  <p className="text-sm break-all">{collectionData.treasuryPublicKey}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
