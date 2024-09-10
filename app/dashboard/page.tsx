@@ -33,10 +33,13 @@ const DashboardPage = () => {
   };
 
   const [collectionData, setCollectionData] = useState<{
-    candyMachinePublicKey: string;
+    candyMachinePublicKey?: string;
     collectionMintPublicKey: string;
-    treasuryPublicKey: string;
+    treasuryPublicKey?: string;
+    merkleTreePublicKey: string;
   } | null>(null);
+
+  // const [merkleTreePublicKey, setMerkleTreePublicKey] = useState<string | null>(null);
 
   const handleCreateCandyMachine = async () => {
     try {
@@ -47,11 +50,12 @@ const DashboardPage = () => {
         },
       });
       const data = await response.json();
+      console.log(data.result);
+
       if (data.success) {
         setCollectionData({
-          candyMachinePublicKey: data.result.candyMachinePublicKey,
           collectionMintPublicKey: data.result.collectionMintPublicKey,
-          treasuryPublicKey: data.result.treasuryPublicKey,
+          merkleTreePublicKey: data.result.merkleTreePublicKey,
         });
       } else {
         console.error("Failed to create candy machine:", data.error);
@@ -62,10 +66,10 @@ const DashboardPage = () => {
   };
 
   const handleMintNFT = async () => {
-    if (!collectionData) {
-      console.error("Collection data is not available. Please create a candy machine first.");
-      return;
-    }
+    // if (!collectionData) {
+    //   console.error("Collection data is not available. Please create a candy machine first.");
+    //   return;
+    // }
 
     try {
       const response = await fetch("/api/collection/mint", {
@@ -74,8 +78,10 @@ const DashboardPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          candyMachinePublicKey: collectionData.candyMachinePublicKey,
-          collectionMintPublicKey: collectionData.collectionMintPublicKey,
+          // candyMachinePublicKey: collectionData.candyMachinePublicKey,
+          // collectionMintPublicKey: collectionData.collectionMintPublicKey,
+          merkleTreePublicKey: collectionData?.merkleTreePublicKey,
+          collectionMintPublicKey: collectionData?.collectionMintPublicKey,
         }),
       });
 

@@ -1,3 +1,4 @@
+import { mintV2 } from '@metaplex-foundation/mpl-candy-machine';
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import {
     mplCandyMachine,
@@ -19,17 +20,21 @@ import {
     createSignerFromKeypair,
     signerIdentity,
     publicKey,
+    percentAmount,
+
 } from "@metaplex-foundation/umi";
-import { createCollectionV1 } from "@metaplex-foundation/mpl-core";
+import { createCollection, createCollectionV1, createCollectionV2, fetchCollection, fetchCollectionV1 } from "@metaplex-foundation/mpl-core";
 import { createMintWithAssociatedToken, setComputeUnitLimit } from "@metaplex-foundation/mpl-toolbox";
-import { mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
-import { decode } from 'bs58';
+import { createNft, fetchDigitalAsset, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
+import { decode, encode } from 'bs58';
+import { createTree, mplBubblegum, mintV1 as mintV1BubbleGum, mintToCollectionV1 } from '@metaplex-foundation/mpl-bubblegum'
+
 
 // Common Umi initialization function
 function initializeUmi(endpoint: string, privateKey: string): Umi {
     const umi = createUmi(endpoint)
         .use(mplTokenMetadata())
-        .use(mplCandyMachine());
+        .use(mplBubblegum())
 
     const keypair = umi.eddsa.createKeypairFromSecretKey(privateKeyToUint8Array(privateKey));
     const signer = createSignerFromKeypair(umi, keypair);
@@ -180,6 +185,80 @@ export async function mintNFTs(candyMachinePublicKey: string, collectionMintPubl
         return tx;
     } catch (error) {
         console.error("Error minting NFTs:", error);
+        throw error;
+    }
+}
+
+
+export async function createBubbleGumTree() {
+    const umi = initializeUmi(process.env.RPC_URL!, process.env.PRIVATE_KEY!);
+    const collectionMint = generateSigner(umi)
+    const merkleTree = generateSigner(umi)
+    try {
+        const collectionTx = await createNft(umi, {
+            mint: collectionMint,
+            name: "Streetmint RJ Collection",
+            uri: "https://example.com/my-collection.json",
+            sellerFeeBasisPoints: percentAmount(5), // 5.5%
+            isCollection: true,
+        }).sendAndConfirm(umi);
+
+        console.log(`✅ Created collection: ${collectionMint.publicKey.toString()}`);
+        console.log(`Collection transaction: ${collectionTx.signature.toString()}`);
+
+        const builder = await createTree(umi, {
+            merkleTree,
+            maxDepth: 14,
+            maxBufferSize: 64,
+        })
+        const tx = await builder.sendAndConfirm(umi)
+
+        console.log(`✅ Created Bubble Gum Tree: ${merkleTree.publicKey.toString()}`);
+        console.log(`Tree transaction: ${tx.signature.toString()}`);
+
+        return {
+            merkleTreePublicKey: merkleTree.publicKey.toString(),
+            collectionMintPublicKey: collectionMint.publicKey.toString()
+        };
+    } catch (error) {
+        console.error("Error in createBubbleGumTree:", error);
+        throw error;
+    }
+}
+
+
+export async function mintNFTWithBubbleGumTree(merkleTreePublicKey: string, collectionMintPublicKey: string) {
+    const umi = initializeUmi(process.env.RPC_URL!, process.env.PRIVATE_KEY!);
+    try {
+        console.log(merkleTreePublicKey, collectionMintPublicKey);
+        const merkleTree = publicKey(merkleTreePublicKey)
+        const leafOwner = publicKey("59W3uJ5bDsDrUEinDF9aWNX3roEnYEX7yj34sweD7XDM")
+        const collectionMintPubkey = publicKey(collectionMintPublicKey);
+        const collectionAsset = await fetchDigitalAsset(umi, collectionMintPubkey)
+
+        console.log("Collection mint fetched:", collectionAsset.publicKey.toString());
+
+        const tx = await mintToCollectionV1(umi, {
+            leafOwner: leafOwner,
+            merkleTree,
+            collectionMint: collectionMintPubkey,
+            metadata: {
+                name: 'Street mint pro NFT',
+                uri: 'https://iaulwnqmthzvuxfubnsb.supabase.co/storage/v1/object/public/nft-images/my-cnft.json',
+                sellerFeeBasisPoints: 500, // 5%
+                collection: { key: collectionMintPubkey, verified: true, },
+                creators: [
+                    { address: umi.identity.publicKey, verified: true, share: 100 },
+                ],
+            },
+        }).sendAndConfirm(umi)
+        console.log("Minting transaction completed:", tx.signature.toString());
+
+        const txSignature = encode(tx.signature);
+        const solscanLink = `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
+        return solscanLink;
+    } catch (error) {
+        console.error("Error minting NFT with BubbleGum Tree:", error);
         throw error;
     }
 }
