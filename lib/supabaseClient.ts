@@ -25,7 +25,7 @@ export type Collectible = {
     description: string;
     primary_image_url: string;
     quantity_type: QuantityType;
-    quantity?: number;
+    quantity?: number | null;
     price_usd: number;
     location?: string;
     gallery_urls: string[];
@@ -79,7 +79,6 @@ export const createCollection = async (collection: Collection): Promise<Collecti
             artist: collection.artist,
             name: collection.name,
             description: collection.description,
-            collectibles: collection.collectibles.map(collectible => collectible.id)
         })
         .select();
 
@@ -88,18 +87,18 @@ export const createCollection = async (collection: Collection): Promise<Collecti
         return null;
     }
 
-    // Insert the NFTs
+    // Insert the collectibles
     const collectiblesWithCollectionId = collection.collectibles.map(collectible => ({
         ...collectible,
         collection_id: collectionData[0].id
     }));
 
-    const { error: nftsError } = await supabase
+    const { error: collectiblesError } = await supabase
         .from('collectibles')
         .insert(collectiblesWithCollectionId);
 
-    if (nftsError) {
-        console.error('Error creating NFTs:', nftsError);
+    if (collectiblesError) {
+        console.error('Error creating collectibles:', collectiblesError);
         return null;
     }
 
@@ -126,6 +125,33 @@ export const uploadImage = async (file: File) => {
     }
     const { data: publicUrlData } = supabase.storage.from("nft-images").getPublicUrl(fileName);
     return publicUrlData.publicUrl;
+};
+
+export const createCollectible = async (collectible: Omit<Collectible, 'id'>, collection_id: number): Promise<{ data: Collectible | null; error: any }> => {
+    const { user, error: authError } = await getAuthenticatedUser();
+    if (!user || authError) {
+        return { data: null, error: authError || null };
+    }
+
+    const id = Math.floor(Math.random() * 1000000);
+    const { data, error } = await supabase
+        .from("collectibles")
+        .insert({
+            id,
+            ...collectible,
+            collection_id
+        })
+        .select()
+        .single();
+
+    console.log("data", data)
+
+    if (error) {
+        console.error("Error creating collectible:", error);
+        return { data: null, error };
+    }
+
+    return { data: data as Collectible, error: null };
 };
 
 export const getArtistById = async (id: number): Promise<Artist | null> => {
@@ -262,7 +288,7 @@ export const getCollectionById = async (id: number) => {
 export const fetchCollectiblesByCollectionId = async (collectionId: number) => {
     const { data, error } = await supabase.from("collectibles").select("*").eq("collection_id", collectionId);
     if (error) {
-        console.error("Error fetching nfts:", error);
+        console.error("Error fetching collectibles:", error);
         return null;
     }
     return data;

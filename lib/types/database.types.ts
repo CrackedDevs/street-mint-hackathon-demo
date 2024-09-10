@@ -93,7 +93,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "nfts_collection_id_fkey"
+            foreignKeyName: "collectibles_collection_id_fkey"
             columns: ["collection_id"]
             isOneToOne: false
             referencedRelation: "collections"
@@ -104,21 +104,18 @@ export type Database = {
       collections: {
         Row: {
           artist: number
-          collectibles: number[]
           description: string
           id: number
           name: string
         }
         Insert: {
           artist: number
-          collectibles: number[]
           description: string
           id: number
           name: string
         }
         Update: {
           artist?: number
-          collectibles?: number[]
           description?: string
           id?: number
           name?: string

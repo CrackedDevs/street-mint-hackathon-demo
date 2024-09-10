@@ -43,7 +43,7 @@ const DashboardPage = () => {
           ) : (
             <div className="text-center relative z-10 px-4 flex flex-col items-center justify-center mb-6">
               <h2 className="pointer-events-none z-10 whitespace-pre-wrap text-black text-center text-7xl font-bold leading-none mb-4">
-                Start Selling NFT&apos;s
+                Start Creating Collectibles
               </h2>
               <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto font-raleway">
                 Start selling your digital collectibles in minutes.

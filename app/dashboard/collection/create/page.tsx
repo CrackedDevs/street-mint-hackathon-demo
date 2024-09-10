@@ -36,7 +36,7 @@ export default function CreateCollectionPage() {
     price_usd: 0,
     gallery_urls: [],
   })
-  const [newNFTGalleryImages, setNewNFTGalleryImages] = useState<File[]>([])
+  const [newCollectibleGalleryImages, setNewCollectibleGalleryImages] = useState<File[]>([])
 
   useEffect(() => {
     if (publicKey && userProfile) {
@@ -57,13 +57,13 @@ export default function CreateCollectionPage() {
 
   const addCollectible = (e: React.FormEvent) => {
     e.preventDefault()
-    if (newCollectible.name && newCollectible.description && newCollectible.primary_image_url && newNFTGalleryImages.length > 0) {
+    if (newCollectible.name && newCollectible.description && newCollectible.primary_image_url && newCollectibleGalleryImages.length > 0) {
       setCollectibles(prev => [
         ...prev,
         {
           ...newCollectible,
           id: NumericUUID(),
-          gallery_urls: newNFTGalleryImages.map(file => URL.createObjectURL(file)),
+          gallery_urls: newCollectibleGalleryImages.map(file => URL.createObjectURL(file)),
         },
       ])
       setNewCollectible({
@@ -76,7 +76,7 @@ export default function CreateCollectionPage() {
         gallery_urls: [],
       })
       setPrimaryImageLocalFile(null)
-      setNewNFTGalleryImages([])
+      setNewCollectibleGalleryImages([])
     } else {
       toast({
         title: "Error",
@@ -171,14 +171,14 @@ export default function CreateCollectionPage() {
   }
 
   const handleGalleryImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && newNFTGalleryImages.length < 5) {
+    if (e.target.files && newCollectibleGalleryImages.length < 5) {
       const filesArray = Array.from(e.target.files)
-      if (filesArray.length + newNFTGalleryImages.length <= 5) {
-        setNewNFTGalleryImages([...newNFTGalleryImages, ...filesArray])
+      if (filesArray.length + newCollectibleGalleryImages.length <= 5) {
+        setNewCollectibleGalleryImages([...newCollectibleGalleryImages, ...filesArray])
       } else {
         toast({
           title: "Error",
-          description: "You can only upload a maximum of 5 images per NFT.",
+          description: "You can only upload a maximum of 5 images per collectible.",
           variant: "destructive",
         })
       }
@@ -186,7 +186,7 @@ export default function CreateCollectionPage() {
   }
 
   const removeGalleryImage = (index: number) => {
-    setNewNFTGalleryImages(prev => prev.filter((_, i) => i !== index))
+    setNewCollectibleGalleryImages(prev => prev.filter((_, i) => i !== index))
   }
 
   return (
@@ -331,10 +331,10 @@ export default function CreateCollectionPage() {
                           accept="image/*"
                           multiple
                           onChange={handleGalleryImageChange}
-                          disabled={newNFTGalleryImages.length >= 5}
+                          disabled={newCollectibleGalleryImages.length >= 5}
                         />
                         <div className="flex flex-wrap gap-2 mt-2">
-                          {newNFTGalleryImages.map((file, index) => (
+                          {newCollectibleGalleryImages.map((file, index) => (
                             <div key={index} className="relative">
                               <Image
                                 src={URL.createObjectURL(file)}
