@@ -16,13 +16,18 @@ type MintRequestBody = {
   metadata_uri: string;
 };
 
-export default function MintButton({ collectible, collection }: { collectible: Collectible; collection: Collection }) {
+export default function MintButton({
+  collectible,
+  collection,
+}: {
+  collectible: Collectible;
+  collection: Collection;
+}) {
   const { connected, connect } = useWallet();
   const { publicKey } = useWallet();
   const [isMinting, setIsMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mintResult, setMintResult] = useState<any | null>(null);
-
 
   const MintFunction = () => {
     const handleMint = async () => {
@@ -35,8 +40,13 @@ export default function MintButton({ collectible, collection }: { collectible: C
       setMintResult(null);
 
       try {
-        if (!collection.collection_mint_public_key || !collection.merkle_tree_public_key) {
-          setError("Collection mint public key or merkle tree public key is not set.");
+        if (
+          !collection.collection_mint_public_key ||
+          !collection.merkle_tree_public_key
+        ) {
+          setError(
+            "Collection mint public key or merkle tree public key is not set."
+          );
           return;
         }
         const mintRequestBody: MintRequestBody = {
@@ -105,7 +115,12 @@ export default function MintButton({ collectible, collection }: { collectible: C
         </ShimmerButton>
       ) : (
         <WalletMultiButton
-          style={{ backgroundColor: "black", width: "100%", marginBottom: "20px", borderRadius: "6px" }}
+          style={{
+            backgroundColor: "black",
+            width: "100%",
+            marginBottom: "20px",
+            borderRadius: "6px",
+          }}
         />
       )}
       {error && <p className="text-red-500 mt-2">{error}</p>}

@@ -25,7 +25,13 @@ import { createCollectionV1 } from "@metaplex-foundation/mpl-core";
 import { setComputeUnitLimit } from "@metaplex-foundation/mpl-toolbox";
 import { mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
 import { walletAdapterIdentity } from "@metaplex-foundation/umi-signer-wallet-adapters";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { Signer } from "@solana/web3.js";
 import { useWallet } from "@solana/wallet-adapter-react";
 
@@ -46,12 +52,16 @@ interface CandyMachineContextType {
   setupCandyMachineAndCreateCollection: () => Promise<void>;
 }
 
-const CandyMachineContext = createContext<CandyMachineContextType | undefined>(undefined);
+const CandyMachineContext = createContext<CandyMachineContextType | undefined>(
+  undefined
+);
 
 export const useCandyMachine = () => {
   const context = useContext(CandyMachineContext);
   if (!context) {
-    throw new Error("useCandyMachine must be used within a CandyMachineProvider");
+    throw new Error(
+      "useCandyMachine must be used within a CandyMachineProvider"
+    );
   }
   return context;
 };
@@ -60,12 +70,16 @@ interface CandyMachineProviderProps {
   children: ReactNode;
 }
 
-export const CandyMachineProvider: React.FC<CandyMachineProviderProps> = ({ children }) => {
+export const CandyMachineProvider: React.FC<CandyMachineProviderProps> = ({
+  children,
+}) => {
   const { wallet } = useWallet();
   const [umi, setUmi] = useState<Umi | null>(null);
 
   const [keypair, setKeypair] = useState<KeypairSigner | null>(null);
-  const [collectionMint, setCollectionMint] = useState<KeypairSigner | null>(null);
+  const [collectionMint, setCollectionMint] = useState<KeypairSigner | null>(
+    null
+  );
   const [treasury, setTreasury] = useState<KeypairSigner | null>(null);
   const [candyMachine, setCandyMachine] = useState<KeypairSigner | null>(null);
 
@@ -105,26 +119,44 @@ export const CandyMachineProvider: React.FC<CandyMachineProviderProps> = ({ chil
       step?: number
     ) => {
       try {
-        const loadedCandyMachine = await fetchCandyMachine(umi, candyMachine, options.confirm);
-        const { itemsLoaded, itemsRedeemed, authority, collection } = expectedCandyMachineState;
+        const loadedCandyMachine = await fetchCandyMachine(
+          umi,
+          candyMachine,
+          options.confirm
+        );
+        const { itemsLoaded, itemsRedeemed, authority, collection } =
+          expectedCandyMachineState;
         if (Number(loadedCandyMachine.itemsRedeemed) !== itemsRedeemed) {
-          throw new Error("Incorrect number of items available in the Candy Machine.");
+          throw new Error(
+            "Incorrect number of items available in the Candy Machine."
+          );
         }
         if (loadedCandyMachine.itemsLoaded !== itemsLoaded) {
-          throw new Error("Incorrect number of items loaded in the Candy Machine.");
+          throw new Error(
+            "Incorrect number of items loaded in the Candy Machine."
+          );
         }
         if (loadedCandyMachine.authority.toString() !== authority.toString()) {
           throw new Error("Incorrect authority in the Candy Machine.");
         }
-        if (loadedCandyMachine.collectionMint.toString() !== collection.toString()) {
+        if (
+          loadedCandyMachine.collectionMint.toString() !== collection.toString()
+        ) {
           throw new Error("Incorrect collection in the Candy Machine.");
         }
-        step && console.log(`${step}. ✅ - Candy Machine has the correct configuration.`);
+        step &&
+          console.log(
+            `${step}. ✅ - Candy Machine has the correct configuration.`
+          );
       } catch (error) {
         if (error instanceof Error) {
-          step && console.log(`${step}. ❌ - Candy Machine incorrect configuration: ${error.message}`);
+          step &&
+            console.log(
+              `${step}. ❌ - Candy Machine incorrect configuration: ${error.message}`
+            );
         } else {
-          step && console.log(`${step}. ❌ - Error fetching the Candy Machine.`);
+          step &&
+            console.log(`${step}. ❌ - Error fetching the Candy Machine.`);
         }
         return;
       }
@@ -139,7 +171,9 @@ export const CandyMachineProvider: React.FC<CandyMachineProviderProps> = ({ chil
         uri: "https://example.com/my-collection.json",
       }).sendAndConfirm(umi, options);
       console.log(result);
-      console.log(`2. ✅ - Created collection: ${collectionMint.publicKey.toString()}`);
+      console.log(
+        `2. ✅ - Created collection: ${collectionMint.publicKey.toString()}`
+      );
     } catch (error) {
       console.log("2. ❌ - Error creating collection.", error);
       return;
@@ -164,13 +198,18 @@ export const CandyMachineProvider: React.FC<CandyMachineProviderProps> = ({ chil
         }),
         guards: {
           botTax: some({ lamports: sol(0.0001), lastInstruction: true }),
-          solPayment: some({ lamports: sol(0.001), destination: treasury.publicKey }),
+          solPayment: some({
+            lamports: sol(0.001),
+            destination: treasury.publicKey,
+          }),
           startDate: some({ date: dateTime("2023-04-04T16:00:00Z") }),
           // All other guards are disabled...
         },
       });
       await createIx.sendAndConfirm(umi, options);
-      console.log(`3. ✅ - Created Candy Machine: ${candyMachine.publicKey.toString()}`);
+      console.log(
+        `3. ✅ - Created Candy Machine: ${candyMachine.publicKey.toString()}`
+      );
     } catch (error) {
       console.log("3. ❌ - Error creating Candy Machine.", error);
       return;
@@ -187,13 +226,19 @@ export const CandyMachineProvider: React.FC<CandyMachineProviderProps> = ({ chil
           { name: "3", uri: "3.json" },
         ],
       }).sendAndConfirm(umi, options);
-      console.log(`4. ✅ - Added items to the Candy Machine: ${candyMachine.publicKey.toString()}`);
+      console.log(
+        `4. ✅ - Added items to the Candy Machine: ${candyMachine.publicKey.toString()}`
+      );
     } catch (error) {
       console.log("4. ❌ - Error adding items to the Candy Machine.");
       return;
     }
 
-    const loaded1CandyMachine = await fetchCandyMachine(umi, candyMachine.publicKey, options.confirm);
+    const loaded1CandyMachine = await fetchCandyMachine(
+      umi,
+      candyMachine.publicKey,
+      options.confirm
+    );
     console.log("Loaded Candy Machine:", loaded1CandyMachine);
 
     // 5. Verify the Candy Machine configuration
@@ -246,7 +291,11 @@ export const CandyMachineProvider: React.FC<CandyMachineProviderProps> = ({ chil
       7
     );
 
-    const loadedCandyMachine = await fetchCandyMachine(umi, candyMachine.publicKey, options.confirm);
+    const loadedCandyMachine = await fetchCandyMachine(
+      umi,
+      candyMachine.publicKey,
+      options.confirm
+    );
     console.log("Loaded Candy Machine:", loadedCandyMachine);
 
     // 8. Delete the Candy Machine
@@ -254,7 +303,9 @@ export const CandyMachineProvider: React.FC<CandyMachineProviderProps> = ({ chil
       await deleteCandyMachine(umi, {
         candyMachine: candyMachine.publicKey,
       }).sendAndConfirm(umi, options);
-      console.log(`8. ✅ - Deleted the Candy Machine: ${candyMachine.publicKey.toString()}`);
+      console.log(
+        `8. ✅ - Deleted the Candy Machine: ${candyMachine.publicKey.toString()}`
+      );
     } catch (error) {
       console.log("8. ❌ - Error deleting the Candy Machine.");
     }
@@ -273,7 +324,9 @@ export const CandyMachineProvider: React.FC<CandyMachineProviderProps> = ({ chil
   };
 
   return (
-    <CandyMachineContext.Provider value={{ umi, setupCandyMachineAndCreateCollection }}>
+    <CandyMachineContext.Provider
+      value={{ umi, setupCandyMachineAndCreateCollection }}
+    >
       {children}
     </CandyMachineContext.Provider>
   );

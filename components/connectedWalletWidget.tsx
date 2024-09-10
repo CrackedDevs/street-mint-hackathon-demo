@@ -17,7 +17,7 @@ import { useUserProfile } from "@/app/providers/UserProfileProvider";
 const ConnectedWalletWidget = () => {
   const { publicKey, connected } = useWallet();
   const router = useRouter();
-  const { userProfile, isLoading, handleDisconnect, } = useUserProfile();
+  const { userProfile, isLoading, handleDisconnect } = useUserProfile();
 
   if (!connected || isLoading) {
     return <></>;
@@ -29,7 +29,12 @@ const ConnectedWalletWidget = () => {
         {/* Visible only on small screens */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative" aria-label={`Connected wallet: ${publicKey}`}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              aria-label={`Connected wallet: ${publicKey}`}
+            >
               <Wallet className="h-5 w-5" />
               <span className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full" />
             </Button>
@@ -39,8 +44,13 @@ const ConnectedWalletWidget = () => {
               <>
                 <DropdownMenuItem className="flex  items-center">
                   <Avatar className="w-10 h-10 mr-2">
-                    <AvatarImage src={userProfile.avatar_url} alt={userProfile.username} />
-                    <AvatarFallback className="text-lg">{userProfile.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarImage
+                      src={userProfile.avatar_url}
+                      alt={userProfile.username}
+                    />
+                    <AvatarFallback className="text-lg">
+                      {userProfile.username.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   {userProfile.username}
                 </DropdownMenuItem>
@@ -48,7 +58,9 @@ const ConnectedWalletWidget = () => {
             ) : (
               <DropdownMenuItem className="flex justify-between items-center">
                 <span className="font-medium">Connected</span>
-                <span className="text-sm text-muted-foreground">{shortenAddress(publicKey?.toString() || "")}</span>
+                <span className="text-sm text-muted-foreground">
+                  {shortenAddress(publicKey?.toString() || "")}
+                </span>
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={handleDisconnect}>
@@ -70,14 +82,22 @@ const ConnectedWalletWidget = () => {
               {userProfile ? (
                 <>
                   <Avatar className="w-10 h-10 mr-2">
-                    <AvatarImage src={userProfile.avatar_url} alt={userProfile.username} />
-                    <AvatarFallback className="text-lg">{userProfile.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarImage
+                      src={userProfile.avatar_url}
+                      alt={userProfile.username}
+                    />
+                    <AvatarFallback className="text-lg">
+                      {userProfile.username.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   {userProfile.username}
                 </>
               ) : (
                 <>
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2" aria-hidden="true" />
+                  <span
+                    className="w-2 h-2 bg-green-500 rounded-full mr-2"
+                    aria-hidden="true"
+                  />
                   <span className="sr-only">Connected:</span>
                   {shortenAddress(publicKey?.toString() || "")}
                 </>
@@ -85,7 +105,10 @@ const ConnectedWalletWidget = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleDisconnect} className="cursor-pointer">
+            <DropdownMenuItem
+              onClick={handleDisconnect}
+              className="cursor-pointer"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Disconnect</span>
             </DropdownMenuItem>

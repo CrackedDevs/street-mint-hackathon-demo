@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { fetchProfileData, supabase } from "@/lib/supabaseClient";
 import { useRouter, usePathname } from "next/navigation";
@@ -27,9 +33,13 @@ interface UserProfileContextType {
   handleDisconnect: () => void;
 }
 
-const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
+const UserProfileContext = createContext<UserProfileContextType | undefined>(
+  undefined
+);
 
-export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { publicKey, signMessage, disconnect, connected } = useWallet();
@@ -37,17 +47,24 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const pathname = usePathname();
 
   const signAndSendMessage = async () => {
-    const message = new TextEncoder().encode("Please sign this message to authenticate");
+    const message = new TextEncoder().encode(
+      "Please sign this message to authenticate"
+    );
     const signature = await signMessage?.(message);
-    const encodedSignature = signature ? Buffer.from(signature).toString("base64") : undefined;
-    const encodedPublicKey = publicKey ? Buffer.from(publicKey.toBytes()).toString("base64") : undefined;
+    const encodedSignature = signature
+      ? Buffer.from(signature).toString("base64")
+      : undefined;
+    const encodedPublicKey = publicKey
+      ? Buffer.from(publicKey.toBytes()).toString("base64")
+      : undefined;
 
     return { publicKey: encodedPublicKey, signature: encodedSignature };
   };
 
   const loginUser = async () => {
     try {
-      const { publicKey: encodedPublicKey, signature } = await signAndSendMessage();
+      const { publicKey: encodedPublicKey, signature } =
+        await signAndSendMessage();
       const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -76,7 +93,11 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         error,
       } = await supabase.auth.getSession();
 
-      if (!token || !session || (session?.expires_at && session.expires_at * 1000 < Date.now())) {
+      if (
+        !token ||
+        !session ||
+        (session?.expires_at && session.expires_at * 1000 < Date.now())
+      ) {
         await loginUser();
       }
       token = localStorage.getItem("supabase_token");
@@ -90,8 +111,10 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
           disconnect();
           return;
         }
-        const { data: updatedUserProfile, error: updatedUserProfileError }: { data: UserProfile | null; error: any } =
-          await fetchProfileData();
+        const {
+          data: updatedUserProfile,
+          error: updatedUserProfileError,
+        }: { data: UserProfile | null; error: any } = await fetchProfileData();
         if (updatedUserProfile) {
           setUserProfile(updatedUserProfile);
           if (updatedUserProfile.email && !pathname.includes("/mint")) {
@@ -101,7 +124,10 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
           }
         }
         if (updatedUserProfileError) {
-          console.error("Error fetching user profile:", updatedUserProfileError);
+          console.error(
+            "Error fetching user profile:",
+            updatedUserProfileError
+          );
         }
       } else {
         console.error("No token found after login attempt");
@@ -127,7 +153,15 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   return (
-    <UserProfileContext.Provider value={{ userProfile, setUserProfile, isLoading, loginUser, handleDisconnect }}>
+    <UserProfileContext.Provider
+      value={{
+        userProfile,
+        setUserProfile,
+        isLoading,
+        loginUser,
+        handleDisconnect,
+      }}
+    >
       {children}
     </UserProfileContext.Provider>
   );

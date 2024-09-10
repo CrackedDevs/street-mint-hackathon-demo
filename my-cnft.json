@@ -1,19 +1,19 @@
 {
-    "name": "StreetMintProNFT",
-    "description": "Generative art on Solana.",
-    "image": "https://iaulwnqmthzvuxfubnsb.supabase.co/storage/v1/object/public/nft-images/1725477930413-gallery_image.jpg",
-    "external_url": "https://street-mint-client.vercel.app/",
-    "properties": {
-        "files": [
-            {
-                "uri": "https://iaulwnqmthzvuxfubnsb.supabase.co/storage/v1/object/public/nft-images/1725606785713-Wallpaper%207.jpg",
-                "type": "image/jpg"
-            },
-            {
-                "uri": "https://iaulwnqmthzvuxfubnsb.supabase.co/storage/v1/object/public/nft-images/1725608985685-gallery_image.jpg",
-                "type": "image/jpg"
-            }
-        ],
-        "category": "image"
-    }
+  "name": "StreetMintProNFT",
+  "description": "Generative art on Solana.",
+  "image": "https://iaulwnqmthzvuxfubnsb.supabase.co/storage/v1/object/public/nft-images/1725477930413-gallery_image.jpg",
+  "external_url": "https://street-mint-client.vercel.app/",
+  "properties": {
+    "files": [
+      {
+        "uri": "https://iaulwnqmthzvuxfubnsb.supabase.co/storage/v1/object/public/nft-images/1725606785713-Wallpaper%207.jpg",
+        "type": "image/jpg"
+      },
+      {
+        "uri": "https://iaulwnqmthzvuxfubnsb.supabase.co/storage/v1/object/public/nft-images/1725608985685-gallery_image.jpg",
+        "type": "image/jpg"
+      }
+    ],
+    "category": "image"
+  }
 }

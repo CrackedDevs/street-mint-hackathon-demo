@@ -1,27 +1,38 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { PlusIcon, TrashIcon, Loader2, ArrowLeftIcon } from "lucide-react"
-import { Collectible, createCollectible, QuantityType, uploadImage } from "@/lib/supabaseClient"
-import { useToast } from "@/hooks/use-toast"
-import { useWallet } from "@solana/wallet-adapter-react"
-import { NumericUUID } from "@/lib/utils"
-import { useUserProfile } from "@/app/providers/UserProfileProvider"
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { PlusIcon, TrashIcon, Loader2, ArrowLeftIcon } from "lucide-react";
+import {
+  Collectible,
+  createCollectible,
+  QuantityType,
+  uploadImage,
+} from "@/lib/supabaseClient";
+import { useToast } from "@/hooks/use-toast";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { NumericUUID } from "@/lib/utils";
+import { useUserProfile } from "@/app/providers/UserProfileProvider";
 
 export default function CreateCollectiblePage() {
-  const router = useRouter()
-  const { id: collectionId } = useParams()
-  const { toast } = useToast()
-  const { publicKey } = useWallet()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const { userProfile } = useUserProfile()
+  const router = useRouter();
+  const { id: collectionId } = useParams();
+  const { toast } = useToast();
+  const { publicKey } = useWallet();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { userProfile } = useUserProfile();
 
   const [collectible, setCollectible] = useState<Collectible>({
     id: NumericUUID(),
@@ -31,111 +42,125 @@ export default function CreateCollectiblePage() {
     quantity_type: QuantityType.Unlimited,
     price_usd: 0,
     gallery_urls: [],
-  })
-  const [primaryImageLocalFile, setPrimaryImageLocalFile] = useState<File | null>(null)
-  const [galleryImages, setGalleryImages] = useState<File[]>([])
+  });
+  const [primaryImageLocalFile, setPrimaryImageLocalFile] =
+    useState<File | null>(null);
+  const [galleryImages, setGalleryImages] = useState<File[]>([]);
 
   const handleCollectibleChange = (field: keyof Collectible, value: any) => {
-    setCollectible(prev => ({ ...prev, [field]: value }))
-  }
+    setCollectible((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setPrimaryImageLocalFile(e.target.files[0])
-      handleCollectibleChange("primary_image_url", URL.createObjectURL(e.target.files[0]))
+      setPrimaryImageLocalFile(e.target.files[0]);
+      handleCollectibleChange(
+        "primary_image_url",
+        URL.createObjectURL(e.target.files[0])
+      );
     }
-  }
+  };
 
   const handleGalleryImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && galleryImages.length < 5) {
-      const filesArray = Array.from(e.target.files)
+      const filesArray = Array.from(e.target.files);
       if (filesArray.length + galleryImages.length <= 5) {
-        setGalleryImages([...galleryImages, ...filesArray])
+        setGalleryImages([...galleryImages, ...filesArray]);
       } else {
         toast({
           title: "Error",
-          description: "You can only upload a maximum of 5 images per collectible.",
+          description:
+            "You can only upload a maximum of 5 images per collectible.",
           variant: "destructive",
-        })
+        });
       }
     }
-  }
+  };
 
   const removeGalleryImage = (index: number) => {
-    setGalleryImages(prev => prev.filter((_, i) => i !== index))
-  }
+    setGalleryImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!publicKey) {
       toast({
         title: "Error",
         description: "Please connect your wallet",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
     if (!userProfile) {
       toast({
         title: "Error",
         description: "User profile not found",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      let primaryImageUrl = ""
+      let primaryImageUrl = "";
       if (primaryImageLocalFile) {
-        primaryImageUrl = await uploadImage(primaryImageLocalFile) || ""
+        primaryImageUrl = (await uploadImage(primaryImageLocalFile)) || "";
       }
 
       const uploadedGalleryUrls = await Promise.all(
         galleryImages.map(async (file) => {
-          return (await uploadImage(file)) || ""
+          return (await uploadImage(file)) || "";
         })
-      )
+      );
 
       const newCollectible: Collectible = {
         ...collectible,
         primary_image_url: primaryImageUrl,
         gallery_urls: uploadedGalleryUrls.filter(Boolean),
         id: Number(collectionId),
-      }
+      };
 
-      const createdCollectible = await createCollectible(newCollectible, Number(collectionId))
+      const createdCollectible = await createCollectible(
+        newCollectible,
+        Number(collectionId)
+      );
 
       if (createdCollectible) {
         toast({
           title: "Success",
           description: "Collectible created successfully",
           variant: "default",
-        })
-        router.push(`/dashboard/collection/${collectionId}`)
+        });
+        router.push(`/dashboard/collection/${collectionId}`);
       } else {
-        throw new Error("Failed to create collectible")
+        throw new Error("Failed to create collectible");
       }
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to create collectible",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <Button variant="ghost" onClick={() => router.push(`/dashboard/collection/${collectionId}`)} className="mb-6">
+        <Button
+          variant="ghost"
+          onClick={() => router.push(`/dashboard/collection/${collectionId}`)}
+          className="mb-6"
+        >
           <ArrowLeftIcon className="mr-2 h-4 w-4" />
           Back to Collection
         </Button>
         <Card className="w-full">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-3xl font-bold text-center">Create New Collectible</CardTitle>
+            <CardTitle className="text-3xl font-bold text-center">
+              Create New Collectible
+            </CardTitle>
             <CardDescription className="text-center">
               Fill in the details below to create your new collectible.
             </CardDescription>
@@ -144,46 +169,75 @@ export default function CreateCollectiblePage() {
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="collectible-name" className="text-base font-semibold">
+                  <Label
+                    htmlFor="collectible-name"
+                    className="text-base font-semibold"
+                  >
                     Collectible Name <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="collectible-name"
                     value={collectible.name}
-                    onChange={(e) => handleCollectibleChange("name", e.target.value)}
+                    onChange={(e) =>
+                      handleCollectibleChange("name", e.target.value)
+                    }
                     className="text-lg"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="collectible-description" className="text-base font-semibold">
-                    Collectible Description <span className="text-destructive">*</span>
+                  <Label
+                    htmlFor="collectible-description"
+                    className="text-base font-semibold"
+                  >
+                    Collectible Description{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="collectible-description"
                     value={collectible.description}
-                    onChange={(e) => handleCollectibleChange("description", e.target.value)}
+                    onChange={(e) =>
+                      handleCollectibleChange("description", e.target.value)
+                    }
                     className="min-h-[100px]"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="collectible-image" className="text-base font-semibold">
-                    Collectible Image <span className="text-destructive">*</span>
+                  <Label
+                    htmlFor="collectible-image"
+                    className="text-base font-semibold"
+                  >
+                    Collectible Image{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
-                  <Input id="collectible-image" type="file" accept="image/*" onChange={handleImageChange} required />
+                  <Input
+                    id="collectible-image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    required
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="collectible-quantity-type" className="text-base font-semibold">
+                  <Label
+                    htmlFor="collectible-quantity-type"
+                    className="text-base font-semibold"
+                  >
                     Quantity Type <span className="text-destructive">*</span>
                   </Label>
                   <select
                     id="collectible-quantity-type"
                     value={collectible.quantity_type}
-                    onChange={(e) => handleCollectibleChange("quantity_type", e.target.value as QuantityType)}
+                    onChange={(e) =>
+                      handleCollectibleChange(
+                        "quantity_type",
+                        e.target.value as QuantityType
+                      )
+                    }
                     className="w-full p-2 border rounded-md bg-background"
                     required
                   >
@@ -194,21 +248,32 @@ export default function CreateCollectiblePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="collectible-price" className="text-base font-semibold">
+                  <Label
+                    htmlFor="collectible-price"
+                    className="text-base font-semibold"
+                  >
                     Price (USD) <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="collectible-price"
                     type="number"
                     value={collectible.price_usd}
-                    onChange={(e) => handleCollectibleChange("price_usd", parseFloat(e.target.value))}
+                    onChange={(e) =>
+                      handleCollectibleChange(
+                        "price_usd",
+                        parseFloat(e.target.value)
+                      )
+                    }
                     placeholder="Enter price in USD"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="gallery-images" className="text-base font-semibold">
+                  <Label
+                    htmlFor="gallery-images"
+                    className="text-base font-semibold"
+                  >
                     Gallery Images (Max 5)
                   </Label>
                   <Input
@@ -243,7 +308,11 @@ export default function CreateCollectiblePage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full text-lg h-12" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="w-full text-lg h-12"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -258,5 +327,5 @@ export default function CreateCollectiblePage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

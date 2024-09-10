@@ -21,12 +21,16 @@ const DashboardPage = () => {
 
   useEffect(() => {
     if (userProfile) {
-      setProfileNotComplete(connected && !isLoading && userProfile && !userProfile.email);
+      setProfileNotComplete(
+        connected && !isLoading && userProfile && !userProfile.email
+      );
     }
   }, [userProfile]);
 
   const handleConnect = () => {
-    const button = document.querySelector(".wallet-adapter-button") as HTMLElement;
+    const button = document.querySelector(
+      ".wallet-adapter-button"
+    ) as HTMLElement;
     if (button) {
       button.click();
     }
@@ -59,7 +63,10 @@ const DashboardPage = () => {
                   </div>
                 </ShimmerButton>
               ) : connected ? (
-                <ShimmerButton className="shadow-2xl" onClick={handleGoToCollection}>
+                <ShimmerButton
+                  className="shadow-2xl"
+                  onClick={handleGoToCollection}
+                >
                   <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
                     Create Collection!
                   </span>

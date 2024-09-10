@@ -1,14 +1,21 @@
 import Image from "next/image";
 import { Linkedin, Instagram } from "lucide-react";
 import MintButton from "@/components/mintButton";
-import { getCollectionById, getArtistById, fetchCollectibleById, QuantityType } from "@/lib/supabaseClient";
+import {
+  getCollectionById,
+  getArtistById,
+  fetchCollectibleById,
+  QuantityType,
+} from "@/lib/supabaseClient";
 import Gallery from "@/components/gallery";
 import X from "@/components/x";
 import { Toaster } from "@/components/ui/toaster";
 
 async function getNFTData(id: string) {
   // Fetch SOL price
-  const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
+  const response = await fetch(
+    "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+  );
   const data = await response.json();
   const solPriceUSD = data.solana.usd;
 
@@ -42,7 +49,13 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
       <header className="py-4 px-6 border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex justify-center items-center w-full">
-            <Image src="/logo.svg" alt="Street mint logo" width={150} height={50} className="h-8 w-auto" />
+            <Image
+              src="/logo.svg"
+              alt="Street mint logo"
+              width={150}
+              height={50}
+              className="h-8 w-auto"
+            />
           </div>
         </div>
       </header>
@@ -63,14 +76,19 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
           {/* Right column - Details */}
           <div>
             <h1 className="text-3xl font-bold mb-2">{collectible.name}</h1>
-            <p className="text-xl text-gray-600 mb-4">From the &quot;{collection.name}&quot; Collection</p>
+            <p className="text-xl text-gray-600 mb-4">
+              From the &quot;{collection.name}&quot; Collection
+            </p>
 
             {/* Artist Information */}
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-6 h-6 bg-purple-600 rounded-full"></div>
               <span className="font-semibold">{artist.username}</span>
               {artist.x_username && (
-                <a href={`https://x.com/${artist.x_username}`} className="text-gray-600 hover:text-black">
+                <a
+                  href={`https://x.com/${artist.x_username}`}
+                  className="text-gray-600 hover:text-black"
+                >
                   <X className="w-5 h-5" />
                 </a>
               )}
@@ -98,14 +116,20 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                 <span className="text-lg font-semibold">Limited Edition</span>
                 <span className="text-3xl font-bold">43 of 43</span>
               </div>
-              <div className="mt-2 text-sm text-gray-300">Last chance to own this unique piece</div>
+              <div className="mt-2 text-sm text-gray-300">
+                Last chance to own this unique piece
+              </div>
             </div>
 
             <div className="mb-6 p-4 bg-gray-100 rounded-lg">
               <span className="text-gray-600 text-lg">Mint price:</span>
               <div className="flex items-baseline">
-                <span className="text-4xl font-bold mr-2">${collectible.price_usd.toFixed(2)}</span>
-                <span className="text-gray-500">({priceInSOL.toFixed(2)} SOL)</span>
+                <span className="text-4xl font-bold mr-2">
+                  ${collectible.price_usd.toFixed(2)}
+                </span>
+                <span className="text-gray-500">
+                  ({priceInSOL.toFixed(2)} SOL)
+                </span>
               </div>
             </div>
             <MintButton
@@ -119,13 +143,15 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                 ...collection,
                 artist: collection.artist || 0,
                 collectibles: [],
-                collection_mint_public_key: collection.collection_mint_public_key || "",
+                collection_mint_public_key:
+                  collection.collection_mint_public_key || "",
                 metadata_uri: collection.metadata_uri || "",
                 merkle_tree_public_key: collection.merkle_tree_public_key || "",
               }}
             />
             <p className="text-sm text-gray-600 mb-8">
-              This digital collectible is configured for minting. Once minted, it will be added to your collection.
+              This digital collectible is configured for minting. Once minted,
+              it will be added to your collection.
             </p>
 
             <div className="space-y-4 mt-4">
@@ -156,7 +182,8 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                 <div>
                   <p className="text-gray-600">Price per edition</p>
                   <p>
-                    ${collectible.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)} SOL)
+                    ${collectible.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)}{" "}
+                    SOL)
                   </p>
                 </div>
                 <div>

@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { NumericUUID } from "@/lib/utils";
 
-
 const getOrCreateArtist = async (walletAddress: string) => {
   try {
     let { data: user, error } = await supabase
@@ -20,10 +19,10 @@ const getOrCreateArtist = async (walletAddress: string) => {
         .insert({
           id: NumericUUID(),
           wallet_address: walletAddress,
-          avatar_url: '',
-          bio: '',
+          avatar_url: "",
+          bio: "",
           email: "",
-          username: walletAddress.slice(0, 8)
+          username: walletAddress.slice(0, 8),
         })
         .select()
         .single();
@@ -63,7 +62,6 @@ export async function POST(req: any, res: NextApiResponse) {
   if (!isValidSignature) {
     return NextResponse.json({ error: "Invalid signature" });
   }
-
 
   try {
     const user = await getOrCreateArtist(walletAddress);

@@ -7,7 +7,12 @@ import { ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Collection, Collectible, getCollectionById, fetchCollectiblesByCollectionId } from "@/lib/supabaseClient";
+import {
+  Collection,
+  Collectible,
+  getCollectionById,
+  fetchCollectiblesByCollectionId,
+} from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,7 +37,9 @@ export default function Component() {
         setCollection({ ...collectionData } as CollectionWithIds);
       }
 
-      const collectiblesData = await fetchCollectiblesByCollectionId(Number(id));
+      const collectiblesData = await fetchCollectiblesByCollectionId(
+        Number(id)
+      );
 
       if (!collectiblesData) {
         console.error("Error fetching collectibles: No data returned");
@@ -74,7 +81,9 @@ export default function Component() {
           <Button
             className="inline-flex items-center"
             onClick={() => {
-              router.push(`/dashboard/collection/${collection.id}/new-collectible`);
+              router.push(
+                `/dashboard/collection/${collection.id}/new-collectible`
+              );
             }}
           >
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -83,7 +92,9 @@ export default function Component() {
         </div>
         <Card className="mb-8 bg-white shadow-lg">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-gray-900 mb-2">{collection.name}</CardTitle>
+            <CardTitle className="text-3xl font-bold text-gray-900 mb-2">
+              {collection.name}
+            </CardTitle>
             <p className="text-lg text-gray-600">{collection.description}</p>
           </CardHeader>
         </Card>
@@ -95,29 +106,56 @@ export default function Component() {
             >
               <CardContent className="p-0 flex-grow">
                 <div className="aspect-square relative">
-                  <Image src={collectible.primary_image_url} alt={collectible.name} layout="fill" objectFit="cover" />
+                  <Image
+                    src={collectible.primary_image_url}
+                    alt={collectible.name}
+                    layout="fill"
+                    objectFit="cover"
+                  />
                 </div>
                 <div className="p-4">
-                  <h3 className="text-xl font-semibold mb-2 text-gray-900">{collectible.name}</h3>
-                  <p className="text-sm text-gray-600 mb-4">{collectible.description}</p>
+                  <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                    {collectible.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {collectible.description}
+                  </p>
                   <div className="flex justify-between items-center mb-4">
-                    <Badge variant="secondary" className="text-xs font-semibold">
-                      {collectible.quantity_type === "limited" ? `Limited (${collectible.quantity})` : "Unlimited"}
+                    <Badge
+                      variant="secondary"
+                      className="text-xs font-semibold"
+                    >
+                      {collectible.quantity_type === "limited"
+                        ? `Limited (${collectible.quantity})`
+                        : "Unlimited"}
                     </Badge>
-                    <span className="text-lg font-bold text-gray-900">${collectible.price_usd}</span>
+                    <span className="text-lg font-bold text-gray-900">
+                      ${collectible.price_usd}
+                    </span>
                   </div>
-                  {collectible.gallery_urls && collectible.gallery_urls.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Gallery</h4>
-                      <div className="flex space-x-2">
-                        {collectible.gallery_urls.map((url, index) => (
-                          <div key={index} className="w-16 h-16 relative rounded-md overflow-hidden">
-                            <Image src={url} alt={`Gallery image ${index + 1}`} layout="fill" objectFit="cover" />
-                          </div>
-                        ))}
+                  {collectible.gallery_urls &&
+                    collectible.gallery_urls.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                          Gallery
+                        </h4>
+                        <div className="flex space-x-2">
+                          {collectible.gallery_urls.map((url, index) => (
+                            <div
+                              key={index}
+                              className="w-16 h-16 relative rounded-md overflow-hidden"
+                            >
+                              <Image
+                                src={url}
+                                alt={`Gallery image ${index + 1}`}
+                                layout="fill"
+                                objectFit="cover"
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               </CardContent>
               <div className="p-4 bg-gray-50 border-t border-gray-200">
