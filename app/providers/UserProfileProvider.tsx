@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { fetchProfileData, supabase } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 // Define the shape of the user profile
 interface UserProfile {
@@ -34,6 +34,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [isLoading, setIsLoading] = useState(false);
   const { publicKey, signMessage, disconnect, connected } = useWallet();
   const router = useRouter();
+  const pathname = usePathname();
 
   const signAndSendMessage = async () => {
     const message = new TextEncoder().encode("Please sign this message to authenticate");
@@ -89,12 +90,13 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
           disconnect();
           return;
         }
-        const { data: updatedUserProfile, error: updatedUserProfileError } = await fetchProfileData();
+        const { data: updatedUserProfile, error: updatedUserProfileError }: { data: UserProfile | null; error: any } =
+          await fetchProfileData();
         if (updatedUserProfile) {
           setUserProfile(updatedUserProfile);
-          if (updatedUserProfile.email) {
+          if (updatedUserProfile.email && !pathname.includes("/mint")) {
             router.push("/dashboard/collection");
-          } else {
+          } else if (!updatedUserProfile.email && !pathname.includes("/mint")) {
             router.push("/dashboard");
           }
         }
@@ -105,7 +107,9 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         console.error("No token found after login attempt");
         disconnect();
         setUserProfile(null);
-        router.push("/dashboard");
+        if (!pathname.includes("/mint")) {
+          router.push("/dashboard");
+        }
       }
     }
     setIsLoading(false);

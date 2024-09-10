@@ -17,7 +17,7 @@ import { useUserProfile } from "@/app/providers/UserProfileProvider";
 const ConnectedWalletWidget = () => {
   const { publicKey, connected } = useWallet();
   const router = useRouter();
-  const { userProfile, isLoading, handleDisconnect } = useUserProfile();
+  const { userProfile, isLoading, handleDisconnect, } = useUserProfile();
 
   if (!connected || isLoading) {
     return <></>;

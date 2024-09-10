@@ -6,13 +6,13 @@ type MintRequestBody = {
     merkleTreePublicKey: string;
     sellerFeePercentage: number;
     minterAddress: string;
+    name: string;
+    metadata_uri: string;
 };
 
 export async function POST(request: Request) {
     try {
-
-
-        const { collectionMintPublicKey, merkleTreePublicKey, sellerFeePercentage, minterAddress }: MintRequestBody = await request.json();
+        const { collectionMintPublicKey, merkleTreePublicKey, sellerFeePercentage, minterAddress, name, metadata_uri }: MintRequestBody = await request.json();
 
         if (!collectionMintPublicKey || !merkleTreePublicKey || !sellerFeePercentage || !minterAddress) {
             throw new Error('Missing required fields');
@@ -22,7 +22,9 @@ export async function POST(request: Request) {
             merkleTreePublicKey,
             collectionMintPublicKey,
             sellerFeePercentage,
-            minterAddress
+            minterAddress,
+            name,
+            metadata_uri
         );
 
         return NextResponse.json({ success: true, result }, { status: 200 });

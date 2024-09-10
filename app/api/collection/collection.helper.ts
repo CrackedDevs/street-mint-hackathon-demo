@@ -233,7 +233,7 @@ export async function createBubbleGumTree(collectionData: Collection) {
 }
 
 
-export async function mintNFTWithBubbleGumTree(merkleTreePublicKey: string, collectionMintPublicKey: string, sellerFeePercentage: number, minterAddress: string) {
+export async function mintNFTWithBubbleGumTree(merkleTreePublicKey: string, collectionMintPublicKey: string, sellerFeePercentage: number, minterAddress: string, name: string, metadata_uri: string) {
     const umi = initializeUmi(process.env.RPC_URL!, process.env.PRIVATE_KEY!);
     try {
         console.log(merkleTreePublicKey, collectionMintPublicKey, minterAddress);
@@ -252,8 +252,8 @@ export async function mintNFTWithBubbleGumTree(merkleTreePublicKey: string, coll
             merkleTree,
             collectionMint: collectionMintPubkey,
             metadata: {
-                name: 'Street mint pro NFT',
-                uri: 'https://iaulwnqmthzvuxfubnsb.supabase.co/storage/v1/object/public/nft-images/my-cnft.json',
+                name: name,
+                uri: metadata_uri,
                 sellerFeeBasisPoints: sellerFeeBasisPoints,
                 collection: { key: collectionMintPubkey, verified: true, },
                 creators: [
