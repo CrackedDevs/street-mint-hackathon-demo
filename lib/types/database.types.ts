@@ -53,48 +53,48 @@ export type Database = {
       }
       collectibles: {
         Row: {
-          chain: string
+          chain: string | null
           collection_id: number
           created_at: string
           description: string
-          gallery_urls: string[] | null
+          gallery_urls: string[]
           id: number
           location: string | null
           metadata_uri: string | null
           name: string
           price_usd: number
           primary_image_url: string
-          quantity: number
+          quantity: number | null
           quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Insert: {
-          chain: string
+          chain?: string | null
           collection_id: number
           created_at?: string
           description: string
-          gallery_urls?: string[] | null
+          gallery_urls: string[]
           id?: number
           location?: string | null
           metadata_uri?: string | null
           name: string
           price_usd: number
           primary_image_url: string
-          quantity: number
+          quantity?: number | null
           quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Update: {
-          chain?: string
+          chain?: string | null
           collection_id?: number
           created_at?: string
           description?: string
-          gallery_urls?: string[] | null
+          gallery_urls?: string[]
           id?: number
           location?: string | null
           metadata_uri?: string | null
           name?: string
           price_usd?: number
           primary_image_url?: string
-          quantity?: number
+          quantity?: number | null
           quantity_type?: Database["public"]["Enums"]["quantity_type"]
         }
         Relationships: [

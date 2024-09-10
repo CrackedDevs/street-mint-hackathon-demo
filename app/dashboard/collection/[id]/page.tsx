@@ -13,7 +13,7 @@ import { useState, useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useRouter } from "next/navigation"
 
-type CollectionWithIds = Omit<Collection, 'collectibles'> & { collectibles: number[] };
+type CollectionWithIds = Omit<Collection, 'collectibles'>;
 
 export default function Component() {
   const { id } = useParams();
@@ -27,7 +27,7 @@ export default function Component() {
       if (!collectionData) {
         console.error("Error fetching collection: Collection not found");
       } else {
-        setCollection(collectionData as CollectionWithIds);
+        setCollection({ ...collectionData } as CollectionWithIds);
       }
 
       const collectiblesData = await fetchCollectiblesByCollectionId(Number(id));
