@@ -1,31 +1,31 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { PlusIcon, TrashIcon, Loader2, ArrowLeftIcon } from "lucide-react"
-import Image from "next/image"
-import { Collectible, Collection, createCollection, QuantityType, uploadImage } from "@/lib/supabaseClient"
-import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
-import { useWallet } from "@solana/wallet-adapter-react"
-import { NumericUUID } from "@/lib/utils"
-import { useUserProfile } from "@/app/providers/UserProfileProvider"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { PlusIcon, TrashIcon, Loader2, ArrowLeftIcon } from "lucide-react";
+import Image from "next/image";
+import { Collectible, Collection, createCollection, QuantityType, uploadImage } from "@/lib/supabaseClient";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { NumericUUID } from "@/lib/utils";
+import { useUserProfile } from "@/app/providers/UserProfileProvider";
 
 export default function CreateCollectionPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const { publicKey } = useWallet()
-  const [collectionName, setCollectionName] = useState("")
-  const [collectionDescription, setCollectionDescription] = useState("")
-  const [collectibles, setCollectibles] = useState<Collectible[]>([])
-  const [primaryImageLocalFile, setPrimaryImageLocalFile] = useState<File | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [artistId, setArtistId] = useState<number | null>(null)
-  const { userProfile } = useUserProfile()
+  const router = useRouter();
+  const { toast } = useToast();
+  const { publicKey } = useWallet();
+  const [collectionName, setCollectionName] = useState("");
+  const [collectionDescription, setCollectionDescription] = useState("");
+  const [collectibles, setCollectibles] = useState<Collectible[]>([]);
+  const [primaryImageLocalFile, setPrimaryImageLocalFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [artistId, setArtistId] = useState<number | null>(null);
+  const { userProfile } = useUserProfile();
 
   const [newCollectible, setNewCollectible] = useState<Collectible>({
     id: NumericUUID(),
@@ -35,37 +35,42 @@ export default function CreateCollectionPage() {
     quantity_type: QuantityType.Unlimited,
     price_usd: 0,
     gallery_urls: [],
-  })
-  const [newNFTGalleryImages, setNewNFTGalleryImages] = useState<File[]>([])
+  });
+  const [newNFTGalleryImages, setNewNFTGalleryImages] = useState<File[]>([]);
 
   useEffect(() => {
     if (publicKey && userProfile) {
-      setArtistId(userProfile.id)
+      setArtistId(userProfile.id);
     }
-  }, [publicKey, userProfile])
+  }, [publicKey, userProfile]);
 
   const handleCollectibleChange = (field: keyof Collectible, value: any) => {
-    setNewCollectible(prev => ({ ...prev, [field]: value }))
-  }
+    setNewCollectible((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setPrimaryImageLocalFile(e.target.files[0])
-      handleCollectibleChange("primary_image_url", URL.createObjectURL(e.target.files[0]))
+      setPrimaryImageLocalFile(e.target.files[0]);
+      handleCollectibleChange("primary_image_url", URL.createObjectURL(e.target.files[0]));
     }
-  }
+  };
 
   const addCollectible = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (newCollectible.name && newCollectible.description && newCollectible.primary_image_url && newNFTGalleryImages.length > 0) {
-      setCollectibles(prev => [
+    e.preventDefault();
+    if (
+      newCollectible.name &&
+      newCollectible.description &&
+      newCollectible.primary_image_url &&
+      newNFTGalleryImages.length > 0
+    ) {
+      setCollectibles((prev) => [
         ...prev,
         {
           ...newCollectible,
           id: NumericUUID(),
-          gallery_urls: newNFTGalleryImages.map(file => URL.createObjectURL(file)),
+          gallery_urls: newNFTGalleryImages.map((file) => URL.createObjectURL(file)),
         },
-      ])
+      ]);
       setNewCollectible({
         id: NumericUUID(),
         name: "",
@@ -74,72 +79,72 @@ export default function CreateCollectionPage() {
         quantity_type: QuantityType.Unlimited,
         price_usd: 0,
         gallery_urls: [],
-      })
-      setPrimaryImageLocalFile(null)
-      setNewNFTGalleryImages([])
+      });
+      setPrimaryImageLocalFile(null);
+      setNewNFTGalleryImages([]);
     } else {
       toast({
         title: "Error",
         description: "Please fill all required fields for the collectible, including at least one gallery image",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const removeCollectible = (id: number) => {
-    setCollectibles(prev => prev.filter(collectible => collectible.id !== id))
-  }
+    setCollectibles((prev) => prev.filter((collectible) => collectible.id !== id));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!publicKey) {
       toast({
         title: "Error",
         description: "Please connect your wallet",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
     if (!artistId) {
       toast({
         title: "Error",
         description: "Artist information not found",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
     if (collectibles.length === 0) {
       toast({
         title: "Error",
         description: "Please add at least one collectible to the collection",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const updatedCollectibles = await Promise.all(
         collectibles.map(async (collectible) => {
-          const imageBlob = await fetch(collectible.primary_image_url).then(r => r.blob())
-          const imageFile = new File([imageBlob], "image.jpg", { type: imageBlob.type })
-          const imageUrl = await uploadImage(imageFile)
+          const imageBlob = await fetch(collectible.primary_image_url).then((r) => r.blob());
+          const imageFile = new File([imageBlob], "image.jpg", { type: imageBlob.type });
+          const imageUrl = await uploadImage(imageFile);
 
           const uploadedGalleryUrls = await Promise.all(
             collectible.gallery_urls.map(async (url) => {
-              const galleryBlob = await fetch(url).then(r => r.blob())
-              const galleryFile = new File([galleryBlob], "gallery_image.jpg", { type: galleryBlob.type })
-              return (await uploadImage(galleryFile)) || ""
+              const galleryBlob = await fetch(url).then((r) => r.blob());
+              const galleryFile = new File([galleryBlob], "gallery_image.jpg", { type: galleryBlob.type });
+              return (await uploadImage(galleryFile)) || "";
             })
-          )
+          );
 
           return {
             ...collectible,
             primary_image_url: imageUrl || "",
             gallery_urls: uploadedGalleryUrls.filter(Boolean),
             price_usd: collectible.price_usd || 0,
-          }
+          };
         })
-      )
+      );
 
       const newCollection: Collection | null = await createCollection({
         id: NumericUUID(),
@@ -147,47 +152,47 @@ export default function CreateCollectionPage() {
         description: collectionDescription,
         artist: artistId,
         collectibles: updatedCollectibles,
-      })
+      });
 
       if (newCollection) {
         toast({
           title: "Success",
           description: "Collection created successfully",
           variant: "default",
-        })
-        router.push(`/dashboard/collection`)
+        });
+        router.push(`/dashboard/collection`);
       } else {
-        throw new Error("Failed to create collection")
+        throw new Error("Failed to create collection");
       }
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to create collection",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleGalleryImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && newNFTGalleryImages.length < 5) {
-      const filesArray = Array.from(e.target.files)
+      const filesArray = Array.from(e.target.files);
       if (filesArray.length + newNFTGalleryImages.length <= 5) {
-        setNewNFTGalleryImages([...newNFTGalleryImages, ...filesArray])
+        setNewNFTGalleryImages([...newNFTGalleryImages, ...filesArray]);
       } else {
         toast({
           title: "Error",
           description: "You can only upload a maximum of 5 images per NFT.",
           variant: "destructive",
-        })
+        });
       }
     }
-  }
+  };
 
   const removeGalleryImage = (index: number) => {
-    setNewNFTGalleryImages(prev => prev.filter((_, i) => i !== index))
-  }
+    setNewNFTGalleryImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   return (
     <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
@@ -379,5 +384,5 @@ export default function CreateCollectionPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

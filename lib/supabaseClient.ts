@@ -10,6 +10,9 @@ export type Collection = {
     description: string;
     artist: number;
     collectibles: Collectible[];
+    metadata_uri?: string;
+    collection_mint_public_key?: string;
+    merkle_tree_public_key?: string;
 };
 
 export enum QuantityType {
@@ -29,7 +32,9 @@ export type Collectible = {
     price_usd: number;
     location?: string;
     gallery_urls: string[];
+    metadata_uri?: string;
 };
+
 
 export type Artist = {
     id: number;
@@ -42,6 +47,14 @@ export type Artist = {
     linkedin_username?: string | null;
     farcaster_username?: string | null;
     wallet_address: string;
+};
+
+type CreateCollectionMintResponse = {
+    success: boolean;
+    result: {
+        merkleTreePublicKey: string;
+        collectionMintPublicKey: string;
+    };
 };
 
 export type ArtistWithoutWallet = Omit<Artist, 'wallet_address'>;
@@ -72,14 +85,83 @@ export const createCollection = async (collection: Collection): Promise<Collecti
         return null;
     }
 
+    // Create metadata for the collection
+    const collectionMetadata = {
+        name: collection.name,
+        description: collection.description,
+        image: collection.collectibles[0].primary_image_url, // Assuming collection has an image_url property
+        external_url: process.env.NEXT_PUBLIC_SITE_URL || "https://street-mint-client.vercel.app/",
+        properties: {
+            files: collection.collectibles.map(collectible => ({
+                uri: collectible.primary_image_url,
+                type: "image/jpg" // Assuming all images are JPGs
+            })),
+            category: "image"
+        }
+    };
+
+    // Upload collection metadata to Supabase storage
+    const collectionMetadataFileName = `${Date.now()}-collection-metadata.json`;
+    const { error: metadataUploadError } = await supabase.storage
+        .from("nft-images")
+        .upload(collectionMetadataFileName, JSON.stringify(collectionMetadata));
+
+    if (metadataUploadError) {
+        console.error('Error uploading collection metadata:', metadataUploadError);
+        return null;
+    }
+
+    // Get the public URL for the uploaded metadata
+    const { data: metadataUrlData } = supabase.storage
+        .from("nft-images")
+        .getPublicUrl(collectionMetadataFileName);
+
+    const collectionMetadataUri = metadataUrlData.publicUrl;
+
+    // Call the createBubbleGumTree API to create the collection on-chain
+    const response = await fetch('/api/collection/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            collectionData: {
+                ...collection,
+                metadata_uri: collectionMetadataUri
+            }
+        }),
+    });
+
+    if (!response.ok) {
+        console.error('Error creating on-chain collection');
+        return null;
+    }
+
+    const onChainCollectionData: CreateCollectionMintResponse = await response.json();
+
+    if (!onChainCollectionData.result) {
+        console.error('Error creating on-chain collection: No result returned');
+        return null;
+    }
+
+    // Add the on-chain data to the collection object
+    const collectionToInsert = {
+        ...collection,
+        metadata_uri: collectionMetadataUri,
+        merkle_tree_public_key: onChainCollectionData.result.merkleTreePublicKey,
+        collection_mint_public_key: onChainCollectionData.result.collectionMintPublicKey
+    };
+
     const { data: collectionData, error: collectionError } = await supabase
         .from('collections')
         .insert({
-            id: collection.id,
-            artist: collection.artist,
-            name: collection.name,
-            description: collection.description,
-            collectibles: collection.collectibles.map(collectible => collectible.id)
+            artist: collectionToInsert.artist,
+            description: collectionToInsert.description,
+            id: collectionToInsert.id,
+            name: collectionToInsert.name,
+            metadata_uri: collectionToInsert.metadata_uri,
+            merkle_tree_public_key: collectionToInsert.merkle_tree_public_key,
+            collection_mint_public_key: collectionToInsert.collection_mint_public_key
         })
         .select();
 
@@ -88,15 +170,57 @@ export const createCollection = async (collection: Collection): Promise<Collecti
         return null;
     }
 
-    // Insert the NFTs
-    const collectiblesWithCollectionId = collection.collectibles.map(collectible => ({
-        ...collectible,
-        collection_id: collectionData[0].id
+    // Create and upload metadata for each NFT
+    const collectiblesWithMetadata = await Promise.all(collection.collectibles.map(async (collectible) => {
+        const nftMetadata = {
+            name: collectible.name,
+            description: collectible.description,
+            image: collectible.primary_image_url,
+            external_url: "https://street-mint-client.vercel.app/",
+            properties: {
+                files: [
+                    {
+                        uri: collectible.primary_image_url,
+                        type: "image/jpg"
+                    },
+                    ...collectible.gallery_urls.map(url => ({
+                        uri: url,
+                        type: "image/jpg"
+                    }))
+                ],
+                category: "image"
+            }
+        };
+
+        const nftMetadataFileName = `${Date.now()}-${collectible.id}-metadata.json`;
+        const { error: nftMetadataUploadError } = await supabase.storage
+            .from("nft-images")
+            .upload(nftMetadataFileName, JSON.stringify(nftMetadata));
+
+        if (nftMetadataUploadError) {
+            console.error('Error uploading NFT metadata:', nftMetadataUploadError);
+            return null;
+        }
+
+        const { data: nftMetadataUrlData } = supabase.storage
+            .from("nft-images")
+            .getPublicUrl(nftMetadataFileName);
+
+        return {
+            ...collectible,
+            collection_id: collectionData[0].id,
+            metadata_uri: nftMetadataUrlData.publicUrl
+        };
     }));
+
+    // Filter out any null values from collectiblesWithMetadata
+    const validCollectibles = collectiblesWithMetadata.filter(c => c !== null);
+    console.log("validCollectibles", validCollectibles);
+
 
     const { error: nftsError } = await supabase
         .from('collectibles')
-        .insert(collectiblesWithCollectionId);
+        .insert(validCollectibles);
 
     if (nftsError) {
         console.error('Error creating NFTs:', nftsError);
@@ -106,10 +230,9 @@ export const createCollection = async (collection: Collection): Promise<Collecti
     if (collectionData[0]) {
         return {
             ...collectionData[0],
-            collectibles: collection.collectibles
+            collectibles: validCollectibles
         } as Collection;
     }
-
     return null;
 };
 

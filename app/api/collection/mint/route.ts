@@ -1,18 +1,28 @@
 import { NextResponse } from 'next/server';
-import { mintNFTs, mintNFTWithBubbleGumTree } from '../collection.helper';
-import { PublicKey } from '@metaplex-foundation/umi';
+import { mintNFTWithBubbleGumTree } from '../collection.helper';
+
+type MintRequestBody = {
+    collectionMintPublicKey: string;
+    merkleTreePublicKey: string;
+    sellerFeePercentage: number;
+    minterAddress: string;
+};
 
 export async function POST(request: Request) {
     try {
-        const { candyMachinePublicKey, collectionMintPublicKey, merkleTreePublicKey } = await request.json();
 
-        // if (!candyMachinePublicKey || !collectionMintPublicKey) {
-        //     return NextResponse.json({ success: false, error: 'Missing required parameters' }, { status: 400 });
-        // }
+
+        const { collectionMintPublicKey, merkleTreePublicKey, sellerFeePercentage, minterAddress }: MintRequestBody = await request.json();
+
+        if (!collectionMintPublicKey || !merkleTreePublicKey || !sellerFeePercentage || !minterAddress) {
+            throw new Error('Missing required fields');
+        }
 
         const result = await mintNFTWithBubbleGumTree(
             merkleTreePublicKey,
-            collectionMintPublicKey
+            collectionMintPublicKey,
+            sellerFeePercentage,
+            minterAddress
         );
 
         return NextResponse.json({ success: true, result }, { status: 200 });

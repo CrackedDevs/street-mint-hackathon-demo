@@ -28,6 +28,7 @@ import { createMintWithAssociatedToken, setComputeUnitLimit } from "@metaplex-fo
 import { createNft, fetchDigitalAsset, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
 import { decode, encode } from 'bs58';
 import { createTree, mplBubblegum, mintV1 as mintV1BubbleGum, mintToCollectionV1 } from '@metaplex-foundation/mpl-bubblegum'
+import { Collection } from '@/lib/supabaseClient';
 
 
 // Common Umi initialization function
@@ -190,31 +191,36 @@ export async function mintNFTs(candyMachinePublicKey: string, collectionMintPubl
 }
 
 
-export async function createBubbleGumTree() {
+export async function createBubbleGumTree(collectionData: Collection) {
     const umi = initializeUmi(process.env.RPC_URL!, process.env.PRIVATE_KEY!);
-    const collectionMint = generateSigner(umi)
-    const merkleTree = generateSigner(umi)
+    const collectionMint = generateSigner(umi);
+    const merkleTree = generateSigner(umi);
+
     try {
+        if (!collectionData) {
+            throw new Error('No collection data found');
+        }
+
         const collectionTx = await createNft(umi, {
             mint: collectionMint,
-            name: "Streetmint RJ Collection",
-            uri: "https://example.com/my-collection.json",
+            name: collectionData.name,
+            uri: collectionData.metadata_uri || "",
             sellerFeeBasisPoints: percentAmount(5), // 5.5%
             isCollection: true,
         }).sendAndConfirm(umi);
 
         console.log(`✅ Created collection: ${collectionMint.publicKey.toString()}`);
-        console.log(`Collection transaction: ${collectionTx.signature.toString()}`);
+        // console.log(`Collection transaction: ${collectionTx.signature.toString()}`);
 
         const builder = await createTree(umi, {
             merkleTree,
             maxDepth: 14,
             maxBufferSize: 64,
-        })
-        const tx = await builder.sendAndConfirm(umi)
+        });
+        const tx = await builder.sendAndConfirm(umi);
 
         console.log(`✅ Created Bubble Gum Tree: ${merkleTree.publicKey.toString()}`);
-        console.log(`Tree transaction: ${tx.signature.toString()}`);
+        // console.log(`Tree transaction: ${tx.signature.toString()}`);
 
         return {
             merkleTreePublicKey: merkleTree.publicKey.toString(),
@@ -227,16 +233,19 @@ export async function createBubbleGumTree() {
 }
 
 
-export async function mintNFTWithBubbleGumTree(merkleTreePublicKey: string, collectionMintPublicKey: string) {
+export async function mintNFTWithBubbleGumTree(merkleTreePublicKey: string, collectionMintPublicKey: string, sellerFeePercentage: number, minterAddress: string) {
     const umi = initializeUmi(process.env.RPC_URL!, process.env.PRIVATE_KEY!);
     try {
-        console.log(merkleTreePublicKey, collectionMintPublicKey);
+        console.log(merkleTreePublicKey, collectionMintPublicKey, minterAddress);
         const merkleTree = publicKey(merkleTreePublicKey)
-        const leafOwner = publicKey("59W3uJ5bDsDrUEinDF9aWNX3roEnYEX7yj34sweD7XDM")
+        const leafOwner = publicKey(minterAddress)
         const collectionMintPubkey = publicKey(collectionMintPublicKey);
         const collectionAsset = await fetchDigitalAsset(umi, collectionMintPubkey)
 
         console.log("Collection mint fetched:", collectionAsset.publicKey.toString());
+
+        // Convert percentage to basis points (1% = 100 basis points)
+        const sellerFeeBasisPoints = Math.round(sellerFeePercentage * 100);
 
         const tx = await mintToCollectionV1(umi, {
             leafOwner: leafOwner,
@@ -245,7 +254,7 @@ export async function mintNFTWithBubbleGumTree(merkleTreePublicKey: string, coll
             metadata: {
                 name: 'Street mint pro NFT',
                 uri: 'https://iaulwnqmthzvuxfubnsb.supabase.co/storage/v1/object/public/nft-images/my-cnft.json',
-                sellerFeeBasisPoints: 500, // 5%
+                sellerFeeBasisPoints: sellerFeeBasisPoints,
                 collection: { key: collectionMintPubkey, verified: true, },
                 creators: [
                     { address: umi.identity.publicKey, verified: true, share: 100 },
