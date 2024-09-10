@@ -113,8 +113,8 @@ function CollectionsPage() {
         ) : (
           <div className="text-center z-20">
             <p className="text-lg mb-4">You haven&apos;t created any collections yet.</p>
-            <Link href="/dashboard/collection/create">
-              <Button size="lg">
+            <Link href="/dashboard/collection/create" className="z-30 relative">
+              <Button size="lg" className="z-30">
                 <PlusIcon className="mr-2 h-5 w-5" /> Create Your First Collection
               </Button>
             </Link>

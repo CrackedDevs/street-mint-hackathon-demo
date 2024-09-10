@@ -41,7 +41,7 @@ export default function CollectionCard({ collection }: { collection: {
         <div className="flex-1 space-y-2">
           <h3 className="text-xl font-semibold leading-tight">{collection.name}</h3>
           <p className="text-sm text-muted-foreground line-clamp-3">{collection.description}</p>
-          <p className="text-sm text-muted-foreground line-clamp-3">{collection.collectible_image_urls.length} {pluralize(collection.collectible_image_urls.length, "collectible", "collectibles")}</p>
+          <p className="text-sm text-muted-foreground line-clamp-3">Total collectibles: {collection.collectible_image_urls.length}</p>
         </div>
         <div className="mt-4">
           <Link href={`/dashboard/collection/${collection.id}`}>

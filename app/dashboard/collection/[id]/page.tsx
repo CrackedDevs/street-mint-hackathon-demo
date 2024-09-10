@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, PlusCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,35 +11,34 @@ import { Collection, Collectible, getCollectionById, fetchCollectiblesByCollecti
 import { useParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useRouter } from "next/navigation"
 
-// Add this type modification
-type CollectionWithIds = Omit<Collection, 'collectibles'> & { collectibles: number[] };
+type CollectionWithIds = Omit<Collection, 'collectibles'>;
 
 export default function Component() {
   const { id } = useParams();
+  const router = useRouter();
   const [collection, setCollection] = useState<CollectionWithIds | null>(null);
-  const [collectibles, setCollectibles] = useState<Collectible[]>([]); // Changed from nfts
+  const [collectibles, setCollectibles] = useState<Collectible[]>([]);
 
   useEffect(() => {
-    async function fetchCollectionAndCollectibles() { // Changed from fetchCollectionAndNFTs
-
+    async function fetchCollectionAndCollectibles() {
       const collectionData = await getCollectionById(Number(id));
       if (!collectionData) {
         console.error("Error fetching collection: Collection not found");
       } else {
-        setCollection(collectionData as CollectionWithIds);
+        setCollection({ ...collectionData } as CollectionWithIds);
       }
 
-      // Fetch Collectibles
       const collectiblesData = await fetchCollectiblesByCollectionId(Number(id));
       if (!collectiblesData) {
-        console.error("Error fetching collectibles: No data returned"); // Changed from NFTs
+        console.error("Error fetching collectibles: No data returned");
         return;
       } else {
-        setCollectibles(collectiblesData as Collectible[]); // Changed from setNfts
+        setCollectibles(collectiblesData as Collectible[]);
       }
     }
-    fetchCollectionAndCollectibles(); // Changed from fetchCollectionAndNFTs
+    fetchCollectionAndCollectibles();
   }, [id]);
 
   if (!collection) {
@@ -61,10 +60,18 @@ export default function Component() {
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <Link href="/dashboard/collection" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 mb-6">
-          <ChevronLeft className="mr-1 h-4 w-4" />
-          Back to Collections
-        </Link>
+        <div className="flex justify-between items-center mb-6">
+          <Link href="/dashboard/collection" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-gray-900">
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Back to Collections
+          </Link>
+          <Button className="inline-flex items-center" onClick={() => {
+            router.push(`/dashboard/collection/${collection.id}/new-collectible`)
+          }}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add New Collectible
+          </Button>
+        </div>
         <Card className="mb-8 bg-white shadow-lg">
           <CardHeader>
             <CardTitle className="text-3xl font-bold text-gray-900 mb-2">{collection.name}</CardTitle>

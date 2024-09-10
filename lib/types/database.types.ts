@@ -53,8 +53,9 @@ export type Database = {
       }
       collectibles: {
         Row: {
-          chain: string
+          chain: string | null
           collection_id: number
+          created_at: string
           description: string
           gallery_urls: string[]
           id: number
@@ -67,11 +68,12 @@ export type Database = {
           quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Insert: {
-          chain?: string
+          chain?: string | null
           collection_id: number
+          created_at?: string
           description: string
           gallery_urls: string[]
-          id: number
+          id?: number
           location?: string | null
           metadata_uri?: string | null
           name: string
@@ -81,8 +83,9 @@ export type Database = {
           quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Update: {
-          chain?: string
+          chain?: string | null
           collection_id?: number
+          created_at?: string
           description?: string
           gallery_urls?: string[]
           id?: number
@@ -146,33 +149,22 @@ export type Database = {
         Row: {
           device_id: string | null
           id: number
-          nft_id: number | null
           reciever_wallet_address: string | null
           status: string | null
         }
         Insert: {
           device_id?: string | null
           id?: number
-          nft_id?: number | null
           reciever_wallet_address?: string | null
           status?: string | null
         }
         Update: {
           device_id?: string | null
           id?: number
-          nft_id?: number | null
           reciever_wallet_address?: string | null
           status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "orders_nft_id_fkey"
-            columns: ["nft_id"]
-            isOneToOne: false
-            referencedRelation: "collectibles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {

@@ -16,6 +16,20 @@ import { cn, NumericUUID } from "@/lib/utils";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
 import DotPattern from "@/components/magicui/dot-pattern";
 
+function ProfilePage() {
+  return (
+    <div>
+      <ProfileForm />
+      <DotPattern
+        className={cn(
+          "absolute inset-0 w-full h-full",
+          "[mask-image:radial-gradient(ellipse_at_center,white,transparent)]"
+        )}
+      />
+    </div>
+  );
+}
+
 function ProfileForm() {
   const { toast } = useToast();
   const { publicKey, connected } = useWallet();
@@ -346,12 +360,6 @@ function ProfileForm() {
           )}
         </CardFooter>
       </Card>
-      <DotPattern
-        className={cn(
-          "absolute inset-0 w-full h-full",
-          "[mask-image:radial-gradient(ellipse_at_center,white,transparent)]"
-        )}
-      />
     </div>
   );
 }

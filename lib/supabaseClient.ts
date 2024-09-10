@@ -28,7 +28,7 @@ export type Collectible = {
     description: string;
     primary_image_url: string;
     quantity_type: QuantityType;
-    quantity?: number;
+    quantity?: number | null;
     price_usd: number;
     location?: string;
     gallery_urls: string[];
@@ -223,7 +223,7 @@ export const createCollection = async (collection: Collection): Promise<Collecti
         .insert(validCollectibles);
 
     if (nftsError) {
-        console.error('Error creating NFTs:', nftsError);
+        console.error('Error creating collectibles:', nftsError);
         return null;
     }
 
@@ -249,6 +249,33 @@ export const uploadImage = async (file: File) => {
     }
     const { data: publicUrlData } = supabase.storage.from("nft-images").getPublicUrl(fileName);
     return publicUrlData.publicUrl;
+};
+
+export const createCollectible = async (collectible: Omit<Collectible, 'id'>, collection_id: number): Promise<{ data: Collectible | null; error: any }> => {
+    const { user, error: authError } = await getAuthenticatedUser();
+    if (!user || authError) {
+        return { data: null, error: authError || null };
+    }
+
+    const id = Math.floor(Math.random() * 1000000);
+    const { data, error } = await supabase
+        .from("collectibles")
+        .insert({
+            id,
+            ...collectible,
+            collection_id
+        })
+        .select()
+        .single();
+
+    console.log("data", data)
+
+    if (error) {
+        console.error("Error creating collectible:", error);
+        return { data: null, error };
+    }
+
+    return { data: data as Collectible, error: null };
 };
 
 export const getArtistById = async (id: number): Promise<Artist | null> => {
@@ -385,7 +412,7 @@ export const getCollectionById = async (id: number) => {
 export const fetchCollectiblesByCollectionId = async (collectionId: number) => {
     const { data, error } = await supabase.from("collectibles").select("*").eq("collection_id", collectionId);
     if (error) {
-        console.error("Error fetching nfts:", error);
+        console.error("Error fetching collectibles:", error);
         return null;
     }
     return data;
