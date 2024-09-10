@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusIcon, TrashIcon, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { Collection, createCollection, QuantityType, uploadImage, NFT } from "@/lib/supabaseClient";
+import { Collectible, Collection, createCollection, QuantityType, uploadImage } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import ShimmerButton from "@/components/magicui/shimmer-button";
 import { useRouter } from "next/navigation";
@@ -21,7 +21,7 @@ export default function CreateCollectionPage() {
   const { publicKey } = useWallet();
   const [collectionName, setCollectionName] = useState("");
   const [collectionDescription, setCollectionDescription] = useState("");
-  const [nfts, setNfts] = useState<NFT[]>([]);
+  const [nfts, setNfts] = useState<Collectible[]>([]);
 
   const [primaryImageLocalFile, setPrimaryImageLocalFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,7 +29,7 @@ export default function CreateCollectionPage() {
   const [artistId, setArtistId] = useState<number | null>(null);
   const { userProfile } = useUserProfile();
 
-  const [newNFT, setNewNFT] = useState<NFT>({
+  const [newNFT, setNewNFT] = useState<Collectible>({
     id: NumericUUID(),
     name: "",
     description: "",
@@ -49,7 +49,7 @@ export default function CreateCollectionPage() {
     fetchArtistId();
   }, [publicKey, userProfile]);
 
-  const handleNFTChange = (field: keyof NFT, value: any) => {
+  const handleNFTChange = (field: keyof Collectible, value: any) => {
     setNewNFT((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -157,7 +157,7 @@ export default function CreateCollectionPage() {
         name: collectionName,
         description: collectionDescription,
         artist: artistId,
-        nfts: updatedNfts,
+        collectibles: updatedNfts,
       });
 
       if (newCollection) {

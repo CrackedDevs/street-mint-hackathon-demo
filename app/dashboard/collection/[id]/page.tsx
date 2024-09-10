@@ -12,9 +12,9 @@ import {
 import SparklesText from "@/components/magicui/sparkles-text";
 import Link from "next/link";
 import {
-  fetchNFTsByCollectionId,
+  Collectible,
+  fetchCollectiblesByCollectionId,
   getCollectionById,
-  NFT,
   supabase,
 } from "@/lib/supabaseClient";
 import Image from "next/image";
@@ -24,16 +24,16 @@ type Collection = {
   name: string;
   description: string;
   artist: number;
-  nfts: number[];
+  collectibles: number[]; // Changed from nfts
 };
 
 export default function CollectionPage() {
   const { id } = useParams();
   const [collection, setCollection] = useState<Collection | null>(null);
-  const [nfts, setNfts] = useState<NFT[]>([]);
+  const [collectibles, setCollectibles] = useState<Collectible[]>([]); // Changed from nfts
 
   useEffect(() => {
-    async function fetchCollectionAndNFTs() {
+    async function fetchCollectionAndCollectibles() { // Changed from fetchCollectionAndNFTs
       // Fetch collection
 
       const collectionData = await getCollectionById(Number(id));
@@ -43,16 +43,16 @@ export default function CollectionPage() {
         setCollection(collectionData);
       }
 
-      // Fetch NFTs
-      const nftsData = await fetchNFTsByCollectionId(Number(id));
-      if (!nftsData) {
-        console.error("Error fetching NFTs: No data returned");
+      // Fetch Collectibles
+      const collectiblesData = await fetchCollectiblesByCollectionId(Number(id));
+      if (!collectiblesData) {
+        console.error("Error fetching collectibles: No data returned"); // Changed from NFTs
         return;
       } else {
-        setNfts(nftsData as NFT[]);
+        setCollectibles(collectiblesData as Collectible[]); // Changed from setNfts
       }
     }
-    fetchCollectionAndNFTs();
+    fetchCollectionAndCollectibles(); // Changed from fetchCollectionAndNFTs
   }, [id]);
 
   if (!collection) {
@@ -83,37 +83,37 @@ export default function CollectionPage() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {nfts.map((nft) => (
+        {collectibles.map((collectible) => ( // Changed from nfts to collectibles
           <Card
-            key={nft.id}
+            key={collectible.id}
             className="hover:shadow-lg transition-shadow duration-200"
           >
             <CardContent className="p-4">
               <div className="aspect-square relative mb-4">
                 <Image
-                  src={nft.primary_image_url}
-                  alt={nft.name}
+                  src={collectible.primary_image_url}
+                  alt={collectible.name}
                   layout="fill"
                   objectFit="cover"
                   className="rounded-md"
                 />
               </div>
-              <h3 className="text-xl font-semibold mb-2">{nft.name}</h3>
-              <p className="text-sm text-gray-600 mb-4">{nft.description}</p>
+              <h3 className="text-xl font-semibold mb-2">{collectible.name}</h3>
+              <p className="text-sm text-gray-600 mb-4">{collectible.description}</p>
               <div className="flex space-x-4">
                 <p>
-                  <strong>ID:</strong> {nft.id} |{" "}
-                  <strong>Quantity Type:</strong> {nft.quantity_type}{" "}
-                  {nft.quantity_type === "limited" &&
-                    `| Quantity: ${nft.quantity}`}{" "}
-                  | <strong>Price (USD):</strong> ${nft.price_usd}
+                  <strong>ID:</strong> {collectible.id} |{" "}
+                  <strong>Quantity Type:</strong> {collectible.quantity_type}{" "}
+                  {collectible.quantity_type === "limited" &&
+                    `| Quantity: ${collectible.quantity}`}{" "}
+                  | <strong>Price (USD):</strong> ${collectible.price_usd}
                 </p>
               </div>
-              {nft.gallery_urls && nft.gallery_urls.length > 0 && (
+              {collectible.gallery_urls && collectible.gallery_urls.length > 0 && (
                 <div className="mt-4">
                   <h4 className="text-lg font-semibold mb-2">Gallery</h4>
                   <div className="flex flex-wrap gap-2">
-                    {nft.gallery_urls.map((url, index) => (
+                    {collectible.gallery_urls.map((url, index) => (
                       <div key={index} className="w-16 h-16 relative">
                         <Image
                           src={url}

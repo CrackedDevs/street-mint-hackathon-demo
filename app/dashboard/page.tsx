@@ -50,7 +50,9 @@ const DashboardPage = () => {
               </p>
               {isLoading ? (
                 <ShimmerButton className="shadow-2xl">
-                  <div className="animate-spin text-white rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                  <div className="flex items-center w-16 h-6 justify-center">
+                    <div className="animate-spin text-white rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                  </div>
                 </ShimmerButton>
               ) : connected ? (
                 <ShimmerButton className="shadow-2xl" onClick={handleGoToCollection}>

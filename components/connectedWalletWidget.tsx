@@ -85,12 +85,6 @@ const ConnectedWalletWidget = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {userProfile && (
-              <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
-                <User className="mr-2 h-4 w-4" />
-                <span>View Profile</span>
-              </DropdownMenuItem>
-            )}
             <DropdownMenuItem onClick={handleDisconnect} className="cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Disconnect</span>

@@ -51,39 +51,7 @@ export type Database = {
         }
         Relationships: []
       }
-      collections: {
-        Row: {
-          artist: number
-          description: string
-          id: number
-          name: string
-          nfts: number[]
-        }
-        Insert: {
-          artist: number
-          description: string
-          id: number
-          name: string
-          nfts: number[]
-        }
-        Update: {
-          artist?: number
-          description?: string
-          id?: number
-          name?: string
-          nfts?: number[]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "collections_artist_fkey"
-            columns: ["artist"]
-            isOneToOne: false
-            referencedRelation: "artists"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      nfts: {
+      collectibles: {
         Row: {
           chain: string
           collection_id: number
@@ -133,6 +101,38 @@ export type Database = {
           },
         ]
       }
+      collections: {
+        Row: {
+          artist: number
+          collectibles: number[]
+          description: string
+          id: number
+          name: string
+        }
+        Insert: {
+          artist: number
+          collectibles: number[]
+          description: string
+          id: number
+          name: string
+        }
+        Update: {
+          artist?: number
+          collectibles?: number[]
+          description?: string
+          id?: number
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collections_artist_fkey"
+            columns: ["artist"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           device_id: string | null
@@ -160,25 +160,10 @@ export type Database = {
             foreignKeyName: "orders_nft_id_fkey"
             columns: ["nft_id"]
             isOneToOne: false
-            referencedRelation: "nfts"
+            referencedRelation: "collectibles"
             referencedColumns: ["id"]
           },
         ]
-      }
-      test: {
-        Row: {
-          created_at: string
-          id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          created_at?: string
-          id?: number
-        }
-        Relationships: []
       }
     }
     Views: {
