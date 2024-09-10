@@ -55,43 +55,46 @@ export type Database = {
         Row: {
           chain: string
           collection_id: number
+          created_at: string
           description: string
-          gallery_urls: string[]
+          gallery_urls: string[] | null
           id: number
           location: string | null
           metadata_uri: string | null
           name: string
           price_usd: number
           primary_image_url: string
-          quantity: number | null
+          quantity: number
           quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Insert: {
-          chain?: string
+          chain: string
           collection_id: number
+          created_at?: string
           description: string
-          gallery_urls: string[]
-          id: number
+          gallery_urls?: string[] | null
+          id?: number
           location?: string | null
           metadata_uri?: string | null
           name: string
           price_usd: number
           primary_image_url: string
-          quantity?: number | null
+          quantity: number
           quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Update: {
           chain?: string
           collection_id?: number
+          created_at?: string
           description?: string
-          gallery_urls?: string[]
+          gallery_urls?: string[] | null
           id?: number
           location?: string | null
           metadata_uri?: string | null
           name?: string
           price_usd?: number
           primary_image_url?: string
-          quantity?: number | null
+          quantity?: number
           quantity_type?: Database["public"]["Enums"]["quantity_type"]
         }
         Relationships: [
@@ -146,33 +149,22 @@ export type Database = {
         Row: {
           device_id: string | null
           id: number
-          nft_id: number | null
           reciever_wallet_address: string | null
           status: string | null
         }
         Insert: {
           device_id?: string | null
           id?: number
-          nft_id?: number | null
           reciever_wallet_address?: string | null
           status?: string | null
         }
         Update: {
           device_id?: string | null
           id?: number
-          nft_id?: number | null
           reciever_wallet_address?: string | null
           status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "orders_nft_id_fkey"
-            columns: ["nft_id"]
-            isOneToOne: false
-            referencedRelation: "collectibles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
