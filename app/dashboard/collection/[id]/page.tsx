@@ -1,136 +1,126 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import SparklesText from "@/components/magicui/sparkles-text";
-import Link from "next/link";
-import {
-  fetchNFTsByCollectionId,
-  getCollectionById,
-  NFT,
-  supabase,
-} from "@/lib/supabaseClient";
-import Image from "next/image";
+'use client'
 
-type Collection = {
-  id: number;
-  name: string;
-  description: string;
-  artist: number;
-  nfts: number[];
-};
+import Link from "next/link"
+import Image from "next/image"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
-export default function CollectionPage() {
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Collection, Collectible, getCollectionById, fetchCollectiblesByCollectionId } from "@/lib/supabaseClient"
+import { useParams } from "next/navigation"
+import { useState, useEffect } from "react"
+import { Skeleton } from "@/components/ui/skeleton"
+
+// Add this type modification
+type CollectionWithIds = Omit<Collection, 'collectibles'> & { collectibles: number[] };
+
+export default function Component() {
   const { id } = useParams();
-  const [collection, setCollection] = useState<Collection | null>(null);
-  const [nfts, setNfts] = useState<NFT[]>([]);
+  const [collection, setCollection] = useState<CollectionWithIds | null>(null);
+  const [collectibles, setCollectibles] = useState<Collectible[]>([]); // Changed from nfts
 
   useEffect(() => {
-    async function fetchCollectionAndNFTs() {
-      // Fetch collection
+    async function fetchCollectionAndCollectibles() { // Changed from fetchCollectionAndNFTs
 
       const collectionData = await getCollectionById(Number(id));
       if (!collectionData) {
         console.error("Error fetching collection: Collection not found");
       } else {
-        setCollection(collectionData);
+        setCollection(collectionData as CollectionWithIds);
       }
 
-      // Fetch NFTs
-      const nftsData = await fetchNFTsByCollectionId(Number(id));
-      if (!nftsData) {
-        console.error("Error fetching NFTs: No data returned");
+      // Fetch Collectibles
+      const collectiblesData = await fetchCollectiblesByCollectionId(Number(id));
+      if (!collectiblesData) {
+        console.error("Error fetching collectibles: No data returned"); // Changed from NFTs
         return;
       } else {
-        setNfts(nftsData as NFT[]);
+        setCollectibles(collectiblesData as Collectible[]); // Changed from setNfts
       }
     }
-    fetchCollectionAndNFTs();
+    fetchCollectionAndCollectibles(); // Changed from fetchCollectionAndNFTs
   }, [id]);
 
   if (!collection) {
-    return <div className="p-8">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <Skeleton className="h-6 w-32 mb-6" />
+          <Skeleton className="h-48 w-full mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, index) => (
+              <Skeleton key={index} className="h-96 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-8 w-full relative">
-      <Link href="/dashboard/collection">
-        <Button variant="outline" className="mb-8">
-          ← Back to Collections
-        </Button>
-      </Link>
-
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>
-            <SparklesText
-              sparklesCount={5}
-              className="text-3xl font-bold"
-              text={collection.name}
-            />
-          </CardTitle>
-          <CardDescription className="text-lg">
-            {collection.description}
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {nfts.map((nft) => (
-          <Card
-            key={nft.id}
-            className="hover:shadow-lg transition-shadow duration-200"
-          >
-            <CardContent className="p-4">
-              <div className="aspect-square relative mb-4">
-                <Image
-                  src={nft.primary_image_url}
-                  alt={nft.name}
-                  layout="fill"
-                  objectFit="cover"
-                  className="rounded-md"
-                />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">{nft.name}</h3>
-              <p className="text-sm text-gray-600 mb-4">{nft.description}</p>
-              <div className="flex space-x-4">
-                <p>
-                  <strong>ID:</strong> {nft.id} |{" "}
-                  <strong>Quantity Type:</strong> {nft.quantity_type}{" "}
-                  {nft.quantity_type === "limited" &&
-                    `| Quantity: ${nft.quantity}`}{" "}
-                  | <strong>Price (USD):</strong> ${nft.price_usd}
-                </p>
-              </div>
-              {nft.gallery_urls && nft.gallery_urls.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-lg font-semibold mb-2">Gallery</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {nft.gallery_urls.map((url, index) => (
-                      <div key={index} className="w-16 h-16 relative">
-                        <Image
-                          src={url}
-                          alt={`Gallery image ${index + 1}`}
-                          layout="fill"
-                          objectFit="cover"
-                          className="rounded-md"
-                        />
-                      </div>
-                    ))}
-                  </div>
+    <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <Link href="/dashboard/collection" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 mb-6">
+          <ChevronLeft className="mr-1 h-4 w-4" />
+          Back to Collections
+        </Link>
+        <Card className="mb-8 bg-white shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold text-gray-900 mb-2">{collection.name}</CardTitle>
+            <p className="text-lg text-gray-600">{collection.description}</p>
+          </CardHeader>
+        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {collectibles.map((collectible) => (
+            <Card key={collectible.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
+              <CardContent className="p-0 flex-grow">
+                <div className="aspect-square relative">
+                  <Image
+                    src={collectible.primary_image_url}
+                    alt={collectible.name}
+                    layout="fill"
+                    objectFit="cover"
+                  />
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+                <div className="p-4">
+                  <h3 className="text-xl font-semibold mb-2 text-gray-900">{collectible.name}</h3>
+                  <p className="text-sm text-gray-600 mb-4">{collectible.description}</p>
+                  <div className="flex justify-between items-center mb-4">
+                    <Badge variant="secondary" className="text-xs font-semibold">
+                      {collectible.quantity_type === "limited" ? `Limited (${collectible.quantity})` : "Unlimited"}
+                    </Badge>
+                    <span className="text-lg font-bold text-gray-900">${collectible.price_usd}</span>
+                  </div>
+                  {collectible.gallery_urls && collectible.gallery_urls.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Gallery</h4>
+                      <div className="flex space-x-2">
+                        {collectible.gallery_urls.map((url, index) => (
+                          <div key={index} className="w-16 h-16 relative rounded-md overflow-hidden">
+                            <Image
+                              src={url}
+                              alt={`Gallery image ${index + 1}`}
+                              layout="fill"
+                              objectFit="cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+              <div className="p-4 bg-gray-50 border-t border-gray-200">
+                <Button variant="ghost" className="w-full text-sm text-gray-600 hover:text-gray-900 flex items-center justify-center">
+                  Setup Details
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
-  );
+  )
 }

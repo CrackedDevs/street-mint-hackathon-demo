@@ -1,4 +1,3 @@
-
 import { AuthError, createClient, User } from '@supabase/supabase-js';
 import { Database } from './types/database.types';
 
@@ -10,7 +9,7 @@ export type Collection = {
     name: string;
     description: string;
     artist: number;
-    nfts: NFT[];
+    collectibles: Collectible[];
 };
 
 export enum QuantityType {
@@ -20,7 +19,7 @@ export enum QuantityType {
 }
 
 
-export type NFT = {
+export type Collectible = {
     id: number;
     name: string;
     description: string;
@@ -44,6 +43,8 @@ export type Artist = {
     farcaster_username?: string | null;
     wallet_address: string;
 };
+
+export type ArtistWithoutWallet = Omit<Artist, 'wallet_address'>;
 
 export const supabase = createClient<Database>(supabaseUrl!, supabaseAnonKey!);
 
@@ -78,7 +79,7 @@ export const createCollection = async (collection: Collection): Promise<Collecti
             artist: collection.artist,
             name: collection.name,
             description: collection.description,
-            nfts: collection.nfts.map(nft => nft.id)
+            collectibles: collection.collectibles.map(collectible => collectible.id)
         })
         .select();
 
@@ -88,14 +89,14 @@ export const createCollection = async (collection: Collection): Promise<Collecti
     }
 
     // Insert the NFTs
-    const nftsWithCollectionId = collection.nfts.map(nft => ({
-        ...nft,
+    const collectiblesWithCollectionId = collection.collectibles.map(collectible => ({
+        ...collectible,
         collection_id: collectionData[0].id
     }));
 
-    const { data: nftsData, error: nftsError } = await supabase
-        .from('nfts')
-        .insert(nftsWithCollectionId);
+    const { error: nftsError } = await supabase
+        .from('collectibles')
+        .insert(collectiblesWithCollectionId);
 
     if (nftsError) {
         console.error('Error creating NFTs:', nftsError);
@@ -105,7 +106,7 @@ export const createCollection = async (collection: Collection): Promise<Collecti
     if (collectionData[0]) {
         return {
             ...collectionData[0],
-            nfts: collection.nfts
+            collectibles: collection.collectibles
         } as Collection;
     }
 
@@ -182,15 +183,15 @@ export const checkUsernameAvailability = async (username: string) => {
     return { available: !data, error: null };
 };
 
-export const fetchNFTById = async (id: number) => {
+export const fetchCollectibleById = async (id: number) => {
     const { data, error } = await supabase
-        .from("nfts")
+        .from("collectibles")
         .select("*")
         .eq("id", id)
         .single();
 
     if (error) {
-        console.error("Error fetching NFT:", error);
+        console.error("Error fetching collectible:", error);
         return null;
     }
 
@@ -220,14 +221,32 @@ export const createProfile = async (profileData: Artist) => {
     return { data, error };
 };
 
-export const getCollectionsByArtistId = async (artistId: number) => {
+export type PopulatedCollection = {
+    id: number;
+    name: string;
+    description: string;
+    collectible_image_urls: string[];
+}
+
+export const getCollectionsByArtistId = async (artistId: number): Promise<PopulatedCollection[]> => {
     const { data, error } = await supabase
         .from("collections")
         .select("*")
         .eq("artist", artistId);
 
     if (error) throw error;
-    return data;
+
+    const transformedData = await Promise.all(data.map(async (collection) => {
+        const collectibles = await fetchCollectiblesByCollectionId(collection.id);
+        return {
+            id: collection.id,
+            name: collection.name,
+            description: collection.description,
+            collectible_image_urls: collectibles?.map(collectible => collectible.primary_image_url) || []
+        };
+    }));
+
+    return transformedData;
 };
 
 export const getCollectionById = async (id: number) => {
@@ -240,8 +259,8 @@ export const getCollectionById = async (id: number) => {
     return data;
 };
 
-export const fetchNFTsByCollectionId = async (collectionId: number) => {
-    const { data, error } = await supabase.from("nfts").select("*").eq("collection_id", collectionId);
+export const fetchCollectiblesByCollectionId = async (collectionId: number) => {
+    const { data, error } = await supabase.from("collectibles").select("*").eq("collection_id", collectionId);
     if (error) {
         console.error("Error fetching nfts:", error);
         return null;

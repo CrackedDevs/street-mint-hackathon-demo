@@ -4,23 +4,20 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
-import { getCollectionsByArtistId } from "@/lib/supabaseClient";
+import { getCollectionsByArtistId, PopulatedCollection } from "@/lib/supabaseClient";
 import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import withAuth from "../withAuth";
 import { PlusIcon, Loader2Icon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
-
-type Collection = {
-  id?: number;
-  name: string;
-  description: string;
-  nfts: number[] | null;
-};
+import DotPattern from "@/components/magicui/dot-pattern";
+import { cn } from "@/lib/utils";
+import ShimmerButton from "@/components/magicui/shimmer-button";
+import CollectionCard from "@/components/collectionCard";
 
 function CollectionsPage() {
-  const [collections, setCollections] = useState<Collection[]>([]);
+  const [collections, setCollections] = useState<PopulatedCollection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { publicKey, connected } = useWallet();
@@ -70,17 +67,17 @@ function CollectionsPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Your Collections</h1>
-          <Link href="/dashboard/collection/create">
-            <Button>
+          <Link href="/dashboard/collection/create" className="z-10">
+            <ShimmerButton>
               <PlusIcon className="mr-2 h-4 w-4" /> Create New Collection
-            </Button>
+            </ShimmerButton>
           </Link>
         </div>
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(3)].map((_, index) => (
-              <Card key={index} className="w-full h-64 animate-pulse">
+              <Card key={index} className="w-full h-64 animate-pulse z-20">
                 <CardHeader className="h-1/2 bg-gray-200 dark:bg-gray-700" />
                 <CardContent className="h-1/2 flex items-center justify-center">
                   <Loader2Icon className="h-8 w-8 animate-spin text-gray-400" />
@@ -89,7 +86,7 @@ function CollectionsPage() {
             ))}
           </div>
         ) : error ? (
-          <Card className="w-full max-w-md mx-auto">
+          <Card className="w-full max-w-md mx-auto z-20 relative">
             <CardHeader>
               <CardTitle className="text-2xl font-bold text-center text-red-500">Error</CardTitle>
             </CardHeader>
@@ -103,30 +100,18 @@ function CollectionsPage() {
         ) : collections.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {collections.map((collection) => (
-              <Card
-                key={collection.id}
-                className="hover:shadow-lg flex flex-col justify-between transition-all duration-200 transform hover:-translate-y-1"
-              >
-                <CardHeader>
-                  <CardTitle className="text-2xl font-semibold">{collection.name}</CardTitle>
-                  <CardDescription className="text-sm line-clamp-2">{collection.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex justify-end">
-                  <Link href={`/dashboard/collection/${collection.id}`}>
-                    <AnimatedSubscribeButton
-                      buttonColor="bg-primary"
-                      buttonTextColor="text-primary-foreground"
-                      subscribeStatus={false}
-                      initialText={<span className="group inline-flex items-center">View Collection</span>}
-                      changeText={<span className="group inline-flex items-center">Opening...</span>}
-                    />
-                  </Link>
-                </CardContent>
-              </Card>
+              <CollectionCard key={collection.id} collection={
+                {
+                  id: collection.id?.toString() || "",
+                  name: collection.name,
+                  description: collection.description,
+                  collectible_image_urls: collection.collectible_image_urls,
+                }
+              } />
             ))}
           </div>
         ) : (
-          <div className="text-center">
+          <div className="text-center z-20">
             <p className="text-lg mb-4">You haven&apos;t created any collections yet.</p>
             <Link href="/dashboard/collection/create">
               <Button size="lg">
@@ -136,6 +121,12 @@ function CollectionsPage() {
           </div>
         )}
       </div>
+      <DotPattern
+        className={cn(
+          "absolute inset-0 w-full h-full z-0",
+          "[mask-image:radial-gradient(ellipse_at_center,white,transparent)]"
+        )}
+      />
     </div>
   );
 }

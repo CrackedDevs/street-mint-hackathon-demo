@@ -5,9 +5,10 @@ import {
 } from "lucide-react";
 import MintButton from "@/components/mintButton";
 import {
-  fetchNFTById,
+
   getCollectionById,
   getArtistById,
+  fetchCollectibleById,
 } from "@/lib/supabaseClient";
 import Gallery from "@/components/gallery";
 import X from "@/components/x";
@@ -18,19 +19,19 @@ async function getNFTData(id: string) {
   const data = await response.json();
   const solPriceUSD = data.solana.usd;
 
-  const nft = await fetchNFTById(Number(id));
-  if (!nft) return null;
+  const collectible = await fetchCollectibleById(Number(id));
+  if (!collectible) return null;
 
-  const collection = await getCollectionById(nft.collection_id);
+  const collection = await getCollectionById(collectible.collection_id);
   if (!collection) return null;
 
   const artist = await getArtistById(collection.artist);
   if (!artist) return null;
 
   // Calculate NFT price in SOL
-  const priceInSOL = nft.price_usd / solPriceUSD;
+  const priceInSOL = collectible.price_usd / solPriceUSD;
 
-  return { nft, collection, artist, priceInSOL };
+  return { collectible, collection, artist, priceInSOL };
 }
 
 // Convert to an async Server Component
@@ -41,7 +42,7 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
     return <div>Loading...</div>;
   }
 
-  const { nft, collection, artist, priceInSOL } = data;
+  const { collectible, collection, artist, priceInSOL } = data;
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -66,8 +67,8 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
           {/* Left column - Main Image */}
           <div className="relative aspect-square">
             <Image
-              src={nft.gallery_urls[0]}
-              alt={`${nft.name} - Main Image`}
+              src={collectible.gallery_urls[0]}
+              alt={`${collectible.name} - Main Image`}
               layout="fill"
               objectFit="contain"
             />
@@ -75,7 +76,7 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
 
           {/* Right column - Details */}
           <div>
-            <h1 className="text-3xl font-bold mb-2">{nft.name}</h1>
+            <h1 className="text-3xl font-bold mb-2">{collectible.name}</h1>
             <p className="text-xl text-gray-600 mb-4">
               From the &quot;{collection.name}&quot; Collection
             </p>
@@ -116,7 +117,7 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
               <span className="text-gray-600 text-lg">Mint price:</span>
               <div className="flex items-baseline">
                 <span className="text-4xl font-bold mr-2">
-                  ${nft.price_usd.toFixed(2)}
+                  ${collectible.price_usd.toFixed(2)}
                 </span>
                 <span className="text-gray-500">({priceInSOL.toFixed(2)} SOL)</span>
               </div>
@@ -130,11 +131,11 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
             </p>
 
             <div className="space-y-4 mt-4">
-              <p className="text-lg">{nft.description}</p>
+              <p className="text-lg">{collectible.description}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-600">Art title</p>
-                  <p>{nft.name}</p>
+                  <p>{collectible.name}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">Artist</p>
@@ -142,7 +143,7 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                 </div>
                 <div>
                   <p className="text-gray-600">Location minted</p>
-                  <p>{nft.location || "N/A"}</p>
+                  <p>{collectible.location || "N/A"}</p>
                 </div>
                 {/* <div>
                   <p className="text-gray-600">Edition Type</p>
@@ -157,7 +158,7 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                 <div>
                   <p className="text-gray-600">Price per edition</p>
                   <p>
-                    ${nft.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)} SOL)
+                    ${collectible.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)} SOL)
                   </p>
                 </div>
                 <div>
@@ -165,7 +166,7 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                   <p>Solana</p>
                 </div>
               </div>
-              <Gallery images={nft.gallery_urls} />
+              <Gallery images={collectible.gallery_urls} />
             </div>
           </div>
         </div>

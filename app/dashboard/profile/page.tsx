@@ -9,17 +9,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UploadIcon, InstagramIcon, Loader2, EditIcon } from "lucide-react";
 import X from "@/components/x";
 import withAuth from "../withAuth";
-import { Artist, checkUsernameAvailability, createProfile, updateProfile, uploadImage } from "@/lib/supabaseClient";
+import { ArtistWithoutWallet, checkUsernameAvailability, createProfile, updateProfile, uploadImage } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { NumericUUID } from "@/lib/utils";
+import { cn, NumericUUID } from "@/lib/utils";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
+import DotPattern from "@/components/magicui/dot-pattern";
 
 function ProfileForm() {
   const { toast } = useToast();
   const { publicKey, connected } = useWallet();
   const { userProfile, setUserProfile, isLoading } = useUserProfile();
-  const [formData, setFormData] = useState<Artist | null>(null);
+  const [formData, setFormData] = useState<ArtistWithoutWallet | null>(null);
   const [avatarLocalFile, setAvatarLocalFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,11 +43,10 @@ function ProfileForm() {
         avatar_url: "",
         x_username: "",
         instagram_username: "",
-        wallet_address: publicKey?.toString() || "",
       });
       setIsEditing(true);
     }
-  }, [userProfile]);
+  }, [connected, isLoading, publicKey, userProfile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.preventDefault();
@@ -61,7 +61,6 @@ function ProfileForm() {
     if (!formData.username) newErrors.username = "Username is required";
     if (!formData.bio) newErrors.bio = "Bio is required";
     if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.wallet_address) newErrors.wallet_address = "Wallet address is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -119,15 +118,21 @@ function ProfileForm() {
       }
     }
 
-    const profileData: Artist = {
+    const profileData: ArtistWithoutWallet = {
       ...formData,
       avatar_url: uploadedUrl,
     };
 
     if (publicKey) {
       const { data, error } = userProfile
-        ? await updateProfile(profileData, publicKey?.toString())
-        : await createProfile(profileData);
+        ? await updateProfile({
+          ...profileData,
+          wallet_address: publicKey?.toString() || "",
+        }, publicKey?.toString())
+        : await createProfile({
+          ...profileData,
+          wallet_address: publicKey?.toString() || "",
+        });
       if (error) {
         console.error("Error submitting profile:", error);
         toast({
@@ -142,7 +147,10 @@ function ProfileForm() {
           variant: "default",
         });
         setIsEditing(false);
-        setUserProfile(profileData); // Update the context
+        setUserProfile({
+          ...profileData,
+          wallet_address: publicKey?.toString() || "",
+        }); // Update the context
       }
     }
     setIsSubmitting(false);
@@ -157,7 +165,7 @@ function ProfileForm() {
   }
 
   return (
-    <div className="flex w-full flex-col h-full justify-center align-middle">
+    <div className="flex w-full flex-col h-full justify-center align-middle relative">
       <Card className="w-full max-w-2xl mx-auto z-20 bg-white my-12">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
@@ -275,20 +283,6 @@ function ProfileForm() {
               </p>
             </div>
 
-            <div>
-              <Label htmlFor="wallet_address" className="text-sm font-medium">
-                Wallet Address <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="wallet_address"
-                name="wallet_address"
-                value={formData?.wallet_address || ""}
-                className={`bg-background ${errors.wallet_address ? "border-red-500" : ""}`}
-                readOnly
-              />
-              {errors.wallet_address && <p className="text-xs text-red-500 mt-1">{errors.wallet_address}</p>}
-            </div>
-
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-semibold">Connect Your Socials</CardTitle>
@@ -352,6 +346,12 @@ function ProfileForm() {
           )}
         </CardFooter>
       </Card>
+      <DotPattern
+        className={cn(
+          "absolute inset-0 w-full h-full",
+          "[mask-image:radial-gradient(ellipse_at_center,white,transparent)]"
+        )}
+      />
     </div>
   );
 }

@@ -92,6 +92,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         const { data: updatedUserProfile, error: updatedUserProfileError } = await fetchProfileData();
         if (updatedUserProfile) {
           setUserProfile(updatedUserProfile);
+          router.push("/dashboard/collection");
         }
         if (updatedUserProfileError) {
           console.error("Error fetching user profile:", updatedUserProfileError);
