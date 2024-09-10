@@ -59,6 +59,7 @@ export type Database = {
           gallery_urls: string[]
           id: number
           location: string | null
+          metadata_uri: string | null
           name: string
           price_usd: number
           primary_image_url: string
@@ -72,6 +73,7 @@ export type Database = {
           gallery_urls: string[]
           id: number
           location?: string | null
+          metadata_uri?: string | null
           name: string
           price_usd: number
           primary_image_url: string
@@ -85,6 +87,7 @@ export type Database = {
           gallery_urls?: string[]
           id?: number
           location?: string | null
+          metadata_uri?: string | null
           name?: string
           price_usd?: number
           primary_image_url?: string
@@ -104,20 +107,29 @@ export type Database = {
       collections: {
         Row: {
           artist: number
+          collection_mint_public_key: string | null
           description: string
           id: number
+          merkle_tree_public_key: string | null
+          metadata_uri: string | null
           name: string
         }
         Insert: {
           artist: number
+          collection_mint_public_key?: string | null
           description: string
           id: number
+          merkle_tree_public_key?: string | null
+          metadata_uri?: string | null
           name: string
         }
         Update: {
           artist?: number
+          collection_mint_public_key?: string | null
           description?: string
           id?: number
+          merkle_tree_public_key?: string | null
+          metadata_uri?: string | null
           name?: string
         }
         Relationships: [
