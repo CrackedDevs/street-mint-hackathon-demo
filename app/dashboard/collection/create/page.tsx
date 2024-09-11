@@ -46,6 +46,7 @@ export default function CreateCollectionPage() {
     description: "",
     primary_image_url: "",
     quantity_type: QuantityType.Unlimited,
+    quantity: null,
     price_usd: 0,
     gallery_urls: [],
   });
@@ -78,7 +79,8 @@ export default function CreateCollectionPage() {
       newCollectible.name &&
       newCollectible.description &&
       newCollectible.primary_image_url &&
-      newCollectibleGalleryImages.length > 0
+      newCollectibleGalleryImages.length > 0 &&
+      (newCollectible.quantity_type !== QuantityType.Limited || newCollectible.quantity !== null)
     ) {
       setCollectibles((prev) => [
         ...prev,
@@ -96,6 +98,7 @@ export default function CreateCollectionPage() {
         description: "",
         primary_image_url: "",
         quantity_type: QuantityType.Unlimited,
+        quantity: null,
         price_usd: 0,
         gallery_urls: [],
       });
@@ -105,7 +108,7 @@ export default function CreateCollectionPage() {
       toast({
         title: "Error",
         description:
-          "Please fill all required fields for the collectible, including at least one gallery image",
+          "Please fill all required fields for the collectible, including at least one gallery image and quantity limit if applicable",
         variant: "destructive",
       });
     }
@@ -407,6 +410,32 @@ export default function CreateCollectionPage() {
                           <option value={QuantityType.Limited}>Limited</option>
                         </select>
                       </div>
+
+                      {newCollectible.quantity_type === QuantityType.Limited && (
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor="collectible-quantity-limit"
+                            className="text-base font-semibold"
+                          >
+                            Quantity Limit{" "}
+                            <span className="text-destructive">*</span>
+                          </Label>
+                          <Input
+                            id="collectible-quantity-limit"
+                            type="number"
+                            value={newCollectible.quantity || ""}
+                            onChange={(e) =>
+                              handleCollectibleChange(
+                                "quantity",
+                                parseInt(e.target.value)
+                              )
+                            }
+                            placeholder="Enter quantity limit"
+                            min="1"
+                            required={newCollectible.quantity_type === QuantityType.Limited}
+                          />
+                        </div>
+                      )}
 
                       <div className="space-y-2">
                         <Label
