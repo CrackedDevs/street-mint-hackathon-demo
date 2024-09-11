@@ -227,7 +227,7 @@ export default function MintButton({
   const getButtonText = () => {
     if (isMinting) return "PROCESSING...";
     if (existingOrder) return "ALREADY MINTED";
-    if (isEligible) return `MINT NOW ($ ${collectible.price_usd})`;
+    if (isEligible) return `MINT NOW ($${collectible.price_usd})`;
     return "NOT ELIGIBLE";
   };
 

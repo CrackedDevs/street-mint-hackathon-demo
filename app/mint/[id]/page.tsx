@@ -222,7 +222,11 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                   <p>Solana</p>
                 </div>
               </div>
+              {
+                collectible.gallery_urls.length > 0 && (
               <Gallery images={collectible.gallery_urls} />
+              )
+              }
             </div>
           </div>
         </div>
