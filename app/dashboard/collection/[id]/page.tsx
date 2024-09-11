@@ -115,7 +115,7 @@ export default function Component() {
                 </div>
                 <div className="p-4">
                   <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                    {collectible.name}
+                    {collectible.name} #{collectible.id}
                   </h3>
                   <p className="text-sm text-gray-600 mb-4">
                     {collectible.description}

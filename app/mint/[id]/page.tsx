@@ -31,7 +31,13 @@ async function getNFTData(id: string) {
   // Calculate NFT price in SOL
   const priceInSOL = collectible.price_usd / solPriceUSD;
 
-  return { collectible, collection, artist, priceInSOL };
+  // Calculate remaining quantity for limited editions
+  let remainingQuantity = null;
+  if (collectible.quantity_type === "limited") {
+    remainingQuantity = collectible.quantity;
+  }
+
+  return { collectible, collection, artist, priceInSOL, remainingQuantity };
 }
 
 // Convert to an async Server Component
@@ -41,7 +47,21 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
   if (!data) {
     return <div>Loading...</div>;
   }
-  const { collectible, collection, artist, priceInSOL } = data;
+  const { collectible, collection, artist, priceInSOL, remainingQuantity } =
+    data;
+
+  const getEditionTypeText = (type: QuantityType) => {
+    switch (type) {
+      case "unlimited":
+        return "Unlimited Edition";
+      case "limited":
+        return "Limited Edition";
+      case "single":
+        return "Single Edition";
+      default:
+        return "Unknown Edition Type";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -110,27 +130,38 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
               )}
             </div>
 
-            {/* Limited Edition Section */}
+            {/* Edition Information Section */}
             <div className="bg-black text-white p-4 rounded-lg mb-6">
               <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold">Limited Edition</span>
-                <span className="text-3xl font-bold">43 of 43</span>
-              </div>
-              <div className="mt-2 text-sm text-gray-300">
-                Last chance to own this unique piece
-              </div>
-            </div>
-
-            <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-              <span className="text-gray-600 text-lg">Mint price:</span>
-              <div className="flex items-baseline">
-                <span className="text-4xl font-bold mr-2">
-                  ${collectible.price_usd.toFixed(2)}
+                <span className="text-lg font-semibold">
+                  {getEditionTypeText(
+                    collectible.quantity_type as QuantityType
+                  )}
                 </span>
-                <span className="text-gray-500">
-                  ({priceInSOL.toFixed(2)} SOL)
-                </span>
+                {collectible.quantity_type === QuantityType.Limited &&
+                  remainingQuantity !== null && (
+                    <span className="text-3xl font-bold">
+                      {remainingQuantity} of {collectible.quantity}
+                    </span>
+                  )}
               </div>
+              {collectible.quantity_type === "limited" && (
+                <div className="mt-2 text-sm text-gray-300">
+                  {remainingQuantity === 1
+                    ? "Last one available!"
+                    : `${remainingQuantity} editions left`}
+                </div>
+              )}
+              {collectible.quantity_type === "single" && (
+                <div className="mt-2 text-sm text-gray-300">
+                  Unique, one-of-a-kind piece
+                </div>
+              )}
+              {collectible.quantity_type === "unlimited" && (
+                <div className="mt-2 text-sm text-gray-300">
+                  Unlimited supply available
+                </div>
+              )}
             </div>
             <MintButton
               collectible={{

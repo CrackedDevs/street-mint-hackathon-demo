@@ -35,6 +35,22 @@ export type Collectible = {
     metadata_uri?: string;
 };
 
+interface Order {
+    id: string;
+    wallet_address: string;
+    collectible_id: number;
+    collection_id: number;
+    status: string;
+    price_usd: number;
+    nft_type: string;
+    max_supply: number;
+    // Add other fields as necessary
+}
+
+interface CreateOrderResponse {
+    success: boolean;
+    order: Order;
+}
 
 export type Artist = {
     id: number;
@@ -417,3 +433,119 @@ export const fetchCollectiblesByCollectionId = async (collectionId: number) => {
     }
     return data;
 };
+
+export async function createOrder(walletAddress: string, collectibleId: number, deviceId: string, signature: string): Promise<Order> {
+    try {
+        const { data, error } = await supabase
+            .rpc('create_order_and_record_attempt', {
+                p_wallet_address: walletAddress,
+                p_collectible_id: collectibleId,
+                p_device_id: deviceId,
+                p_transaction_signature: signature
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        console.log(data);
+        // Assert the type of data
+        const response = data as any;
+
+        if (!response.success) {
+            throw new Error('Failed to create order');
+        }
+
+        return response.order;
+    } catch (error) {
+        console.error("Error in createOrder:", error);
+        throw error;
+    }
+}
+
+export async function checkMintEligibility(walletAddress: string, collectibleId: number, deviceId: string): Promise<{ eligible: boolean; reason?: string }> {
+    try {
+        // Check if the NFT is still available and get its details
+        const { data: collectible, error: collectibleError } = await supabase
+            .from('collectibles')
+            .select('quantity, quantity_type')
+            .eq('id', collectibleId)
+            .single();
+
+        if (collectibleError) throw collectibleError;
+
+        // Get the count of existing orders for this collectible
+        const { count, error: countError } = await supabase
+            .from('orders')
+            .select('id', { count: 'exact', head: true })
+            .eq('collectible_id', collectibleId);
+
+        if (countError) throw countError;
+
+        // Check availability based on NFT type
+        if (collectible.quantity_type === 'single') {
+            if (count && count > 0) {
+                return { eligible: false, reason: 'This single edition NFT has already been minted.' };
+            }
+        } else if (collectible.quantity_type === 'limited') {
+            if (collectible.quantity && count && count >= collectible.quantity) {
+                return { eligible: false, reason: 'All editions of this limited NFT have been minted.' };
+            }
+        }
+
+        // Check if the wallet has already minted this NFT
+        const { data: existingOrder, error: orderError } = await supabase
+            .from('orders')
+            .select('id')
+            .eq('wallet_address', walletAddress)
+            .eq('collectible_id', collectibleId)
+            .single();
+
+        if (orderError && orderError.code !== 'PGRST116') throw orderError; // PGRST116 means no rows returned
+        if (existingOrder) {
+            return { eligible: false, reason: 'You have already minted this NFT.' };
+        }
+
+        // Check if the device has been used to mint this NFT before
+        const { data: existingDeviceMint, error: deviceError } = await supabase
+            .from('orders')
+            .select('id')
+            .eq('device_id', deviceId)
+            .eq('collectible_id', collectibleId)
+            .single();
+
+        if (deviceError && deviceError.code !== 'PGRST116') throw deviceError;
+        if (existingDeviceMint) {
+            return { eligible: false, reason: 'This device has already been used to mint this NFT.' };
+        }
+
+        // If all checks pass, the user is eligible to mint
+        return { eligible: true };
+    } catch (error) {
+        console.error('Error checking mint eligibility:', error);
+        throw error;
+    }
+}
+export async function getExistingOrder(walletAddress: string, collectibleId: number) {
+    try {
+        const { data, error } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('wallet_address', walletAddress)
+            .eq('collectible_id', collectibleId)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                // No order found
+                return null;
+            }
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error("Error fetching existing order:", error);
+        throw error;
+    }
+}
