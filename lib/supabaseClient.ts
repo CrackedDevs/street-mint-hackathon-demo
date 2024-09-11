@@ -252,6 +252,68 @@ export const createCollection = async (collection: Collection): Promise<Collecti
     return null;
 };
 
+
+export async function deleteCollectionAndNFTs(collectionId: number): Promise<{ success: boolean; error: string | null }> {
+    try {
+        // 1. Fetch the collection to get metadata_uri
+        const { data: collection, error: collectionError } = await supabase
+            .from('collections')
+            .select('metadata_uri, merkle_tree_public_key, collection_mint_public_key')
+            .eq('id', collectionId)
+            .single();
+
+        if (collectionError) throw collectionError;
+
+        // 2. Fetch all collectibles associated with the collection
+        const { data: collectibles, error: collectiblesError } = await supabase
+            .from('collectibles')
+            .select('id, metadata_uri, primary_image_url, gallery_urls')
+            .eq('collection_id', collectionId);
+
+        if (collectiblesError) throw collectiblesError;
+
+        // 3. Delete all collectibles
+        const { error: deleteCollectiblesError } = await supabase
+            .from('collectibles')
+            .delete()
+            .eq('collection_id', collectionId);
+
+        if (deleteCollectiblesError) throw deleteCollectiblesError;
+
+        // 4. Delete the collection
+        const { error: deleteCollectionError } = await supabase
+            .from('collections')
+            .delete()
+            .eq('id', collectionId);
+
+        if (deleteCollectionError) throw deleteCollectionError;
+
+        // 5. Delete metadata and image files from storage
+        const filesToDelete = [
+            collection.metadata_uri,
+            ...collectibles.flatMap(c => [c.metadata_uri, c.primary_image_url, ...(c.gallery_urls || [])])
+        ].filter((url): url is string => Boolean(url)).map(url => url.split('/').pop());
+
+        if (filesToDelete.length > 0) {
+
+            const { error: storageError } = await supabase
+                .storage
+                .from('nft-images')
+                .remove(filesToDelete.filter((file): file is string => file !== undefined));
+            if (storageError) {
+                console.warn('Error deleting some files from storage:', storageError);
+                // We'll log the error but not throw it to allow the process to continue
+            }
+        }
+
+        console.log('Collection and NFTs deleted successfully');
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error deleting collection and NFTs:', error);
+        return { success: false, error: (error as Error).message };
+    }
+}
+
 export const uploadImage = async (file: File) => {
     const { user, error: authError } = await getAuthenticatedUser();
     if (!user || authError) {
