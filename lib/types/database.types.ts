@@ -145,33 +145,152 @@ export type Database = {
           },
         ]
       }
-      orders: {
+      minting_attempts: {
         Row: {
-          device_id: string | null
-          id: number
-          reciever_wallet_address: string | null
-          status: string | null
+          attempted_at: string | null
+          collectible_id: number | null
+          device_id: string
+          id: string
+          wallet_address: string
         }
         Insert: {
-          device_id?: string | null
-          id?: number
-          reciever_wallet_address?: string | null
-          status?: string | null
+          attempted_at?: string | null
+          collectible_id?: number | null
+          device_id: string
+          id?: string
+          wallet_address: string
         }
         Update: {
-          device_id?: string | null
-          id?: number
-          reciever_wallet_address?: string | null
-          status?: string | null
+          attempted_at?: string | null
+          collectible_id?: number | null
+          device_id?: string
+          id?: string
+          wallet_address?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "minting_attempts_collectible_id_fkey"
+            columns: ["collectible_id"]
+            isOneToOne: false
+            referencedRelation: "collectibles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          collectible_id: number | null
+          collection_id: number | null
+          created_at: string | null
+          current_supply: number | null
+          device_id: string | null
+          edition_number: number | null
+          id: string
+          is_available: boolean | null
+          max_supply: number | null
+          mint_address: string | null
+          nft_type: string | null
+          price_sol: number | null
+          price_usd: number | null
+          quantity: number | null
+          status: string | null
+          transaction_signature: string | null
+          updated_at: string | null
+          wallet_address: string
+        }
+        Insert: {
+          collectible_id?: number | null
+          collection_id?: number | null
+          created_at?: string | null
+          current_supply?: number | null
+          device_id?: string | null
+          edition_number?: number | null
+          id?: string
+          is_available?: boolean | null
+          max_supply?: number | null
+          mint_address?: string | null
+          nft_type?: string | null
+          price_sol?: number | null
+          price_usd?: number | null
+          quantity?: number | null
+          status?: string | null
+          transaction_signature?: string | null
+          updated_at?: string | null
+          wallet_address: string
+        }
+        Update: {
+          collectible_id?: number | null
+          collection_id?: number | null
+          created_at?: string | null
+          current_supply?: number | null
+          device_id?: string | null
+          edition_number?: number | null
+          id?: string
+          is_available?: boolean | null
+          max_supply?: number | null
+          mint_address?: string | null
+          nft_type?: string | null
+          price_sol?: number | null
+          price_usd?: number | null
+          quantity?: number | null
+          status?: string | null
+          transaction_signature?: string | null
+          updated_at?: string | null
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_collectible_id_fkey"
+            columns: ["collectible_id"]
+            isOneToOne: false
+            referencedRelation: "collectibles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_nft_availability: {
+        Args: {
+          p_collectible_id: number
+        }
+        Returns: boolean
+      }
+      create_order_and_record_attempt: {
+        Args: {
+          p_wallet_address: string
+          p_collectible_id: number
+          p_device_id: string
+          p_transaction_signature: string
+        }
+        Returns: Json
+      }
+      is_mint_allowed: {
+        Args: {
+          p_wallet_address: string
+          p_collectible_id: number
+          p_device_id: string
+        }
+        Returns: boolean
+      }
+      record_minting_attempt: {
+        Args: {
+          p_wallet_address: string
+          p_collectible_id: number
+          p_device_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       quantity_type: "limited" | "unlimited" | "single"

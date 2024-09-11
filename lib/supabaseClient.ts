@@ -10,6 +10,9 @@ export type Collection = {
     description: string;
     artist: number;
     collectibles: Collectible[];
+    metadata_uri?: string;
+    collection_mint_public_key?: string;
+    merkle_tree_public_key?: string;
 };
 
 export enum QuantityType {
@@ -29,7 +32,25 @@ export type Collectible = {
     price_usd: number;
     location?: string;
     gallery_urls: string[];
+    metadata_uri?: string;
 };
+
+interface Order {
+    id: string;
+    wallet_address: string;
+    collectible_id: number;
+    collection_id: number;
+    status: string;
+    price_usd: number;
+    nft_type: string;
+    max_supply: number;
+    // Add other fields as necessary
+}
+
+interface CreateOrderResponse {
+    success: boolean;
+    order: Order;
+}
 
 export type Artist = {
     id: number;
@@ -42,6 +63,14 @@ export type Artist = {
     linkedin_username?: string | null;
     farcaster_username?: string | null;
     wallet_address: string;
+};
+
+type CreateCollectionMintResponse = {
+    success: boolean;
+    result: {
+        merkleTreePublicKey: string;
+        collectionMintPublicKey: string;
+    };
 };
 
 export type ArtistWithoutWallet = Omit<Artist, 'wallet_address'>;
@@ -72,13 +101,83 @@ export const createCollection = async (collection: Collection): Promise<Collecti
         return null;
     }
 
+    // Create metadata for the collection
+    const collectionMetadata = {
+        name: collection.name,
+        description: collection.description,
+        image: collection.collectibles[0].primary_image_url, // Assuming collection has an image_url property
+        external_url: process.env.NEXT_PUBLIC_SITE_URL || "https://street-mint-client.vercel.app/",
+        properties: {
+            files: collection.collectibles.map(collectible => ({
+                uri: collectible.primary_image_url,
+                type: "image/jpg" // Assuming all images are JPGs
+            })),
+            category: "image"
+        }
+    };
+
+    // Upload collection metadata to Supabase storage
+    const collectionMetadataFileName = `${Date.now()}-collection-metadata.json`;
+    const { error: metadataUploadError } = await supabase.storage
+        .from("nft-images")
+        .upload(collectionMetadataFileName, JSON.stringify(collectionMetadata));
+
+    if (metadataUploadError) {
+        console.error('Error uploading collection metadata:', metadataUploadError);
+        return null;
+    }
+
+    // Get the public URL for the uploaded metadata
+    const { data: metadataUrlData } = supabase.storage
+        .from("nft-images")
+        .getPublicUrl(collectionMetadataFileName);
+
+    const collectionMetadataUri = metadataUrlData.publicUrl;
+
+    // Call the createBubbleGumTree API to create the collection on-chain
+    const response = await fetch('/api/collection/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            collectionData: {
+                ...collection,
+                metadata_uri: collectionMetadataUri
+            }
+        }),
+    });
+
+    if (!response.ok) {
+        console.error('Error creating on-chain collection');
+        return null;
+    }
+
+    const onChainCollectionData: CreateCollectionMintResponse = await response.json();
+
+    if (!onChainCollectionData.result) {
+        console.error('Error creating on-chain collection: No result returned');
+        return null;
+    }
+
+    // Add the on-chain data to the collection object
+    const collectionToInsert = {
+        ...collection,
+        metadata_uri: collectionMetadataUri,
+        merkle_tree_public_key: onChainCollectionData.result.merkleTreePublicKey,
+        collection_mint_public_key: onChainCollectionData.result.collectionMintPublicKey
+    };
+
     const { data: collectionData, error: collectionError } = await supabase
         .from('collections')
         .insert({
-            id: collection.id,
-            artist: collection.artist,
-            name: collection.name,
-            description: collection.description,
+            artist: collectionToInsert.artist,
+            description: collectionToInsert.description,
+            id: collectionToInsert.id,
+            name: collectionToInsert.name,
+            metadata_uri: collectionToInsert.metadata_uri,
+            merkle_tree_public_key: collectionToInsert.merkle_tree_public_key,
+            collection_mint_public_key: collectionToInsert.collection_mint_public_key
         })
         .select();
 
@@ -87,28 +186,69 @@ export const createCollection = async (collection: Collection): Promise<Collecti
         return null;
     }
 
-    // Insert the collectibles
-    const collectiblesWithCollectionId = collection.collectibles.map(collectible => ({
-        ...collectible,
-        collection_id: collectionData[0].id
+    // Create and upload metadata for each NFT
+    const collectiblesWithMetadata = await Promise.all(collection.collectibles.map(async (collectible) => {
+        const nftMetadata = {
+            name: collectible.name,
+            description: collectible.description,
+            image: collectible.primary_image_url,
+            external_url: "https://street-mint-client.vercel.app/",
+            properties: {
+                files: [
+                    {
+                        uri: collectible.primary_image_url,
+                        type: "image/jpg"
+                    },
+                    ...collectible.gallery_urls.map(url => ({
+                        uri: url,
+                        type: "image/jpg"
+                    }))
+                ],
+                category: "image"
+            }
+        };
+
+        const nftMetadataFileName = `${Date.now()}-${collectible.id}-metadata.json`;
+        const { error: nftMetadataUploadError } = await supabase.storage
+            .from("nft-images")
+            .upload(nftMetadataFileName, JSON.stringify(nftMetadata));
+
+        if (nftMetadataUploadError) {
+            console.error('Error uploading NFT metadata:', nftMetadataUploadError);
+            return null;
+        }
+
+        const { data: nftMetadataUrlData } = supabase.storage
+            .from("nft-images")
+            .getPublicUrl(nftMetadataFileName);
+
+        return {
+            ...collectible,
+            collection_id: collectionData[0].id,
+            metadata_uri: nftMetadataUrlData.publicUrl
+        };
     }));
 
-    const { error: collectiblesError } = await supabase
-        .from('collectibles')
-        .insert(collectiblesWithCollectionId);
+    // Filter out any null values from collectiblesWithMetadata
+    const validCollectibles = collectiblesWithMetadata.filter(c => c !== null);
+    console.log("validCollectibles", validCollectibles);
 
-    if (collectiblesError) {
-        console.error('Error creating collectibles:', collectiblesError);
+
+    const { error: nftsError } = await supabase
+        .from('collectibles')
+        .insert(validCollectibles);
+
+    if (nftsError) {
+        console.error('Error creating collectibles:', nftsError);
         return null;
     }
 
     if (collectionData[0]) {
         return {
             ...collectionData[0],
-            collectibles: collection.collectibles
+            collectibles: validCollectibles
         } as Collection;
     }
-
     return null;
 };
 
@@ -293,3 +433,119 @@ export const fetchCollectiblesByCollectionId = async (collectionId: number) => {
     }
     return data;
 };
+
+export async function createOrder(walletAddress: string, collectibleId: number, deviceId: string, signature: string): Promise<Order> {
+    try {
+        const { data, error } = await supabase
+            .rpc('create_order_and_record_attempt', {
+                p_wallet_address: walletAddress,
+                p_collectible_id: collectibleId,
+                p_device_id: deviceId,
+                p_transaction_signature: signature
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        console.log(data);
+        // Assert the type of data
+        const response = data as any;
+
+        if (!response.success) {
+            throw new Error('Failed to create order');
+        }
+
+        return response.order;
+    } catch (error) {
+        console.error("Error in createOrder:", error);
+        throw error;
+    }
+}
+
+export async function checkMintEligibility(walletAddress: string, collectibleId: number, deviceId: string): Promise<{ eligible: boolean; reason?: string }> {
+    try {
+        // Check if the NFT is still available and get its details
+        const { data: collectible, error: collectibleError } = await supabase
+            .from('collectibles')
+            .select('quantity, quantity_type')
+            .eq('id', collectibleId)
+            .single();
+
+        if (collectibleError) throw collectibleError;
+
+        // Get the count of existing orders for this collectible
+        const { count, error: countError } = await supabase
+            .from('orders')
+            .select('id', { count: 'exact', head: true })
+            .eq('collectible_id', collectibleId);
+
+        if (countError) throw countError;
+
+        // Check availability based on NFT type
+        if (collectible.quantity_type === 'single') {
+            if (count && count > 0) {
+                return { eligible: false, reason: 'This single edition NFT has already been minted.' };
+            }
+        } else if (collectible.quantity_type === 'limited') {
+            if (collectible.quantity && count && count >= collectible.quantity) {
+                return { eligible: false, reason: 'All editions of this limited NFT have been minted.' };
+            }
+        }
+
+        // Check if the wallet has already minted this NFT
+        const { data: existingOrder, error: orderError } = await supabase
+            .from('orders')
+            .select('id')
+            .eq('wallet_address', walletAddress)
+            .eq('collectible_id', collectibleId)
+            .single();
+
+        if (orderError && orderError.code !== 'PGRST116') throw orderError; // PGRST116 means no rows returned
+        if (existingOrder) {
+            return { eligible: false, reason: 'You have already minted this NFT.' };
+        }
+
+        // Check if the device has been used to mint this NFT before
+        const { data: existingDeviceMint, error: deviceError } = await supabase
+            .from('orders')
+            .select('id')
+            .eq('device_id', deviceId)
+            .eq('collectible_id', collectibleId)
+            .single();
+
+        if (deviceError && deviceError.code !== 'PGRST116') throw deviceError;
+        if (existingDeviceMint) {
+            return { eligible: false, reason: 'This device has already been used to mint this NFT.' };
+        }
+
+        // If all checks pass, the user is eligible to mint
+        return { eligible: true };
+    } catch (error) {
+        console.error('Error checking mint eligibility:', error);
+        throw error;
+    }
+}
+export async function getExistingOrder(walletAddress: string, collectibleId: number) {
+    try {
+        const { data, error } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('wallet_address', walletAddress)
+            .eq('collectible_id', collectibleId)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                // No order found
+                return null;
+            }
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error("Error fetching existing order:", error);
+        throw error;
+    }
+}
