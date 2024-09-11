@@ -116,7 +116,7 @@ export default function CreateCollectiblePage() {
         ...collectible,
         primary_image_url: primaryImageUrl,
         gallery_urls: uploadedGalleryUrls.filter(Boolean),
-        id: Number(collectionId),
+        id: NumericUUID(),
       };
 
       const createdCollectible = await createCollectible(

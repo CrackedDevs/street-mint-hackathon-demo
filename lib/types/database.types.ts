@@ -97,15 +97,7 @@ export type Database = {
           quantity?: number | null
           quantity_type?: Database["public"]["Enums"]["quantity_type"]
         }
-        Relationships: [
-          {
-            foreignKeyName: "collectibles_collection_id_fkey"
-            columns: ["collection_id"]
-            isOneToOne: false
-            referencedRelation: "collections"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       collections: {
         Row: {
