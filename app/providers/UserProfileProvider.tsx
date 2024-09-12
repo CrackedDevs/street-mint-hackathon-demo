@@ -118,7 +118,8 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         if (updatedUserProfile) {
           setUserProfile(updatedUserProfile);
           if (updatedUserProfile.email && !pathname.includes("/mint")) {
-            router.push("/dashboard/collection");
+            // router.push("/dashboard/collection");
+            // TODO: remove the above router push call after testing
           } else if (!updatedUserProfile.email && !pathname.includes("/mint")) {
             router.push("/dashboard");
           }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { PaletteIcon, UserIcon, MenuIcon } from "lucide-react";
+import { PaletteIcon, UserIcon, MenuIcon, Bolt } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Toaster } from "@/components/ui/toaster";
@@ -36,6 +36,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <div className="flex items-center space-x-4">
                 {publicKey && (
                   <>
+                    <Link href="/dashboard/myGallery">
+                      <Button variant="ghost">
+                        <Bolt className="h-5 w-5 mr-2" />
+                        My Gallery 
+                      </Button>
+                    </Link>
                     <Link href="/dashboard/collection">
                       <Button variant="ghost">
                         <PaletteIcon className="h-5 w-5 mr-2" />
