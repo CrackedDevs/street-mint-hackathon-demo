@@ -31,7 +31,7 @@ export default function MintButton({
   const { connected, connect, publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const [isMinting, setIsMinting] = useState(false);
-  const [isEligible, setIsEligible] = useState(true);
+  const [isEligible, setIsEligible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [transactionSignature, setTransactionSignature] = useState<
     string | null
@@ -49,39 +49,39 @@ export default function MintButton({
     fetchDeviceId();
   }, []);
 
-  useEffect(() => {
-    async function checkEligibilityAndExistingOrder() {
-      const addressToCheck = isFreeMint ? walletAddress : publicKey?.toString();
-      if (addressToCheck && deviceId) {
-        try {
-          const { eligible, reason } = await checkMintEligibility(
-            addressToCheck,
-            collectible.id,
-            deviceId
-          );
-          setIsEligible(eligible);
-          if (!eligible) {
-            setError(reason || "You are not eligible to mint this NFT.");
-          } else {
-            setError(null);
-          }
-
-          const order = await getExistingOrder(addressToCheck, collectible.id);
-          setExistingOrder(order);
-          if (order) {
-            setTransactionSignature(order.transaction_signature);
-          }
-        } catch (error) {
-          console.error("Error checking eligibility or existing order:", error);
-          setError("Failed to check minting eligibility.");
-          setIsEligible(false);
+  async function checkEligibilityAndExistingOrder() {
+    const addressToCheck = isFreeMint ? walletAddress : publicKey?.toString();
+    if (addressToCheck && deviceId) {
+      try {
+        const { eligible, reason } = await checkMintEligibility(
+          addressToCheck,
+          collectible.id,
+          deviceId
+        );
+        setIsEligible(eligible);
+        if (!eligible) {
+          setError(reason || "You are not eligible to mint this NFT.");
+        } else {
+          setError(null);
         }
-      } else {
-        setIsEligible(false);
-        setExistingOrder(null);
-      }
-    }
 
+        const order = await getExistingOrder(addressToCheck, collectible.id);
+        setExistingOrder(order);
+        if (order) {
+          setTransactionSignature(order.transaction_signature);
+        }
+      } catch (error) {
+        console.error("Error checking eligibility or existing order:", error);
+        setError("Failed to check minting eligibility.");
+        setIsEligible(false);
+      }
+    } else {
+      setIsEligible(false);
+      setExistingOrder(null);
+    }
+  }
+
+  useEffect(() => {
     checkEligibilityAndExistingOrder();
   }, [
     connected,
@@ -195,6 +195,7 @@ export default function MintButton({
   };
 
   const handleMintClick = async () => {
+    await checkEligibilityAndExistingOrder();
     if (isFreeMint) {
       if (!walletAddress) {
         toast({
@@ -236,23 +237,37 @@ export default function MintButton({
   };
 
   const getButtonText = () => {
+    if (isFreeMint && !walletAddress) return "Enter wallet address";
     if (isMinting) return "PROCESSING...";
     if (existingOrder) return "MINTED!";
     if (isEligible) return "MINT NOW";
-    return "NOT ELIGIBLE";
+    if (!isEligible) return "NOT ELIGIBLE";
+    return "NOT";
   };
+
+  console.log(error);
 
   return (
     <div className="flex flex-col w-full justify-center items-center">
       {isFreeMint ? (
-        <Input
-          type="text"
-          placeholder="Enter wallet address"
-          value={walletAddress}
-          onChange={(e) => setWalletAddress(e.target.value)}
-          className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
-        />
-      ) : connected ? null : (
+        <div className="w-full flex flex-col items-center justify-center">
+          <Input
+            type="text"
+            placeholder="Enter wallet address"
+            value={walletAddress}
+            onChange={(e) => setWalletAddress(e.target.value)}
+            className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
+          />
+          <ShimmerButton
+            borderRadius="6px"
+            className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
+            onClick={handleMintClick}
+            disabled={isMinting || !isEligible || existingOrder}
+          >
+            {getButtonText()}
+          </ShimmerButton>
+        </div>
+      ) : !connected ? (
         <WalletMultiButton
           style={{
             backgroundColor: "black",
@@ -261,21 +276,17 @@ export default function MintButton({
             borderRadius: "6px",
           }}
         />
+      ) : (
+        <ShimmerButton
+          borderRadius="6px"
+          className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
+          onClick={handleMintClick}
+          disabled={isMinting || !isEligible || existingOrder}
+        >
+          {getButtonText()}
+        </ShimmerButton>
       )}
-      <ShimmerButton
-        borderRadius="6px"
-        className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
-        onClick={handleMintClick}
-        disabled={
-          isMinting ||
-          !isEligible ||
-          existingOrder ||
-          (!isFreeMint && !connected)
-        }
-      >
-        {getButtonText()}
-      </ShimmerButton>
-      {error && <p className="text-red-500 mt-2">{error}</p>}
+      {!isEligible && <p className="text-red-500 mt-2">{error}</p>}
       {transactionSignature && (
         <a
           href={`https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`}

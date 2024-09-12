@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { getCollectionsByArtistId, PopulatedCollection, deleteCollectionAndNFTs } from "@/lib/supabaseClient";
+import {
+  getCollectionsByArtistId,
+  PopulatedCollection,
+  deleteCollectionAndNFTs,
+} from "@/lib/supabaseClient";
 import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import withAuth from "../withAuth";
@@ -35,7 +39,9 @@ function CollectionsPage() {
 
       try {
         if (userProfile && publicKey) {
-          const collectionsData = await getCollectionsByArtistId(userProfile.id);
+          const collectionsData = await getCollectionsByArtistId(
+            userProfile.id
+          );
           if (!collectionsData) {
             throw new Error("Failed to fetch collections data");
           }
@@ -75,7 +81,8 @@ function CollectionsPage() {
       console.error("Error deleting collection:", error);
       toast({
         title: "Failed to delete collection",
-        description: "One probable reason can be that the collectible has is minted.",
+        description:
+          "One probable reason can be that the collectible has is minted.",
         variant: "destructive",
       });
     }
@@ -111,11 +118,16 @@ function CollectionsPage() {
         ) : error ? (
           <Card className="w-full max-w-md mx-auto z-20 relative">
             <CardHeader>
-              <CardTitle className="text-2xl font-bold text-center text-red-500">Error</CardTitle>
+              <CardTitle className="text-2xl font-bold text-center text-red-500">
+                Error
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-center mb-4">{error}</p>
-              <Button className="w-full" onClick={() => window.location.reload()}>
+              <Button
+                className="w-full"
+                onClick={() => window.location.reload()}
+              >
                 Retry
               </Button>
             </CardContent>
@@ -146,10 +158,13 @@ function CollectionsPage() {
           </div>
         ) : (
           <div className="text-center z-20">
-            <p className="text-lg mb-4">You haven&apos;t created any collections yet.</p>
+            <p className="text-lg mb-4">
+              You haven&apos;t created any collections yet.
+            </p>
             <Link href="/dashboard/collection/create" className="z-30 relative">
               <Button size="lg" className="z-30">
-                <PlusIcon className="mr-2 h-5 w-5" /> Create Your First Collection
+                <PlusIcon className="mr-2 h-5 w-5" /> Create Your First
+                Collection
               </Button>
             </Link>
           </div>
