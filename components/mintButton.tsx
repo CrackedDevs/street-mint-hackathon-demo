@@ -227,7 +227,7 @@ export default function MintButton({
   const getButtonText = () => {
     if (isMinting) return "PROCESSING...";
     if (existingOrder) return "ALREADY MINTED";
-    if (isEligible) return `MINT NOW ($${collectible.price_usd})`;
+    if (isEligible) return `MINT NOW`;
     return "NOT ELIGIBLE";
   };
 
@@ -236,7 +236,7 @@ export default function MintButton({
       {connected ? (
         <ShimmerButton
           borderRadius="6px"
-          className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
+          className="w-full mb-4 mt-3 text-black h-[45px] rounded font-bold"
           onClick={handleMintClick}
           disabled={isMinting || !isEligible || existingOrder}
         >
@@ -245,7 +245,8 @@ export default function MintButton({
       ) : (
         <WalletMultiButton
           style={{
-            backgroundColor: "black",
+            backgroundColor: "white",
+            color: "black",
             width: "100%",
             marginBottom: "20px",
             borderRadius: "6px",
