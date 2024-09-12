@@ -1,3 +1,4 @@
+("");
 import Image from "next/image";
 import { Linkedin, Instagram } from "lucide-react";
 import MintButton from "@/components/mintButton";
@@ -10,6 +11,7 @@ import {
 import Gallery from "@/components/gallery";
 import X from "@/components/x";
 import { Toaster } from "@/components/ui/toaster";
+import PriceComponent from "./PriceComponent";
 
 async function getNFTData(id: string) {
   // Fetch SOL price
@@ -45,7 +47,17 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
   const data = await getNFTData(params.id);
 
   if (!data) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Image
+          src="/logo.svg"
+          alt="Street mint logo"
+          width={250}
+          height={100}
+          className="h-20 w-auto animate-pulse"
+        />
+      </div>
+    );
   }
   const { collectible, collection, artist, priceInSOL, remainingQuantity } =
     data;
@@ -129,6 +141,11 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                 </a>
               )}
             </div>
+
+            <PriceComponent
+              priceUSD={collectible.price_usd}
+              priceSOL={priceInSOL}
+            />
 
             {/* Edition Information Section */}
             <div className="bg-black text-white p-4 rounded-lg mb-6">
@@ -222,11 +239,9 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                   <p>Solana</p>
                 </div>
               </div>
-              {
-                collectible.gallery_urls.length > 0 && (
-              <Gallery images={collectible.gallery_urls} />
-              )
-              }
+              {collectible.gallery_urls.length > 0 && (
+                <Gallery images={collectible.gallery_urls} />
+              )}
             </div>
           </div>
         </div>
