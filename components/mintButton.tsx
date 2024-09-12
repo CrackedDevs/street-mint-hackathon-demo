@@ -19,6 +19,7 @@ import {
   getExistingOrder,
 } from "@/lib/supabaseClient";
 import { generateDeviceId } from "@/lib/fingerPrint";
+import { Input } from "./ui/input";
 
 export default function MintButton({
   collectible,
@@ -30,13 +31,15 @@ export default function MintButton({
   const { connected, connect, publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const [isMinting, setIsMinting] = useState(false);
-  const [isEligible, setIsEligible] = useState(false);
+  const [isEligible, setIsEligible] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [transactionSignature, setTransactionSignature] = useState<
     string | null
   >(null);
   const [deviceId, setDeviceId] = useState("");
   const [existingOrder, setExistingOrder] = useState<any | null>(null);
+  const isFreeMint = collectible.price_usd === 0;
+  const [walletAddress, setWalletAddress] = useState("");
 
   useEffect(() => {
     async function fetchDeviceId() {
@@ -48,10 +51,11 @@ export default function MintButton({
 
   useEffect(() => {
     async function checkEligibilityAndExistingOrder() {
-      if (connected && publicKey && deviceId) {
+      const addressToCheck = isFreeMint ? walletAddress : publicKey?.toString();
+      if (addressToCheck && deviceId) {
         try {
           const { eligible, reason } = await checkMintEligibility(
-            publicKey.toString(),
+            addressToCheck,
             collectible.id,
             deviceId
           );
@@ -62,11 +66,7 @@ export default function MintButton({
             setError(null);
           }
 
-          // Check for existing order
-          const order = await getExistingOrder(
-            publicKey.toString(),
-            collectible.id
-          );
+          const order = await getExistingOrder(addressToCheck, collectible.id);
           setExistingOrder(order);
           if (order) {
             setTransactionSignature(order.transaction_signature);
@@ -83,10 +83,18 @@ export default function MintButton({
     }
 
     checkEligibilityAndExistingOrder();
-  }, [connected, publicKey, deviceId, collectible.id]);
+  }, [
+    connected,
+    publicKey,
+    walletAddress,
+    deviceId,
+    collectible.id,
+    isFreeMint,
+  ]);
 
   const handlePaymentAndMint = async () => {
-    if (!publicKey || !isEligible) {
+    const addressToUse = isFreeMint ? walletAddress : publicKey?.toString();
+    if (!addressToUse || !isEligible) {
       return;
     }
     setIsMinting(true);
@@ -95,36 +103,38 @@ export default function MintButton({
     try {
       let signature = "";
 
-      if (collectible.price_usd > 0) {
-        // Calculate the price in SOL and create a transaction only if the NFT is not free
-        const solPrice = await fetch(
-          "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
-        );
-        const solPriceData = await solPrice.json();
-        const solPriceUSD = solPriceData.solana.usd;
-        const priceInSol = collectible.price_usd / solPriceUSD;
-        const lamports = Math.round(priceInSol * LAMPORTS_PER_SOL);
+      if (!isFreeMint && publicKey) {
+        if (collectible.price_usd > 0) {
+          // Calculate the price in SOL and create a transaction only if the NFT is not free
+          const solPrice = await fetch(
+            "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+          );
+          const solPriceData = await solPrice.json();
+          const solPriceUSD = solPriceData.solana.usd;
+          const priceInSol = collectible.price_usd / solPriceUSD;
+          const lamports = Math.round(priceInSol * LAMPORTS_PER_SOL);
 
-        // Create a payment transaction
-        const transaction = new Transaction().add(
-          SystemProgram.transfer({
-            fromPubkey: publicKey,
-            toPubkey: new PublicKey(process.env.NEXT_PUBLIC_TREASURY_WALLET!),
-            lamports,
-          })
-        );
+          // Create a payment transaction
+          const transaction = new Transaction().add(
+            SystemProgram.transfer({
+              fromPubkey: publicKey,
+              toPubkey: new PublicKey(process.env.NEXT_PUBLIC_TREASURY_WALLET!),
+              lamports,
+            })
+          );
 
-        // Send the payment transaction to the user's wallet for approval
-        signature = await sendTransaction(transaction, connection);
+          // Send the payment transaction to the user's wallet for approval
+          signature = await sendTransaction(transaction, connection);
 
-        // Wait for transaction confirmation
-        const confirmation = await connection.confirmTransaction(
-          signature,
-          "confirmed"
-        );
+          // Wait for transaction confirmation
+          const confirmation = await connection.confirmTransaction(
+            signature,
+            "confirmed"
+          );
 
-        if (confirmation.value.err) {
-          throw new Error("Transaction failed");
+          if (confirmation.value.err) {
+            throw new Error("Transaction failed");
+          }
         }
       }
 
@@ -133,7 +143,7 @@ export default function MintButton({
         collectionMintPublicKey: collection.collection_mint_public_key,
         merkleTreePublicKey: collection.merkle_tree_public_key,
         sellerFeePercentage: 5,
-        minterAddress: publicKey.toString(),
+        minterAddress: addressToUse,
         name: collectible.name,
         metadata_uri: collectible.metadata_uri || "",
       };
@@ -153,7 +163,7 @@ export default function MintButton({
 
         // Create order after successful mint
         const order = await createOrder(
-          publicKey.toString(),
+          addressToUse,
           collectible.id,
           deviceId,
           data.result.signature || signature
@@ -185,22 +195,23 @@ export default function MintButton({
   };
 
   const handleMintClick = async () => {
-    if (!connected) {
+    if (isFreeMint) {
+      if (!walletAddress) {
+        toast({
+          title: "Error",
+          description: "Please enter a valid wallet address",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (!connected) {
       try {
         await connect();
+        return;
       } catch (error) {
         console.error("Failed to connect wallet:", error);
         return;
       }
-    }
-
-    if (!publicKey) {
-      toast({
-        title: "Error",
-        description: "Please connect your wallet",
-        variant: "destructive",
-      });
-      return;
     }
 
     if (!deviceId) {
@@ -226,23 +237,22 @@ export default function MintButton({
 
   const getButtonText = () => {
     if (isMinting) return "PROCESSING...";
-    if (existingOrder) return "ALREADY MINTED";
-    if (isEligible) return `MINT NOW ($${collectible.price_usd})`;
+    if (existingOrder) return "MINTED!";
+    if (isEligible) return "MINT NOW";
     return "NOT ELIGIBLE";
   };
 
   return (
     <div className="flex flex-col w-full justify-center items-center">
-      {connected ? (
-        <ShimmerButton
-          borderRadius="6px"
-          className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
-          onClick={handleMintClick}
-          disabled={isMinting || !isEligible || existingOrder}
-        >
-          {getButtonText()}
-        </ShimmerButton>
-      ) : (
+      {isFreeMint ? (
+        <Input
+          type="text"
+          placeholder="Enter wallet address"
+          value={walletAddress}
+          onChange={(e) => setWalletAddress(e.target.value)}
+          className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
+        />
+      ) : connected ? null : (
         <WalletMultiButton
           style={{
             backgroundColor: "black",
@@ -252,6 +262,19 @@ export default function MintButton({
           }}
         />
       )}
+      <ShimmerButton
+        borderRadius="6px"
+        className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
+        onClick={handleMintClick}
+        disabled={
+          isMinting ||
+          !isEligible ||
+          existingOrder ||
+          (!isFreeMint && !connected)
+        }
+      >
+        {getButtonText()}
+      </ShimmerButton>
       {error && <p className="text-red-500 mt-2">{error}</p>}
       {transactionSignature && (
         <a

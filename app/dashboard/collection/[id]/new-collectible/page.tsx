@@ -247,13 +247,16 @@ export default function CreateCollectiblePage() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 f">
                   <Label
                     htmlFor="collectible-price"
                     className="text-base font-semibold"
                   >
                     Price (USD) <span className="text-destructive">*</span>
                   </Label>
+                  <span className="text-sm text-muted-foreground ml-2">
+                    Enter price as 0 for free mint
+                  </span>
                   <Input
                     id="collectible-price"
                     type="number"

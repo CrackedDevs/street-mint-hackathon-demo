@@ -132,14 +132,15 @@ function CollectionsPage() {
                     collectible_image_urls: collection.collectible_image_urls,
                   }}
                 />
-                <Button
+                {/* LET THIS STAY */}
+                {/* <Button
                   variant="destructive"
                   size="sm"
                   className="absolute top-2 right-2 z-30"
                   onClick={() => handleDeleteCollection(collection.id)}
                 >
                   <TrashIcon className="h-4 w-4" />
-                </Button>
+                </Button> */}
               </div>
             ))}
           </div>
