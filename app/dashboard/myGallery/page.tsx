@@ -18,73 +18,6 @@ import { Button } from "@/components/ui/button";
 import { LayoutGrid, List } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
-const nfts22 = [
-  {
-    id: 1,
-    title: "The Holy Grail",
-    creator: "Pixart Motion",
-    price: "0.001",
-    type: "Fixed price",
-    image: "/placeholder.svg?height=400&width=400",
-  },
-  {
-    id: 2,
-    title: "Mirror Glass Effect",
-    creator: "Pixart Motion",
-    price: "0.005",
-    type: "Open bidding",
-    image: "/placeholder.svg?height=400&width=400",
-  },
-  {
-    id: 3,
-    title: "Neon in Life",
-    creator: "Pixart Motion",
-    price: "0.002",
-    type: "Fixed price",
-    image: "/placeholder.svg?height=400&width=400",
-  },
-  {
-    id: 4,
-    title: "Oil Source",
-    creator: "Pixart Motion",
-    price: "0.001",
-    type: "Fixed price",
-    image: "/placeholder.svg?height=400&width=400",
-  },
-  {
-    id: 5,
-    title: "World Surface",
-    creator: "Pixart Motion",
-    price: "0.004",
-    type: "Open bidding",
-    image: "/placeholder.svg?height=400&width=400",
-  },
-  {
-    id: 6,
-    title: "Infinity Door",
-    creator: "Pixart Motion",
-    price: "0.005",
-    type: "Fixed price",
-    image: "/placeholder.svg?height=400&width=400",
-  },
-  {
-    id: 7,
-    title: "Bi-conditional Effect",
-    creator: "Pixart Motion",
-    price: "0.002",
-    type: "Fixed price",
-    image: "/placeholder.svg?height=400&width=400",
-  },
-  {
-    id: 8,
-    title: "Motion view",
-    creator: "Pixart Motion",
-    price: "0.009",
-    type: "Open bidding",
-    image: "/placeholder.svg?height=400&width=400",
-  },
-];
-
 export default function MyGallery() {
   const { wallet } = useWallet();
 
@@ -92,30 +25,34 @@ export default function MyGallery() {
   const [nfts, setNfts] = useState<any[]>([]);
 
   async function fetchNFTs() {
-
-    const response = await fetch(`https://devnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIUS_API_KEY}`, {
-        method: 'POST',
+    const response = await fetch(
+      `https://devnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIUS_API_KEY}`,
+      {
+        method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          "jsonrpc": "2.0",
-          "id": "text",
-          "method": "getAssetsByOwner",
+          jsonrpc: "2.0",
+          id: "text",
+          method: "getAssetsByOwner",
           params: {
             // ownerAddress: wallet
-            ownerAddress: "BMvZMijyAY2ifXsePojBLppNuYqFSR7yj9UdiVcmVuiV"
-          }
+            ownerAddress: "BMvZMijyAY2ifXsePojBLppNuYqFSR7yj9UdiVcmVuiV",
+          },
         }),
-    });
+      }
+    );
 
     const data = await response.json();
 
     if (data.result) {
-        const onlyNFTs = data.result.items.filter((item: any) => item.interface.includes("NFT"));
-        setNfts(onlyNFTs);
+      const onlyNFTs = data.result.items.filter((item: any) =>
+        item.interface.includes("NFT")
+      );
+      setNfts(onlyNFTs);
     }
- 
+
     // console.log(data);
   }
   useEffect(() => {
@@ -192,16 +129,22 @@ export default function MyGallery() {
               />
             </CardHeader>
             <CardContent className="p-4">
-              <CardTitle className="text-lg font-bold">{nft.content.metadata.name}</CardTitle>
-              <p className="text-sm text-gray-400">{nft.creators[0].address.slice(0, 4) + "......" + nft.creators[0].address.slice(-5)}</p>
+              <CardTitle className="text-lg font-bold">
+                {nft.content.metadata.name}
+              </CardTitle>
+              <p className="text-sm text-gray-400">
+                {nft.creators[0].address.slice(0, 4) +
+                  "......" +
+                  nft.creators[0].address.slice(-5)}
+              </p>
             </CardContent>
             <CardFooter className="p-4 flex justify-between items-center">
-              <span
-                className={`text-sm font-bold text-blue-400`}
-              >
+              <span className={`text-sm font-bold text-blue-400`}>
                 {nft.content.metadata.symbol}
               </span>
-              <span className="text-sm text-green-500 font-bold">Royalty {nft.royalty.percent*100}%</span>
+              <span className="text-sm text-green-500 font-bold">
+                Royalty {nft.royalty.percent * 100}%
+              </span>
             </CardFooter>
           </Card>
         ))}
