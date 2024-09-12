@@ -217,16 +217,6 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                   <p className="text-gray-600">Location minted</p>
                   <p>{collectible.location || "N/A"}</p>
                 </div>
-                {/* <div>
-                  <p className="text-gray-600">Edition Type</p>
-                  <p>{collection.quantity_type.charAt(0).toUpperCase() + collection.quantity_type.slice(1)}</p>
-                </div>
-                {collection.quantity_type === "limited" && (
-                  <div>
-                    <p className="text-gray-600">Limited Edition</p>
-                    <p>Run of {collection.total_supply} Digital Collectibles</p>
-                  </div>
-                )} */}
                 <div>
                   <p className="text-gray-600">Price per edition</p>
                   <p>

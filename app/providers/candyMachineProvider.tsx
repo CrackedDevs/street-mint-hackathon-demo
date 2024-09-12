@@ -85,13 +85,9 @@ export const CandyMachineProvider: React.FC<CandyMachineProviderProps> = ({
 
   useEffect(() => {
     if (umi) {
-      console.log("Generating keypair");
       setKeypair(generateSigner(umi));
-      console.log("Generating collectionMint");
       setCollectionMint(generateSigner(umi));
-      console.log("Generating treasury");
       setTreasury(generateSigner(umi));
-      console.log("Generating candyMachine");
       setCandyMachine(generateSigner(umi));
     }
   }, [umi]);
