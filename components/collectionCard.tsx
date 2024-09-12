@@ -27,24 +27,18 @@ export default function CollectionCard({
     <Card className="overflow-hidden h-[280px] flex flex-col justify-between z-20">
       <CardContent className="p-6 flex flex-col h-full">
         <div className="mb-4">
-          <div
-            className={`grid gap-1 ${
-              imagesToShow === 9 ? "grid-cols-3" : "grid-cols-2"
-            } w-32`}
-          >
-            {collection.collectible_image_urls
-              .slice(0, imagesToShow)
-              .map((url, index) => (
-                <div key={index} className="aspect-square overflow-hidden">
-                  <Image
-                    src={url}
-                    alt={`Collectible ${index + 1}`}
-                    width={60}
-                    height={60}
-                    className="rounded-md object-cover object-center w-full h-full"
-                  />
-                </div>
-              ))}
+          <div className={`grid gap-1 grid-cols-6 overflow-hidden`}>
+            {collection.collectible_image_urls.slice(0, 6).map((url, index) => (
+              <div key={index} className="aspect-square overflow-hidden">
+                <Image
+                  src={url}
+                  alt={`Collectible ${index + 1}`}
+                  width={60}
+                  height={60}
+                  className="rounded-md object-cover object-center w-full h-full"
+                />
+              </div>
+            ))}
             {collection.collectible_image_urls.length > imagesToShow && (
               <div className="flex items-center justify-center rounded-md bg-muted text-xs font-medium aspect-square">
                 +{collection.collectible_image_urls.length - imagesToShow}
