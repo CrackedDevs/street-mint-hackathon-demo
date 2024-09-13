@@ -1,5 +1,6 @@
 import { AuthError, createClient, User } from '@supabase/supabase-js';
 import { Database } from './types/database.types';
+import { isSignatureValid } from './nfcVerificationHellper';
 export const dynamic = 'force-dynamic';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -44,6 +45,9 @@ interface Order {
     price_usd: number;
     nft_type: string;
     max_supply: number;
+    mint_signature: string;
+    transaction_signature: string;
+    device_id: string;
     // Add other fields as necessary
 }
 
@@ -363,6 +367,7 @@ export const getArtistById = async (id: number): Promise<Artist | null> => {
 
 export const fetchProfileData = async () => {
     const { user, error: authError } = await getAuthenticatedUser();
+    console.log(user);
 
     if (!user || authError) {
         return { exists: false, data: null, error: authError || null };
@@ -416,16 +421,16 @@ export const fetchCollectibleById = async (id: number) => {
 };
 
 
-export const updateProfile = async (profileData: Artist, wallet_address: string) => {
+export const updateProfile = async (profileData: Artist) => {
     const { user, error: authError } = await getAuthenticatedUser();
     if (!user || authError) {
         return { exists: false, data: null, error: authError || null };
     }
-
-    const { data, error } = await supabase
+    const { data, error, } = await supabase
         .from("artists")
         .update(profileData)
         .eq("wallet_address", user.user_metadata.wallet_address);
+
     return { data, error };
 };
 
@@ -437,8 +442,6 @@ export const createProfile = async (profileData: Artist) => {
     const { data, error } = await supabase.from("artists").insert({ ...profileData, collections: [] });
     return { data, error };
 };
-
-
 
 export const getCollectionsByArtistId = async (artistId: number): Promise<PopulatedCollection[]> => {
     const { data, error } = await supabase
@@ -540,12 +543,14 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         }
 
         // Check if the wallet has already minted this NFT
+
         const { data: existingOrder, error: orderError } = await supabase
             .from('orders')
             .select('id')
             .eq('wallet_address', walletAddress)
             .eq('collectible_id', collectibleId)
-            .single();
+            .eq('status', 'completed')
+            .limit(1);
 
         if (orderError && orderError.code !== 'PGRST116') throw orderError; // PGRST116 means no rows returned
         if (existingOrder) {
@@ -555,10 +560,11 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         // Check if the device has been used to mint this NFT before
         const { data: existingDeviceMint, error: deviceError } = await supabase
             .from('orders')
-            .select('id')
+            .select('id, status')
             .eq('device_id', deviceId)
             .eq('collectible_id', collectibleId)
-            .single();
+            .eq('status', 'completed')
+            .limit(1);
 
         if (deviceError && deviceError.code !== 'PGRST116') throw deviceError;
         if (existingDeviceMint) {
@@ -572,6 +578,7 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         throw error;
     }
 }
+
 export async function getExistingOrder(walletAddress: string, collectibleId: number) {
     try {
         const { data, error } = await supabase
@@ -579,6 +586,7 @@ export async function getExistingOrder(walletAddress: string, collectibleId: num
             .select('*')
             .eq('wallet_address', walletAddress)
             .eq('collectible_id', collectibleId)
+            .eq('status', 'completed')
             .single();
 
         if (error) {
@@ -594,4 +602,38 @@ export async function getExistingOrder(walletAddress: string, collectibleId: num
         console.error("Error fetching existing order:", error);
         throw error;
     }
+}
+
+export async function verifyNfcSignature(rnd: string, sign: string, pubKey: string): Promise<boolean> {
+    if (!rnd || !sign || !pubKey) {
+        return false;
+    }
+    const isValid = await isSignatureValid(rnd, sign, pubKey);
+    if (!isValid) {
+        return false;
+    }
+
+    const { data, error } = await supabase
+        .from('nfc_taps')
+        .select('id')
+        .eq('random_number', rnd)
+        .single();
+
+    if (error && error.code !== 'PGRST116') {
+        console.error('Error checking NFC tap:', error);
+        false
+    }
+    if (data) {
+        return false;
+    }
+
+    const { error: insertError } = await supabase
+        .from('nfc_taps')
+        .insert({ random_number: rnd });
+
+    if (insertError) {
+        console.error('Error recording NFC tap:', insertError);
+        return false
+    }
+    return true;
 }

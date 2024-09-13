@@ -14,12 +14,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import {
-  TrashIcon,
-  Loader2,
-  ArrowLeftIcon,
-  UploadIcon,
-} from "lucide-react";
+import { TrashIcon, Loader2, ArrowLeftIcon, UploadIcon } from "lucide-react";
 import {
   Collectible,
   createCollectible,

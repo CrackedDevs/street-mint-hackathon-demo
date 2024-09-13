@@ -10,16 +10,32 @@ import {
   Collection,
   Collectible,
   Artist,
+  verifyNfcSignature,
 } from "@/lib/supabaseClient";
 import Gallery from "@/components/gallery";
 import { Toaster } from "@/components/ui/toaster";
 import PriceComponent from "./PriceComponent";
 import IrlInputButton from "@/components/IrlInputButton";
-import IrlMintButton from "@/components/irlMintButton";
 import ArtistInfoComponent from "@/app/mint/[id]/ArtistInfoComponent";
+import MintButton from "@/components/mintButton";
+const pubKey =
+  "5adf5a969d73c8c96c41fbb734585230b588b69f20e81e84d674c9a20a09c20ba8ad814103baf9a2e35888c0ad5bfbac1bc549b674a8edb446b664acee5d7853";
 
-async function fetchNFTData(id: string, setNFTData: (data: any) => void) {
+async function fetchNFTData(
+  id: string,
+  rnd: string,
+  sign: string,
+  setNFTData: (data: any) => void
+) {
   try {
+    const isValid = await verifyNfcSignature(rnd, sign, pubKey);
+    //TODO: UNCOMMENT THIS
+    // if (!isValid) {
+    //   console.log("Signature is not valid");
+    //   return null;
+    // }
+    //TODO: UNCOMMENT THIS
+
     // Fetch SOL price
     const response = await fetch(
       "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
@@ -57,7 +73,13 @@ async function fetchNFTData(id: string, setNFTData: (data: any) => void) {
   }
 }
 
-export default function NFTPage({ params }: { params: { id: string } }) {
+export default function NFTPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { rnd: string; sign: string };
+}) {
   const [nftData, setNFTData] = useState<{
     collectible: Collectible;
     collection: Collection;
@@ -69,8 +91,8 @@ export default function NFTPage({ params }: { params: { id: string } }) {
   const [walletAddress, setwalletAddress] = useState("");
 
   useEffect(() => {
-    fetchNFTData(params.id, setNFTData);
-  }, [params.id]);
+    fetchNFTData(params.id, searchParams.rnd, searchParams.sign, setNFTData);
+  }, [params.id, searchParams.rnd, searchParams.sign]);
 
   if (!nftData) {
     return (
@@ -207,7 +229,7 @@ export default function NFTPage({ params }: { params: { id: string } }) {
                 </div>
               )}
             </div>
-            <IrlMintButton
+            <MintButton
               walletAddress={walletAddress}
               collectible={{
                 ...collectible,

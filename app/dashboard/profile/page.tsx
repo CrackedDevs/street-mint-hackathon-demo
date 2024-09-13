@@ -149,13 +149,10 @@ function ProfileForm() {
 
     if (publicKey) {
       const { data, error } = userProfile
-        ? await updateProfile(
-            {
-              ...profileData,
-              wallet_address: publicKey?.toString() || "",
-            },
-            publicKey?.toString()
-          )
+        ? await updateProfile({
+            ...profileData,
+            wallet_address: publicKey?.toString() || "",
+          })
         : await createProfile({
             ...profileData,
             wallet_address: publicKey?.toString() || "",
