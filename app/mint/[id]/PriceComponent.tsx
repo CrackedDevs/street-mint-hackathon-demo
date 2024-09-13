@@ -21,7 +21,7 @@ export default function PriceComponent({
       <div className="flex justify-between items-center">
         <span className="text-lg font-semibold">Price</span>
         <motion.div
-          className="text-3xl font-bold"
+          className="text-2xl font-bold"
           initial={{ scale: 1 }}
           animate={{ scale: [1, 1.1, 1] }}
           transition={{
@@ -30,12 +30,14 @@ export default function PriceComponent({
             repeatType: "reverse",
           }}
         >
-          ${priceUSD.toFixed(2)}
+          {priceUSD === 0 ? "Free to claim" : `$${priceUSD.toFixed(2)}`}
         </motion.div>
       </div>
-      <div className="mt-2 text-sm text-gray-200">
-        ({priceSOL.toFixed(2)} SOL)
-      </div>
+      {priceUSD !== 0 && (
+        <div className="mt-2 text-sm text-gray-200">
+          ({priceSOL.toFixed(2)} SOL)
+        </div>
+      )}
     </motion.div>
   );
 }

@@ -22,12 +22,17 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
-      // Add this new pattern for Supabase storage
       {
         protocol: "https",
         hostname: "iaulwnqmthzvuxfubnsb.supabase.co",
         port: "",
         pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "https",
+        hostname: "docs.farcaster.xyz",
+        port: "",
+        pathname: "/**",
       },
     ],
   },

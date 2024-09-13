@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Linkedin, Instagram } from "lucide-react";
-import MintButton from "@/components/mintButton";
 import {
   getCollectionById,
   getArtistById,
@@ -14,11 +12,11 @@ import {
   Artist,
 } from "@/lib/supabaseClient";
 import Gallery from "@/components/gallery";
-import X from "@/components/x";
 import { Toaster } from "@/components/ui/toaster";
 import PriceComponent from "./PriceComponent";
 import IrlInputButton from "@/components/IrlInputButton";
 import IrlMintButton from "@/components/irlMintButton";
+import ArtistInfoComponent from "@/app/mint/[id]/ArtistInfoComponent";
 
 async function fetchNFTData(id: string, setNFTData: (data: any) => void) {
   try {
@@ -105,7 +103,7 @@ export default function NFTPage({ params }: { params: { id: string } }) {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-white mb-20 text-black">
       {/* Header */}
       <header className="py-6 px-6 border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -170,35 +168,7 @@ export default function NFTPage({ params }: { params: { id: string } }) {
             </p>
 
             {/* Artist Information */}
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-6 h-6 bg-purple-600 rounded-full"></div>
-              <span className="font-semibold">{artist.username}</span>
-              {artist.x_username && (
-                <a
-                  href={`https://x.com/${artist.x_username}`}
-                  className="text-gray-600 hover:text-black"
-                >
-                  <X className="w-5 h-5" />
-                </a>
-              )}
-              {artist.linkedin_username && (
-                <a
-                  href={`https://www.linkedin.com/in/${artist.linkedin_username}`}
-                  className="text-gray-600 hover:text-black"
-                >
-                  <Linkedin className="w-5 h-5" />
-                </a>
-              )}
-              {artist.instagram_username && (
-                <a
-                  href={`https://www.instagram.com/${artist.instagram_username}`}
-                  className="text-gray-600 hover:text-black"
-                >
-                  <Instagram className="w-5 h-5" />
-                </a>
-              )}
-            </div>
-
+            <ArtistInfoComponent artist={artist} />
             <PriceComponent
               priceUSD={collectible.price_usd}
               priceSOL={priceInSOL}

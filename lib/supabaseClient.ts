@@ -1,6 +1,6 @@
 import { AuthError, createClient, User } from '@supabase/supabase-js';
 import { Database } from './types/database.types';
-
+export const dynamic = 'force-dynamic';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -82,7 +82,22 @@ type CreateCollectionMintResponse = {
 
 export type ArtistWithoutWallet = Omit<Artist, 'wallet_address'>;
 
-export const supabase = createClient<Database>(supabaseUrl!, supabaseAnonKey!);
+export const createFetch =
+    (options: Pick<RequestInit, "next" | "cache">) =>
+        (url: RequestInfo | URL, init?: RequestInit) => {
+            return fetch(url, {
+                ...init,
+                ...options,
+            });
+        };
+
+export const supabase = createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
+    global: {
+        fetch: createFetch({
+            cache: 'no-store',
+        }),
+    },
+},);
 
 const getAuthenticatedUser = async (): Promise<{ user: User | null; error: AuthError | null }> => {
     const {

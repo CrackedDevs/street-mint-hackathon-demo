@@ -12,6 +12,7 @@ import Gallery from "@/components/gallery";
 import X from "@/components/x";
 import { Toaster } from "@/components/ui/toaster";
 import PriceComponent from "./PriceComponent";
+import ArtistInfoComponent from "./ArtistInfoComponent";
 
 async function getNFTData(id: string) {
   // Fetch SOL price
@@ -28,6 +29,7 @@ async function getNFTData(id: string) {
   if (!collection) return null;
 
   const artist = await getArtistById(collection.artist);
+  console.log(artist);
   if (!artist) return null;
 
   // Calculate NFT price in SOL
@@ -113,34 +115,7 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
             </p>
 
             {/* Artist Information */}
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-6 h-6 bg-purple-600 rounded-full"></div>
-              <span className="font-semibold">{artist.username}</span>
-              {artist.x_username && (
-                <a
-                  href={`https://x.com/${artist.x_username}`}
-                  className="text-gray-600 hover:text-black"
-                >
-                  <X className="w-5 h-5" />
-                </a>
-              )}
-              {artist.linkedin_username && (
-                <a
-                  href={`https://www.linkedin.com/in/${artist.linkedin_username}`}
-                  className="text-gray-600 hover:text-black"
-                >
-                  <Linkedin className="w-5 h-5" />
-                </a>
-              )}
-              {artist.instagram_username && (
-                <a
-                  href={`https://www.instagram.com/${artist.instagram_username}`}
-                  className="text-gray-600 hover:text-black"
-                >
-                  <Instagram className="w-5 h-5" />
-                </a>
-              )}
-            </div>
+            <ArtistInfoComponent artist={artist} />
 
             <PriceComponent
               priceUSD={collectible.price_usd}

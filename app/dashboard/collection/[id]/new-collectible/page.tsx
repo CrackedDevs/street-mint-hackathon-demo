@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,12 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { PlusIcon, TrashIcon, Loader2, ArrowLeftIcon } from "lucide-react";
+import {
+  TrashIcon,
+  Loader2,
+  ArrowLeftIcon,
+  UploadIcon,
+} from "lucide-react";
 import {
   Collectible,
   createCollectible,
@@ -25,6 +30,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { NumericUUID } from "@/lib/utils";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
+import { Switch } from "@/components/ui/switch";
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export default function CreateCollectiblePage() {
   const router = useRouter();
@@ -47,6 +55,7 @@ export default function CreateCollectiblePage() {
   const [primaryImageLocalFile, setPrimaryImageLocalFile] =
     useState<File | null>(null);
   const [galleryImages, setGalleryImages] = useState<File[]>([]);
+  const [isFreeMint, setIsFreeMint] = useState(false);
 
   const handleCollectibleChange = (field: keyof Collectible, value: any) => {
     setCollectible((prev) => ({ ...prev, [field]: value }));
@@ -54,19 +63,38 @@ export default function CreateCollectiblePage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setPrimaryImageLocalFile(e.target.files[0]);
-      handleCollectibleChange(
-        "primary_image_url",
-        URL.createObjectURL(e.target.files[0])
-      );
+      const file = e.target.files[0];
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "Error",
+          description: "File size exceeds 10MB limit.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setPrimaryImageLocalFile(file);
+      handleCollectibleChange("primary_image_url", URL.createObjectURL(file));
     }
   };
 
   const handleGalleryImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && galleryImages.length < 5) {
       const filesArray = Array.from(e.target.files);
-      if (filesArray.length + galleryImages.length <= 5) {
-        setGalleryImages([...galleryImages, ...filesArray]);
+      const validFiles = filesArray.filter(
+        (file) => file.size <= MAX_FILE_SIZE
+      );
+      const invalidFiles = filesArray.length - validFiles.length;
+
+      if (invalidFiles > 0) {
+        toast({
+          title: "Warning",
+          description: `${invalidFiles} file(s) exceeded the 10MB size limit and were not added.`,
+          variant: "default",
+        });
+      }
+
+      if (validFiles.length + galleryImages.length <= 5) {
+        setGalleryImages([...galleryImages, ...validFiles]);
       } else {
         toast({
           title: "Error",
@@ -75,6 +103,13 @@ export default function CreateCollectiblePage() {
           variant: "destructive",
         });
       }
+    }
+  };
+
+  const handleFreeMintToggle = (checked: boolean) => {
+    setIsFreeMint(checked);
+    if (checked) {
+      handleCollectibleChange("price_usd", 0);
     }
   };
 
@@ -129,6 +164,7 @@ export default function CreateCollectiblePage() {
         primary_image_url: primaryImageUrl,
         gallery_urls: uploadedGalleryUrls.filter(Boolean),
         id: NumericUUID(),
+        price_usd: isFreeMint ? 0 : collectible.price_usd,
       };
 
       const createdCollectible = await createCollectible(
@@ -158,32 +194,32 @@ export default function CreateCollectiblePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
         <Button
           variant="ghost"
           onClick={() => router.push(`/dashboard/collection/${collectionId}`)}
-          className="mb-6"
+          className="mb-8"
         >
           <ArrowLeftIcon className="mr-2 h-4 w-4" />
           Back to Collection
         </Button>
-        <Card className="w-full">
-          <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-3xl font-bold text-center">
+        <Card className="w-full shadow-lg">
+          <CardHeader className="space-y-1 pb-8">
+            <CardTitle className="text-4xl font-bold text-center">
               Create New Collectible
             </CardTitle>
-            <CardDescription className="text-center">
+            <CardDescription className="text-center text-lg">
               Fill in the details below to create your new collectible.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="space-y-2">
                   <Label
                     htmlFor="collectible-name"
-                    className="text-base font-semibold"
+                    className="text-lg font-semibold"
                   >
                     Collectible Name <span className="text-destructive">*</span>
                   </Label>
@@ -201,7 +237,7 @@ export default function CreateCollectiblePage() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="collectible-description"
-                    className="text-base font-semibold"
+                    className="text-lg font-semibold"
                   >
                     Collectible Description{" "}
                     <span className="text-destructive">*</span>
@@ -212,7 +248,7 @@ export default function CreateCollectiblePage() {
                     onChange={(e) =>
                       handleCollectibleChange("description", e.target.value)
                     }
-                    className="min-h-[100px]"
+                    className="min-h-[120px] text-base"
                     required
                   />
                 </div>
@@ -220,24 +256,44 @@ export default function CreateCollectiblePage() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="collectible-image"
-                    className="text-base font-semibold"
+                    className="text-lg font-semibold"
                   >
-                    Collectible Image{" "}
+                    Collectible Media{" "}
                     <span className="text-destructive">*</span>
                   </Label>
-                  <Input
-                    id="collectible-image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    required
-                  />
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Supported formats: .png, .jpg, .jpeg, .gif, .mp4, .mov,
+                    .webm (Max size: 10MB)
+                  </p>
+                  <div className="relative">
+                    <Input
+                      id="collectible-image"
+                      type="file"
+                      accept="image/*,video/*,.gif"
+                      onChange={handleImageChange}
+                      required
+                      className="sr-only"
+                    />
+                    <Label
+                      htmlFor="collectible-image"
+                      className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed rounded-md cursor-pointer hover:border-primary/50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <UploadIcon className="w-6 h-6 text-muted-foreground" />
+                        <span className="text-base font-medium text-muted-foreground">
+                          {primaryImageLocalFile
+                            ? primaryImageLocalFile.name
+                            : "Choose file"}
+                        </span>
+                      </div>
+                    </Label>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label
                     htmlFor="collectible-quantity-type"
-                    className="text-base font-semibold"
+                    className="text-lg font-semibold"
                   >
                     Quantity Type <span className="text-destructive">*</span>
                   </Label>
@@ -250,12 +306,14 @@ export default function CreateCollectiblePage() {
                         e.target.value as QuantityType
                       )
                     }
-                    className="w-full p-2 border rounded-md bg-background"
+                    className="w-full p-2 border rounded-md bg-background text-base"
                     required
                   >
-                    <option value={QuantityType.Unlimited}>Unlimited</option>
-                    <option value={QuantityType.Single}>Single</option>
-                    <option value={QuantityType.Limited}>Limited</option>
+                    <option value={QuantityType.Unlimited}>Open Edition</option>
+                    <option value={QuantityType.Single}>1 of 1</option>
+                    <option value={QuantityType.Limited}>
+                      Limited Edition
+                    </option>
                   </select>
                 </div>
 
@@ -263,7 +321,7 @@ export default function CreateCollectiblePage() {
                   <div className="space-y-2">
                     <Label
                       htmlFor="collectible-quantity"
-                      className="text-base font-semibold"
+                      className="text-lg font-semibold"
                     >
                       Quantity <span className="text-destructive">*</span>
                     </Label>
@@ -277,64 +335,112 @@ export default function CreateCollectiblePage() {
                           parseInt(e.target.value)
                         )
                       }
+                      className="text-base"
                     />
                   </div>
                 )}
 
-                <div className="space-y-2 f">
-                  <Label
-                    htmlFor="collectible-price"
-                    className="text-base font-semibold"
-                  >
-                    Price (USD) <span className="text-destructive">*</span>
-                  </Label>
-                  <span className="text-sm text-muted-foreground ml-2">
-                    Enter price as 0 for free mint
-                  </span>
-                  <Input
-                    id="collectible-price"
-                    type="number"
-                    value={collectible.price_usd}
-                    onChange={(e) =>
-                      handleCollectibleChange(
-                        "price_usd",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                    placeholder="Enter price in USD"
-                    required
-                  />
+                <div className="space-y-6 bg-primary/5 p-6 border-2 border-black rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <Label
+                      htmlFor="free-mint-toggle"
+                      className="text-lg font-semibold"
+                    >
+                      Make Free Claim
+                    </Label>
+                    <Switch
+                      id="free-mint-toggle"
+                      checked={isFreeMint}
+                      onCheckedChange={handleFreeMintToggle}
+                      className="scale-125"
+                    />
+                  </div>
+                  {!isFreeMint && (
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="collectible-price"
+                        className="text-lg font-semibold"
+                      >
+                        Price (USD) <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="collectible-price"
+                        type="number"
+                        value={collectible.price_usd}
+                        onChange={(e) =>
+                          handleCollectibleChange(
+                            "price_usd",
+                            parseFloat(e.target.value)
+                          )
+                        }
+                        placeholder="Enter price in USD"
+                        required
+                        className="text-base"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label
                     htmlFor="gallery-images"
-                    className="text-base font-semibold"
+                    className="text-lg font-semibold"
                   >
                     Gallery Images (Max 5)
                   </Label>
-                  <Input
-                    id="gallery-images"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleGalleryImageChange}
-                    disabled={galleryImages.length >= 5}
-                  />
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Supported formats: .png, .jpg, .jpeg, .gif, .mp4, .mov,
+                    .webm (Max size: 10MB)
+                  </p>
+                  <div className="relative">
+                    <Input
+                      id="gallery-images"
+                      type="file"
+                      accept="image/*,video/*,.gif"
+                      multiple
+                      onChange={handleGalleryImageChange}
+                      disabled={galleryImages.length >= 5}
+                      className="sr-only"
+                    />
+                    <Label
+                      htmlFor="gallery-images"
+                      className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed rounded-md cursor-pointer hover:border-primary/50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <UploadIcon className="w-6 h-6 text-muted-foreground" />
+                        <span className="text-base font-medium text-muted-foreground">
+                          {galleryImages.length > 0
+                            ? `${galleryImages.length} file${
+                                galleryImages.length > 1 ? "s" : ""
+                              } selected`
+                            : "Choose files"}
+                        </span>
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex flex-wrap gap-4 mt-4">
                     {galleryImages.map((file, index) => (
-                      <div key={index} className="relative">
-                        <Image
-                          src={URL.createObjectURL(file)}
-                          alt={`Gallery image ${index + 1}`}
-                          width={50}
-                          height={50}
-                          className="rounded-md object-cover"
-                        />
+                      <div key={index} className="relative group">
+                        {file.type.startsWith("image/") ? (
+                          <Image
+                            src={URL.createObjectURL(file)}
+                            alt={`Gallery media ${index + 1}`}
+                            width={100}
+                            height={100}
+                            className="rounded-md object-cover"
+                          />
+                        ) : (
+                          <video
+                            src={URL.createObjectURL(file)}
+                            width={100}
+                            height={100}
+                            className="rounded-md"
+                          />
+                        )}
                         <Button
                           variant="destructive"
                           size="icon"
-                          className="absolute -top-2 -right-2 h-6 w-6"
+                          className="absolute -top-2 -right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => removeGalleryImage(index)}
                         >
                           <TrashIcon className="h-3 w-3" />
@@ -347,12 +453,12 @@ export default function CreateCollectiblePage() {
 
               <Button
                 type="submit"
-                className="w-full text-lg h-12"
+                className="w-full text-lg h-14 mt-8"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <Loader2 className="mr-2 h-6 w-6 animate-spin" />
                     Creating Collectible...
                   </>
                 ) : (

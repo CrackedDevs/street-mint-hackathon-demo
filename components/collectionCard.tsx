@@ -24,7 +24,7 @@ export default function CollectionCard({
       : 1;
 
   return (
-    <Card className="overflow-hidden h-[280px] flex flex-col justify-between z-20">
+    <Card className="overflow-hidden bg-white h-[280px] flex flex-col justify-between z-20">
       <CardContent className="p-6 flex flex-col h-full">
         <div className="mb-4">
           <div className={`grid gap-1 grid-cols-6 overflow-hidden`}>

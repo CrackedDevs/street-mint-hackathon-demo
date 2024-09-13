@@ -256,21 +256,10 @@ export default function IrlMintButton({
     }
   }, [paramsWalletAddress]);
 
-  console.log(error, isEligible, existingOrder);
-
   return (
     <div className="flex flex-col w-full justify-center items-center">
       {isFreeMint ? (
         <div className="w-full flex flex-col items-center justify-center">
-          {/* {!paramsWalletAddress && (
-            <Input
-              type="text"
-              placeholder="Enter wallet address"
-              value={paramsWalletAddress}
-              onChange={(e) => setWalletAddress(e.target.value)}
-              className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
-            />
-          )} */}
           <ShimmerButton
             borderRadius="6px"
             className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
