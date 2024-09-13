@@ -4,7 +4,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
 import ConnectedWalletWidget from "@/components/connectedWalletWidget";
 import { Button } from "@/components/ui/button";
-import { PaletteIcon, UserIcon } from "lucide-react";
+import { PaletteIcon, UserIcon, Bolt } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -33,6 +33,12 @@ const DashboardHeader: React.FC = () => {
             <div className="flex items-center space-x-4">
               {publicKey && (
                 <>
+                  <Link href="/dashboard/myGallery">
+                    <Button variant="ghost">
+                      <Bolt className="h-5 w-5 mr-2" />
+                      My Gallery
+                    </Button>
+                  </Link>
                   <Link href="/dashboard/collection">
                     <Button variant="ghost">
                       <PaletteIcon className="h-5 w-5 mr-2" />

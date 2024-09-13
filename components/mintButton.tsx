@@ -11,6 +11,7 @@ import {
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import ShimmerButton from "./magicui/shimmer-button";
+import WhiteBgShimmerButton from "./magicui/whiteBg-shimmer-button"
 import {
   checkMintEligibility,
   Collectible,
@@ -258,14 +259,14 @@ export default function MintButton({
             onChange={(e) => setWalletAddress(e.target.value)}
             className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
           />
-          <ShimmerButton
+          <WhiteBgShimmerButton
             borderRadius="6px"
-            className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
+            className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
             onClick={handleMintClick}
             disabled={isMinting || !isEligible || existingOrder}
           >
             {getButtonText()}
-          </ShimmerButton>
+          </WhiteBgShimmerButton>
         </div>
       ) : !connected ? (
         <WalletMultiButton
@@ -278,14 +279,14 @@ export default function MintButton({
           }}
         />
       ) : (
-        <ShimmerButton
+        <WhiteBgShimmerButton
           borderRadius="6px"
-          className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
+          className="w-full mb-4 text-black hover:bg-gray-800 h-[45px] rounded font-bold"
           onClick={handleMintClick}
           disabled={isMinting || !isEligible || existingOrder}
         >
           {getButtonText()}
-        </ShimmerButton>
+        </WhiteBgShimmerButton>
       )}
       {!isEligible && <p className="text-red-500 mt-2">{error}</p>}
       {transactionSignature && (

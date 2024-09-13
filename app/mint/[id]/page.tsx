@@ -150,11 +150,6 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
               )}
             </div>
 
-            <PriceComponent
-              priceUSD={collectible.price_usd}
-              priceSOL={priceInSOL}
-            />
-
             {/* Edition Information Section */}
             <Card className="bg-black mx-auto text-white my-2">
               <CardHeader className="space-y-3">

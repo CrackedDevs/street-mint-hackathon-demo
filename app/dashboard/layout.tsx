@@ -1,9 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { PaletteIcon, UserIcon, MenuIcon, Bolt } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import { Toaster } from "@/components/ui/toaster";
 
 import { UserProfileProvider } from "@/app/providers/UserProfileProvider";
