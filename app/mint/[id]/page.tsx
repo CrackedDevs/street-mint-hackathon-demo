@@ -1,3 +1,4 @@
+("");
 import Image from "next/image";
 import { Linkedin, Instagram } from "lucide-react";
 import MintButton from "@/components/mintButton";
@@ -10,6 +11,7 @@ import {
 import Gallery from "@/components/gallery";
 import X from "@/components/x";
 import { Toaster } from "@/components/ui/toaster";
+import PriceComponent from "./PriceComponent";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -54,7 +56,17 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
   const data = await getNFTData(params.id);
 
   if (!data) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Image
+          src="/logo.svg"
+          alt="Street mint logo"
+          width={250}
+          height={100}
+          className="h-20 w-auto animate-pulse"
+        />
+      </div>
+    );
   }
   const { collectible, collection, artist, priceInSOL, remainingQuantity } =
     data;
@@ -137,6 +149,12 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                 </a>
               )}
             </div>
+
+            <PriceComponent
+              priceUSD={collectible.price_usd}
+              priceSOL={priceInSOL}
+            />
+
             {/* Edition Information Section */}
             <Card className="bg-black mx-auto text-white my-2">
               <CardHeader className="space-y-3">
@@ -231,16 +249,6 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
                   <p className="text-gray-600">Location minted</p>
                   <p>{collectible.location || "N/A"}</p>
                 </div>
-                {/* <div>
-                  <p className="text-gray-600">Edition Type</p>
-                  <p>{collection.quantity_type.charAt(0).toUpperCase() + collection.quantity_type.slice(1)}</p>
-                </div>
-                {collection.quantity_type === "limited" && (
-                  <div>
-                    <p className="text-gray-600">Limited Edition</p>
-                    <p>Run of {collection.total_supply} Digital Collectibles</p>
-                  </div>
-                )} */}
                 <div>
                   <p className="text-gray-600">Price per edition</p>
                   <p>

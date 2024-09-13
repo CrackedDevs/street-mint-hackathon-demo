@@ -21,10 +21,12 @@ import {
 import { generateDeviceId } from "@/lib/fingerPrint";
 import { Input } from "./ui/input";
 
-export default function MintButton({
+export default function IrlMintButton({
+  walletAddress: paramsWalletAddress,
   collectible,
   collection,
 }: {
+  walletAddress: string;
   collectible: Collectible;
   collection: Collection;
 }) {
@@ -39,7 +41,6 @@ export default function MintButton({
   const [deviceId, setDeviceId] = useState("");
   const [existingOrder, setExistingOrder] = useState<any | null>(null);
   const isFreeMint = collectible.price_usd === 0;
-  const [walletAddress, setWalletAddress] = useState("");
 
   useEffect(() => {
     async function fetchDeviceId() {
@@ -50,7 +51,9 @@ export default function MintButton({
   }, []);
 
   async function checkEligibilityAndExistingOrder() {
-    const addressToCheck = isFreeMint ? walletAddress : publicKey?.toString();
+    const addressToCheck = isFreeMint
+      ? paramsWalletAddress
+      : publicKey?.toString();
     if (addressToCheck && deviceId) {
       try {
         const { eligible, reason } = await checkMintEligibility(
@@ -86,14 +89,16 @@ export default function MintButton({
   }, [
     connected,
     publicKey,
-    walletAddress,
+    paramsWalletAddress,
     deviceId,
     collectible.id,
     isFreeMint,
   ]);
 
   const handlePaymentAndMint = async () => {
-    const addressToUse = isFreeMint ? walletAddress : publicKey?.toString();
+    const addressToUse = isFreeMint
+      ? paramsWalletAddress
+      : publicKey?.toString();
     if (!addressToUse || !isEligible) {
       return;
     }
@@ -197,7 +202,7 @@ export default function MintButton({
   const handleMintClick = async () => {
     await checkEligibilityAndExistingOrder();
     if (isFreeMint) {
-      if (!walletAddress) {
+      if (!paramsWalletAddress) {
         toast({
           title: "Error",
           description: "Please enter a valid wallet address",
@@ -237,7 +242,7 @@ export default function MintButton({
   };
 
   const getButtonText = () => {
-    if (isFreeMint && !walletAddress) return "Enter wallet address";
+    if (isFreeMint && !paramsWalletAddress) return "Enter wallet address";
     if (isMinting) return "PROCESSING...";
     if (existingOrder) return "MINTED!";
     if (isEligible) return "MINT NOW";
@@ -245,19 +250,27 @@ export default function MintButton({
     return "NOT";
   };
 
-  console.log(error);
+  useEffect(() => {
+    if (!paramsWalletAddress) {
+      window.scrollTo(0, 0);
+    }
+  }, [paramsWalletAddress]);
+
+  console.log(error, isEligible, existingOrder);
 
   return (
     <div className="flex flex-col w-full justify-center items-center">
       {isFreeMint ? (
         <div className="w-full flex flex-col items-center justify-center">
-          <Input
-            type="text"
-            placeholder="Enter wallet address"
-            value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
-            className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
-          />
+          {/* {!paramsWalletAddress && (
+            <Input
+              type="text"
+              placeholder="Enter wallet address"
+              value={paramsWalletAddress}
+              onChange={(e) => setWalletAddress(e.target.value)}
+              className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
+            />
+          )} */}
           <ShimmerButton
             borderRadius="6px"
             className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
@@ -270,8 +283,7 @@ export default function MintButton({
       ) : !connected ? (
         <WalletMultiButton
           style={{
-            backgroundColor: "white",
-            color: "black",
+            backgroundColor: "black",
             width: "100%",
             marginBottom: "20px",
             borderRadius: "6px",

@@ -1,28 +1,34 @@
 "use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Loader2, ArrowLeftIcon } from "lucide-react"
-import { Collection, createCollection } from "@/lib/supabaseClient"
-import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
-import { useWallet } from "@solana/wallet-adapter-react"
-import { NumericUUID } from "@/lib/utils"
-import { useUserProfile } from "@/app/providers/UserProfileProvider"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Loader2, ArrowLeftIcon } from "lucide-react";
+import { Collection, createCollection } from "@/lib/supabaseClient";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { NumericUUID } from "@/lib/utils";
+import { useUserProfile } from "@/app/providers/UserProfileProvider";
 
 export default function CreateCollectionPage() {
-  const router = useRouter()
-  const { toast } = useToast()
-  const { publicKey } = useWallet()
-  const [collectionName, setCollectionName] = useState("")
-  const [collectionDescription, setCollectionDescription] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [artistId, setArtistId] = useState<number | null>(null)
-  const { userProfile } = useUserProfile()
+  const router = useRouter();
+  const { toast } = useToast();
+  const { publicKey } = useWallet();
+  const [collectionName, setCollectionName] = useState("");
+  const [collectionDescription, setCollectionDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [artistId, setArtistId] = useState<number | null>(null);
+  const { userProfile } = useUserProfile();
 
   useEffect(() => {
     if (publicKey && userProfile) {
@@ -48,15 +54,14 @@ export default function CreateCollectionPage() {
       });
       return;
     }
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const newCollection: Collection | null = await createCollection({
         id: NumericUUID(),
         name: collectionName,
         description: collectionDescription,
         artist: artistId,
-        collectibles: [],
-      })
+      });
 
       if (newCollection) {
         toast({
@@ -136,7 +141,11 @@ export default function CreateCollectionPage() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full text-lg h-12" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="w-full text-lg h-12"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />

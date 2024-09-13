@@ -52,6 +52,13 @@ interface CreateOrderResponse {
     order: Order;
 }
 
+export type PopulatedCollection = {
+    id: number;
+    name: string;
+    description: string;
+    collectible_image_urls: string[];
+}
+
 export type Artist = {
     id: number;
     username: string;
@@ -95,7 +102,7 @@ const getAuthenticatedUser = async (): Promise<{ user: User | null; error: AuthE
     return { user, error: null };
 };
 
-export const createCollection = async (collection: Collection): Promise<Collection | null> => {
+export const createCollection = async (collection: Omit<Collection, 'collectibles'>): Promise<Collection | null> => {
     const { user, error: authError } = await getAuthenticatedUser();
     if (!user || authError) {
         return null;
@@ -105,13 +112,8 @@ export const createCollection = async (collection: Collection): Promise<Collecti
     const collectionMetadata = {
         name: collection.name,
         description: collection.description,
-        image: collection.collectibles[0].primary_image_url, // Assuming collection has an image_url property
         external_url: process.env.NEXT_PUBLIC_SITE_URL || "https://street-mint-client.vercel.app/",
         properties: {
-            files: collection.collectibles.map(collectible => ({
-                uri: collectible.primary_image_url,
-                type: "image/jpg" // Assuming all images are JPGs
-            })),
             category: "image"
         }
     };
@@ -186,68 +188,65 @@ export const createCollection = async (collection: Collection): Promise<Collecti
         return null;
     }
 
-    // Create and upload metadata for each NFT
-    const collectiblesWithMetadata = await Promise.all(collection.collectibles.map(async (collectible) => {
-        const nftMetadata = {
-            name: collectible.name,
-            description: collectible.description,
-            image: collectible.primary_image_url,
-            external_url: "https://street-mint-client.vercel.app/",
-            properties: {
-                files: [
-                    {
-                        uri: collectible.primary_image_url,
-                        type: "image/jpg"
-                    },
-                    ...collectible.gallery_urls.map(url => ({
-                        uri: url,
-                        type: "image/jpg"
-                    }))
-                ],
-                category: "image"
-            }
-        };
+    if (collectionData[0]) {
+        return collectionData[0] as Collection;
+    }
+    return null;
+};
 
-        const nftMetadataFileName = `${Date.now()}-${collectible.id}-metadata.json`;
-        const { error: nftMetadataUploadError } = await supabase.storage
-            .from("nft-images")
-            .upload(nftMetadataFileName, JSON.stringify(nftMetadata));
-
-        if (nftMetadataUploadError) {
-            console.error('Error uploading NFT metadata:', nftMetadataUploadError);
-            return null;
+export const createCollectible = async (collectible: Omit<Collectible, 'id'>, collectionId: number): Promise<Collectible | null> => {
+    const nftMetadata = {
+        name: collectible.name,
+        description: collectible.description,
+        image: collectible.primary_image_url,
+        external_url: "https://street-mint-client.vercel.app/",
+        properties: {
+            files: [
+                {
+                    uri: collectible.primary_image_url,
+                    type: "image/jpg"
+                },
+                ...collectible.gallery_urls.map(url => ({
+                    uri: url,
+                    type: "image/jpg"
+                }))
+            ],
+            category: "image"
         }
+    };
 
-        const { data: nftMetadataUrlData } = supabase.storage
-            .from("nft-images")
-            .getPublicUrl(nftMetadataFileName);
+    const nftMetadataFileName = `${Date.now()}-${collectible.name}-metadata.json`;
+    const { error: nftMetadataUploadError } = await supabase.storage
+        .from("nft-images")
+        .upload(nftMetadataFileName, JSON.stringify(nftMetadata));
 
-        return {
-            ...collectible,
-            collection_id: collectionData[0].id,
-            metadata_uri: nftMetadataUrlData.publicUrl
-        };
-    }));
-
-    // Filter out any null values from collectiblesWithMetadata
-    const validCollectibles = collectiblesWithMetadata.filter(c => c !== null);
-    console.log("validCollectibles", validCollectibles);
-
-
-    const { error: nftsError } = await supabase
-        .from('collectibles')
-        .insert(validCollectibles);
-
-    if (nftsError) {
-        console.error('Error creating collectibles:', nftsError);
+    if (nftMetadataUploadError) {
+        console.error('Error uploading NFT metadata:', nftMetadataUploadError);
         return null;
     }
 
-    if (collectionData[0]) {
-        return {
-            ...collectionData[0],
-            collectibles: validCollectibles
-        } as Collection;
+    const { data: nftMetadataUrlData } = supabase.storage
+        .from("nft-images")
+        .getPublicUrl(nftMetadataFileName);
+
+    const collectibleToInsert = {
+        ...collectible,
+        collection_id: collectionId,
+        metadata_uri: nftMetadataUrlData.publicUrl
+    };
+
+    const { data: insertedCollectible, error: nftError } = await supabase
+        .from('collectibles')
+        .insert(collectibleToInsert)
+        .select();
+
+    if (nftError) {
+        console.error('Error creating collectible:', nftError);
+        return null;
+    }
+
+    if (insertedCollectible && insertedCollectible[0]) {
+        return insertedCollectible[0] as Collectible;
     }
     return null;
 };
@@ -329,32 +328,7 @@ export const uploadImage = async (file: File) => {
     return publicUrlData.publicUrl;
 };
 
-export const createCollectible = async (collectible: Omit<Collectible, 'id'>, collection_id: number): Promise<{ data: Collectible | null; error: any }> => {
-    const { user, error: authError } = await getAuthenticatedUser();
-    if (!user || authError) {
-        return { data: null, error: authError || null };
-    }
 
-    const id = Math.floor(Math.random() * 1000000);
-    const { data, error } = await supabase
-        .from("collectibles")
-        .insert({
-            id,
-            ...collectible,
-            collection_id
-        })
-        .select()
-        .single();
-
-    console.log("data", data)
-
-    if (error) {
-        console.error("Error creating collectible:", error);
-        return { data: null, error };
-    }
-
-    return { data: data as Collectible, error: null };
-};
 
 export const getArtistById = async (id: number): Promise<Artist | null> => {
     const { data, error } = await supabase
@@ -449,12 +423,7 @@ export const createProfile = async (profileData: Artist) => {
     return { data, error };
 };
 
-export type PopulatedCollection = {
-    id: number;
-    name: string;
-    description: string;
-    collectible_image_urls: string[];
-}
+
 
 export const getCollectionsByArtistId = async (artistId: number): Promise<PopulatedCollection[]> => {
     const { data, error } = await supabase

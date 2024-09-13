@@ -40,6 +40,7 @@ export default function CreateCollectiblePage() {
     description: "",
     primary_image_url: "",
     quantity_type: QuantityType.Unlimited,
+    quantity: 0,
     price_usd: 0,
     gallery_urls: [],
   });
@@ -95,6 +96,17 @@ export default function CreateCollectiblePage() {
       toast({
         title: "Error",
         description: "User profile not found",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (
+      collectible.quantity_type === QuantityType.Limited &&
+      !collectible.quantity
+    ) {
+      toast({
+        title: "Enter quantity",
+        description: "Enter quantity for limited quantity type",
         variant: "destructive",
       });
       return;
@@ -247,13 +259,38 @@ export default function CreateCollectiblePage() {
                   </select>
                 </div>
 
-                <div className="space-y-2">
+                {collectible.quantity_type === QuantityType.Limited && (
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="collectible-quantity"
+                      className="text-base font-semibold"
+                    >
+                      Quantity <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="collectible-quantity"
+                      type="number"
+                      value={collectible?.quantity || ""}
+                      onChange={(e) =>
+                        handleCollectibleChange(
+                          "quantity",
+                          parseInt(e.target.value)
+                        )
+                      }
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2 f">
                   <Label
                     htmlFor="collectible-price"
                     className="text-base font-semibold"
                   >
                     Price (USD) <span className="text-destructive">*</span>
                   </Label>
+                  <span className="text-sm text-muted-foreground ml-2">
+                    Enter price as 0 for free mint
+                  </span>
                   <Input
                     id="collectible-price"
                     type="number"

@@ -115,21 +115,14 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({
           data: updatedUserProfile,
           error: updatedUserProfileError,
         }: { data: UserProfile | null; error: any } = await fetchProfileData();
-        if (updatedUserProfile) {
-          setUserProfile(updatedUserProfile);
-          if (updatedUserProfile.email && !pathname.includes("/mint")) {
-            // router.push("/dashboard/collection");
-            // TODO: remove the above router push call after testing
-          } else if (!updatedUserProfile.email && !pathname.includes("/mint")) {
-            router.push("/dashboard");
-          }
-        }
         if (updatedUserProfileError) {
           console.error(
             "Error fetching user profile:",
             updatedUserProfileError
           );
+          router.push("/dashboard");
         }
+        setUserProfile(updatedUserProfile);
       } else {
         console.error("No token found after login attempt");
         disconnect();

@@ -10,9 +10,8 @@ export async function generateDeviceId(): Promise<string> {
         const fpPromise = FingerprintJS.load();
         const fp = await fpPromise;
         const result = await fp.get();
-
         // Combine fingerprint with a UUID for added uniqueness
-        deviceId = `${result.visitorId}-${uuidv4()}`;
+        deviceId = `${result.visitorId}`;
 
         // Store the new device ID
         localStorage.setItem('deviceId', deviceId);

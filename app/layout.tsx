@@ -21,9 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AppWalletProvider>
-          <CandyMachineProvider>
-            <UserProfileProvider>{children}</UserProfileProvider>{" "}
-          </CandyMachineProvider>
+          <CandyMachineProvider>{children}</CandyMachineProvider>
         </AppWalletProvider>
       </body>
     </html>
