@@ -11,6 +11,15 @@ import Gallery from "@/components/gallery";
 import { Toaster } from "@/components/ui/toaster";
 import PriceComponent from "./PriceComponent";
 import ArtistInfoComponent from "./ArtistInfoComponent";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const pubKey =
   "5adf5a969d73c8c96c41fbb734585230b588b69f20e81e84d674c9a20a09c20ba8ad814103baf9a2e35888c0ad5bfbac1bc549b674a8edb446b664acee5d7853";
@@ -127,71 +136,89 @@ export default async function NFTPage({
             <p className="text-xl text-gray-600 mb-4">
               From the &quot;{collection.name}&quot; Collection
             </p>
-
             {/* Artist Information */}
             <ArtistInfoComponent artist={artist} />
 
-            <PriceComponent
-              priceUSD={collectible.price_usd}
-              priceSOL={priceInSOL}
-            />
-
             {/* Edition Information Section */}
-            <div className="bg-black text-white p-4 rounded-lg mb-6">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold">
-                  {getEditionTypeText(
-                    collectible.quantity_type as QuantityType
-                  )}
-                </span>
-                {collectible.quantity_type === QuantityType.Limited &&
-                  remainingQuantity !== null && (
+            <Card className="bg-black mx-auto text-white my-2">
+              <CardHeader className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <Badge variant="secondary" className="text-black">
+                    {getEditionTypeText(
+                      collectible.quantity_type as QuantityType
+                    )}
+                  </Badge>
+                  <span className="text-2xl font-bold">
+                    {collectible.quantity_type === QuantityType.Limited &&
+                      remainingQuantity !== null && (
+                        <span>
+                          {remainingQuantity} of {collectible.quantity}
+                        </span>
+                      )}
+                  </span>
+                </div>
+                <CardTitle className="text-3xl font-extrabold">
+                  {collectible.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-baseline">
+                  <div>
                     <span className="text-3xl font-bold">
-                      {remainingQuantity} of {collectible.quantity}
+                      ${collectible.price_usd.toFixed(2)}
                     </span>
-                  )}
-              </div>
-              {collectible.quantity_type === "limited" && (
-                <div className="mt-2 text-sm text-gray-300">
-                  {remainingQuantity === 1
-                    ? "Last one available!"
-                    : `${remainingQuantity} editions left`}
-                </div>
-              )}
-              {collectible.quantity_type === "single" && (
-                <div className="mt-2 text-sm text-gray-300">
-                  Unique, one-of-a-kind piece
-                </div>
-              )}
-              {collectible.quantity_type === "unlimited" && (
-                <div className="mt-2 text-sm text-gray-300">
-                  Unlimited supply available
-                </div>
-              )}
-            </div>
-            <MintButton
-              collectible={{
-                ...collectible,
-                quantity_type: collectible.quantity_type as QuantityType,
-                location: collectible.metadata_uri || "",
-                metadata_uri: collectible.metadata_uri || "",
-              }}
-              collection={{
-                ...collection,
-                artist: collection.artist || 0,
-                collectibles: [],
-                collection_mint_public_key:
-                  collection.collection_mint_public_key || "",
-                metadata_uri: collection.metadata_uri || "",
-                merkle_tree_public_key: collection.merkle_tree_public_key || "",
-              }}
-            />
-            <p className="text-sm text-gray-600 mb-8">
-              This digital collectible is configured for minting. Once minted,
-              it will be added to your collection.
-            </p>
+                    <span className="mx-2">or</span>
+                    <span className="text-xl font-bold">
+                      {priceInSOL.toFixed(2)} SOL
+                    </span>
+                  </div>
 
-            <div className="space-y-4 mt-4">
+                  {collectible.quantity_type === "limited" && (
+                    <div className="text-lg text-grey-300">
+                      {remainingQuantity === 1
+                        ? "Last one available!"
+                        : `${remainingQuantity} editions left`}
+                    </div>
+                  )}
+                  {collectible.quantity_type === "single" && (
+                    <div className="text-lg text-grey-300">
+                      Unique, one-of-a-kind piece
+                    </div>
+                  )}
+                  {collectible.quantity_type === "unlimited" && (
+                    <div className="text-lg text-grey-300">
+                      Unlimited supply available
+                    </div>
+                  )}
+                </div>
+                <MintButton
+                  collectible={{
+                    ...collectible,
+                    quantity_type: collectible.quantity_type as QuantityType,
+                    location: collectible.metadata_uri || "",
+                    metadata_uri: collectible.metadata_uri || "",
+                  }}
+                  collection={{
+                    ...collection,
+                    artist: collection.artist || 0,
+                    collectibles: [],
+                    collection_mint_public_key:
+                      collection.collection_mint_public_key || "",
+                    metadata_uri: collection.metadata_uri || "",
+                    merkle_tree_public_key:
+                      collection.merkle_tree_public_key || "",
+                  }}
+                />
+              </CardContent>
+              <CardFooter>
+                <p className="text-sm text-gray-300">
+                  This digital collectible is configured for minting. Once
+                  minted, it will be added to your collection.
+                </p>
+              </CardFooter>
+            </Card>
+
+            <div className="space-y-4 mt-6">
               <p className="text-lg">{collectible.description}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
