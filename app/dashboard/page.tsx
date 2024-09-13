@@ -65,14 +65,15 @@ const DashboardPage = () => {
               ) : connected ? (
                 <ShimmerButton
                   className="shadow-2xl"
-                  onClick={handleGoToCollection}
+                  onClick={() => handleGoToCollection()}
+                  // Always use () => handleFunction() to avoid calling the function on render
                 >
                   <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
                     Create Collection!
                   </span>
                 </ShimmerButton>
               ) : (
-                <ShimmerButton className="shadow-2xl" onClick={handleConnect}>
+                <ShimmerButton className="shadow-2xl" onClick={() => handleConnect()}>
                   <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
                     Connect Wallet
                   </span>
