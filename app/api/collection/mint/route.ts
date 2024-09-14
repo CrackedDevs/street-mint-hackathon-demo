@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { mintNFTWithBubbleGumTree } from "../collection.helper";
+import { checkMintEligibility } from "@/lib/supabaseClient";
 
 type MintRequestBody = {
   collectionMintPublicKey: string;
@@ -8,6 +9,8 @@ type MintRequestBody = {
   minterAddress: string;
   name: string;
   metadata_uri: string;
+  collectibleId: number;
+  deviceId: string;
 };
 
 export async function POST(request: Request) {
@@ -19,15 +22,36 @@ export async function POST(request: Request) {
       minterAddress,
       name,
       metadata_uri,
+      collectibleId,
+      deviceId,
     }: MintRequestBody = await request.json();
 
     if (
       !collectionMintPublicKey ||
       !merkleTreePublicKey ||
       !sellerFeePercentage ||
-      !minterAddress
+      !minterAddress ||
+      !collectibleId ||
+      !deviceId
     ) {
-      throw new Error("Missing required fields");
+      return NextResponse.json(
+        { success: false, error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Check eligibility
+    const { eligible, reason } = await checkMintEligibility(
+      minterAddress,
+      collectibleId,
+      deviceId
+    );
+
+    if (!eligible) {
+      return NextResponse.json(
+        { success: false, error: reason || "Not eligible to mint" },
+        { status: 403 }
+      );
     }
 
     const result = await mintNFTWithBubbleGumTree(

@@ -127,9 +127,6 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         console.error("No token found after login attempt");
         disconnect();
         setUserProfile(null);
-        if (!pathname.includes("/mint")) {
-          router.push("/dashboard");
-        }
       }
     }
     setIsLoading(false);

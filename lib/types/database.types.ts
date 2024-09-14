@@ -177,18 +177,34 @@ export type Database = {
           },
         ]
       }
+      nfc_taps: {
+        Row: {
+          created_at: string | null
+          id: number
+          random_number: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          random_number: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          random_number?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           collectible_id: number | null
           collection_id: number | null
           created_at: string | null
-          current_supply: number | null
           device_id: string | null
-          edition_number: number | null
           id: string
-          is_available: boolean | null
           max_supply: number | null
           mint_address: string | null
+          mint_signature: string | null
           nft_type: string | null
           price_sol: number | null
           price_usd: number | null
@@ -202,13 +218,11 @@ export type Database = {
           collectible_id?: number | null
           collection_id?: number | null
           created_at?: string | null
-          current_supply?: number | null
           device_id?: string | null
-          edition_number?: number | null
           id?: string
-          is_available?: boolean | null
           max_supply?: number | null
           mint_address?: string | null
+          mint_signature?: string | null
           nft_type?: string | null
           price_sol?: number | null
           price_usd?: number | null
@@ -222,13 +236,11 @@ export type Database = {
           collectible_id?: number | null
           collection_id?: number | null
           created_at?: string | null
-          current_supply?: number | null
           device_id?: string | null
-          edition_number?: number | null
           id?: string
-          is_available?: boolean | null
           max_supply?: number | null
           mint_address?: string | null
+          mint_signature?: string | null
           nft_type?: string | null
           price_sol?: number | null
           price_usd?: number | null

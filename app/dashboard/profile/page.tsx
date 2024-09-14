@@ -13,7 +13,13 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UploadIcon, InstagramIcon, Loader2, EditIcon } from "lucide-react";
+import {
+  UploadIcon,
+  InstagramIcon,
+  Loader2,
+  EditIcon,
+  LinkedinIcon,
+} from "lucide-react";
 import X from "@/components/x";
 import withAuth from "../withAuth";
 import {
@@ -25,23 +31,9 @@ import {
 } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { cn, NumericUUID } from "@/lib/utils";
+import { NumericUUID } from "@/lib/utils";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
-import DotPattern from "@/components/magicui/dot-pattern";
-
-function ProfilePage() {
-  return (
-    <div>
-      <ProfileForm />
-      <DotPattern
-        className={cn(
-          "absolute inset-0 w-full h-full",
-          "[mask-image:radial-gradient(ellipse_at_center,white,transparent)]"
-        )}
-      />
-    </div>
-  );
-}
+import Image from "next/image";
 
 function ProfileForm() {
   const { toast } = useToast();
@@ -70,6 +62,8 @@ function ProfileForm() {
         avatar_url: "",
         x_username: "",
         instagram_username: "",
+        farcaster_username: "",
+        linkedin_username: "",
       });
       setIsEditing(true);
     }
@@ -155,13 +149,10 @@ function ProfileForm() {
 
     if (publicKey) {
       const { data, error } = userProfile
-        ? await updateProfile(
-            {
-              ...profileData,
-              wallet_address: publicKey?.toString() || "",
-            },
-            publicKey?.toString()
-          )
+        ? await updateProfile({
+            ...profileData,
+            wallet_address: publicKey?.toString() || "",
+          })
         : await createProfile({
             ...profileData,
             wallet_address: publicKey?.toString() || "",
@@ -368,6 +359,35 @@ function ProfileForm() {
                     onChange={handleInputChange}
                     className="bg-background"
                     placeholder="Instagram username"
+                    readOnly={!isEditing}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Image
+                    alt="farcaster"
+                    src="https://docs.farcaster.xyz/icon.png"
+                    width={20}
+                    height={20}
+                  />
+                  <Input
+                    id="farcaster_username"
+                    name="farcaster_username"
+                    value={formData?.farcaster_username || ""}
+                    onChange={handleInputChange}
+                    className="bg-background"
+                    placeholder="Farcaster username"
+                    readOnly={!isEditing}
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <LinkedinIcon className="h-4 w-4 text-blue-500" />
+                  <Input
+                    id="linkedin_username"
+                    name="linkedin_username"
+                    value={formData?.linkedin_username || ""}
+                    onChange={handleInputChange}
+                    className="bg-background"
+                    placeholder="LinkedIn username"
                     readOnly={!isEditing}
                   />
                 </div>

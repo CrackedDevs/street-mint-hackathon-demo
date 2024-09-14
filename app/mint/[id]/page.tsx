@@ -1,17 +1,16 @@
-("");
 import Image from "next/image";
-import { Linkedin, Instagram } from "lucide-react";
 import MintButton from "@/components/mintButton";
 import {
   getCollectionById,
   getArtistById,
   fetchCollectibleById,
   QuantityType,
+  verifyNfcSignature,
 } from "@/lib/supabaseClient";
 import Gallery from "@/components/gallery";
-import X from "@/components/x";
 import { Toaster } from "@/components/ui/toaster";
 import PriceComponent from "./PriceComponent";
+import ArtistInfoComponent from "./ArtistInfoComponent";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,8 +21,19 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-async function getNFTData(id: string) {
+const pubKey =
+  "5adf5a969d73c8c96c41fbb734585230b588b69f20e81e84d674c9a20a09c20ba8ad814103baf9a2e35888c0ad5bfbac1bc549b674a8edb446b664acee5d7853";
+
+async function getNFTData(id: string, rnd: string, sign: string) {
   // Fetch SOL price
+  const isValid = await verifyNfcSignature(rnd, sign, pubKey);
+  //TODO: UNCOMMENT THIS
+  // if (!isValid) {
+  //   console.log("Signature is not valid");
+  //   return null;
+  // }
+  //TODO: UNCOMMENT THIS
+
   const response = await fetch(
     "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
   );
@@ -52,8 +62,14 @@ async function getNFTData(id: string) {
 }
 
 // Convert to an async Server Component
-export default async function NFTPage({ params }: { params: { id: string } }) {
-  const data = await getNFTData(params.id);
+export default async function NFTPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { rnd: string; sign: string };
+}) {
+  const data = await getNFTData(params.id, searchParams.rnd, searchParams.sign);
 
   if (!data) {
     return (
@@ -121,34 +137,7 @@ export default async function NFTPage({ params }: { params: { id: string } }) {
               From the &quot;{collection.name}&quot; Collection
             </p>
             {/* Artist Information */}
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-6 h-6 bg-purple-600 rounded-full"></div>
-              <span className="font-semibold">{artist.username}</span>
-              {artist.x_username && (
-                <a
-                  href={`https://x.com/${artist.x_username}`}
-                  className="text-gray-600 hover:text-black"
-                >
-                  <X className="w-5 h-5" />
-                </a>
-              )}
-              {artist.linkedin_username && (
-                <a
-                  href={`https://www.linkedin.com/in/${artist.linkedin_username}`}
-                  className="text-gray-600 hover:text-black"
-                >
-                  <Linkedin className="w-5 h-5" />
-                </a>
-              )}
-              {artist.instagram_username && (
-                <a
-                  href={`https://www.instagram.com/${artist.instagram_username}`}
-                  className="text-gray-600 hover:text-black"
-                >
-                  <Instagram className="w-5 h-5" />
-                </a>
-              )}
-            </div>
+            <ArtistInfoComponent artist={artist} />
 
             {/* Edition Information Section */}
             <Card className="bg-black mx-auto text-white my-2">

@@ -21,15 +21,25 @@ import {
 } from "@/lib/supabaseClient";
 import { generateDeviceId } from "@/lib/fingerPrint";
 import { Input } from "./ui/input";
+import confetti from "canvas-confetti";
+
+interface MintButtonProps {
+  collectible: Collectible;
+  collection: Collection;
+  walletAddress?: string;
+}
 
 export default function MintButton({
   collectible,
   collection,
-}: {
-  collectible: Collectible;
-  collection: Collection;
-}) {
-  const { connected, connect, publicKey, sendTransaction } = useWallet();
+  walletAddress: initialWalletAddress,
+}: MintButtonProps) {
+  const {
+    connected,
+    connect,
+    publicKey,
+    signTransaction,
+  } = useWallet();
   const { connection } = useConnection();
   const [isMinting, setIsMinting] = useState(false);
   const [isEligible, setIsEligible] = useState(false);
@@ -40,7 +50,40 @@ export default function MintButton({
   const [deviceId, setDeviceId] = useState("");
   const [existingOrder, setExistingOrder] = useState<any | null>(null);
   const isFreeMint = collectible.price_usd === 0;
-  const [walletAddress, setWalletAddress] = useState("");
+  const [walletAddress, setWalletAddress] = useState(
+    initialWalletAddress || ""
+  );
+  const isIrlMint = !!initialWalletAddress;
+
+  const TriggerConfetti = () => {
+    const end = Date.now() + 3 * 1000; // 3 seconds
+    const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
+
+    const frame = () => {
+      if (Date.now() > end) return;
+
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 0, y: 0.5 },
+        colors: colors,
+      });
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 1, y: 0.5 },
+        colors: colors,
+      });
+
+      requestAnimationFrame(frame);
+    };
+
+    frame();
+  };
 
   useEffect(() => {
     async function fetchDeviceId() {
@@ -49,6 +92,12 @@ export default function MintButton({
     }
     fetchDeviceId();
   }, []);
+
+  useEffect(() => {
+    if (isIrlMint && !initialWalletAddress) {
+      window.scrollTo(0, 0);
+    }
+  }, [isIrlMint, initialWalletAddress]);
 
   async function checkEligibilityAndExistingOrder() {
     const addressToCheck = isFreeMint ? walletAddress : publicKey?.toString();
@@ -69,7 +118,7 @@ export default function MintButton({
         const order = await getExistingOrder(addressToCheck, collectible.id);
         setExistingOrder(order);
         if (order) {
-          setTransactionSignature(order.transaction_signature);
+          setTransactionSignature(order.mint_signature);
         }
       } catch (error) {
         console.error("Error checking eligibility or existing order:", error);
@@ -102,83 +151,97 @@ export default function MintButton({
     setError(null);
 
     try {
-      let signature = "";
+      let signedTransaction = null;
 
-      if (!isFreeMint && publicKey) {
-        if (collectible.price_usd > 0) {
-          // Calculate the price in SOL and create a transaction only if the NFT is not free
-          const solPrice = await fetch(
-            "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
-          );
-          const solPriceData = await solPrice.json();
-          const solPriceUSD = solPriceData.solana.usd;
-          const priceInSol = collectible.price_usd / solPriceUSD;
-          const lamports = Math.round(priceInSol * LAMPORTS_PER_SOL);
-
-          // Create a payment transaction
-          const transaction = new Transaction().add(
-            SystemProgram.transfer({
-              fromPubkey: publicKey,
-              toPubkey: new PublicKey(process.env.NEXT_PUBLIC_TREASURY_WALLET!),
-              lamports,
-            })
-          );
-
-          // Send the payment transaction to the user's wallet for approval
-          signature = await sendTransaction(transaction, connection);
-
-          // Wait for transaction confirmation
-          const confirmation = await connection.confirmTransaction(
-            signature,
-            "confirmed"
-          );
-
-          if (confirmation.value.err) {
-            throw new Error("Transaction failed");
-          }
-        }
-      }
-
-      // Proceed with minting the NFT
-      const mintRequestBody = {
-        collectionMintPublicKey: collection.collection_mint_public_key,
-        merkleTreePublicKey: collection.merkle_tree_public_key,
-        sellerFeePercentage: 5,
-        minterAddress: addressToUse,
-        name: collectible.name,
-        metadata_uri: collectible.metadata_uri || "",
-      };
-
-      const response = await fetch("/api/collection/mint", {
+      const initResponse = await fetch("/api/collection/mint/initiate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(mintRequestBody),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          collectibleId: collectible.id,
+          walletAddress: addressToUse,
+          deviceId: deviceId,
+          collectionId: collection.id,
+        }),
       });
 
-      const data = await response.json();
+      if (!initResponse.ok) {
+        const errorData = await initResponse.json();
+        throw new Error(errorData.error || "Failed to initiate minting");
+      }
+      let priceInSol = 0;
+      const { orderId, isFree } = await initResponse.json();
 
-      if (data.success) {
-        console.log("NFT minted successfully:", data.result);
+      if (!isFree && publicKey) {
+        // Step 2: Create payment transaction (only for paid mints)
+        const treasuryWallet = new PublicKey(
+          process.env.NEXT_PUBLIC_TREASURY_WALLET!
+        );
+        const solPrice = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+        );
+        const solPriceData = await solPrice.json();
+        const solPriceUSD = solPriceData.solana.usd;
+        priceInSol = collectible.price_usd / solPriceUSD;
+        const lamports = Math.round(priceInSol * LAMPORTS_PER_SOL);
 
-        // Create order after successful mint
-        const order = await createOrder(
-          addressToUse,
-          collectible.id,
-          deviceId,
-          data.result.signature || signature
+        const { blockhash, lastValidBlockHeight } =
+          await connection.getLatestBlockhash();
+
+        const transaction = new Transaction().add(
+          SystemProgram.transfer({
+            fromPubkey: publicKey,
+            toPubkey: treasuryWallet,
+            lamports,
+          })
         );
 
+        transaction.recentBlockhash = blockhash;
+        transaction.lastValidBlockHeight = lastValidBlockHeight;
+        transaction.feePayer = publicKey;
+
+        // Sign the transaction
+        if (!signTransaction) {
+          toast({
+            title: "Error",
+            description: "Failed to sign transaction",
+            variant: "destructive",
+          });
+          return;
+        }
+        let signedTx;
+        // Serialize the signed transaction
+        signedTx = await signTransaction(transaction);
+        signedTransaction = signedTx.serialize().toString("base64");
+      }
+
+      const processResponse = await fetch("/api/collection/mint/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId,
+          signedTransaction,
+          priceInSol,
+        }),
+      });
+
+      if (!processResponse.ok) {
+        const errorData = await processResponse.json();
+        throw new Error(errorData.error || "Failed to process minting");
+      }
+
+      const { success, txSignature, mintSignature } =
+        await processResponse.json();
+      if (success) {
+        setTransactionSignature(mintSignature);
+        TriggerConfetti();
+        setExistingOrder({ id: orderId, status: "completed" });
         toast({
           title: "NFT Minted Successfully",
-          description: `Transaction: ${data.result.signature || "Free NFT"}`,
+          description: `Mint signature: ${mintSignature}`,
         });
-        setTransactionSignature(data.result.signature || signature);
-        setExistingOrder(order);
         setIsEligible(false);
       } else {
-        throw new Error(data.error || "Failed to mint NFT");
+        throw new Error("Minting process failed");
       }
     } catch (error: any) {
       console.error("Error minting NFT:", error);
@@ -240,17 +303,15 @@ export default function MintButton({
   const getButtonText = () => {
     if (isFreeMint && !walletAddress) return "Enter wallet address";
     if (isMinting) return "PROCESSING...";
-    if (existingOrder) return "MINTED!";
+    if (existingOrder && existingOrder.status == "completed") return "MINTED!";
     if (isEligible) return "MINT NOW";
     if (!isEligible) return "NOT ELIGIBLE";
     return "NOT";
   };
 
-  console.log(error);
-
   return (
     <div className="flex flex-col w-full justify-center items-center">
-      {isFreeMint ? (
+      {isFreeMint && !isIrlMint ? (
         <div className="w-full flex flex-col items-center justify-center">
           <Input
             type="text"
@@ -268,7 +329,7 @@ export default function MintButton({
             {getButtonText()}
           </WhiteBgShimmerButton>
         </div>
-      ) : !connected ? (
+      ) : !connected && !isIrlMint ? (
         <WalletMultiButton
           style={{
             backgroundColor: "white",
@@ -279,16 +340,20 @@ export default function MintButton({
           }}
         />
       ) : (
-        <WhiteBgShimmerButton
-          borderRadius="6px"
-          className="w-full mb-4 text-black hover:bg-gray-800 h-[45px] rounded font-bold"
-          onClick={handleMintClick}
-          disabled={isMinting || !isEligible || existingOrder}
-        >
-          {getButtonText()}
-        </WhiteBgShimmerButton>
+        isEligible && (
+          <WhiteBgShimmerButton
+            borderRadius="6px"
+            className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
+            onClick={handleMintClick}
+            disabled={
+              isMinting || !isEligible || existingOrder?.status == "completed"
+            }
+          >
+            {getButtonText()}
+          </WhiteBgShimmerButton>
+        )
       )}
-      {!isEligible && <p className="text-red-500 mt-2">{error}</p>}
+      {error && <p className="text-red-500 mt-2">{error}</p>}
       {transactionSignature && (
         <a
           href={`https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`}

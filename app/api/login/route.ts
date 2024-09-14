@@ -62,9 +62,9 @@ export async function POST(req: any, res: NextApiResponse) {
   if (!isValidSignature) {
     return NextResponse.json({ error: "Invalid signature" });
   }
-
+  let user;
   try {
-    const user = await getOrCreateArtist(walletAddress);
+    user = await getOrCreateArtist(walletAddress);
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message });
   }
@@ -85,6 +85,7 @@ export async function POST(req: any, res: NextApiResponse) {
         options: {
           data: {
             wallet_address: walletAddress,
+            artist_id: user.id,
           },
         },
       }

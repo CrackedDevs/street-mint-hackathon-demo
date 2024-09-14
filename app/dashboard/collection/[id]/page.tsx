@@ -29,7 +29,6 @@ export default function Component() {
   useEffect(() => {
     async function fetchCollectionAndCollectibles() {
       const collectionData = await getCollectionById(Number(id));
-      console.log(collectionData);
 
       if (!collectionData) {
         console.error("Error fetching collection: Collection not found");
