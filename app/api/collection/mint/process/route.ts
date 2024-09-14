@@ -7,6 +7,7 @@ import {
   TransactionInstruction,
   SystemProgram,
   LAMPORTS_PER_SOL,
+  SendTransactionError,
 } from "@solana/web3.js";
 import { supabase } from "@/lib/supabaseClient";
 import { mintNFTWithBubbleGumTree } from "../../collection.helper";
@@ -66,12 +67,32 @@ function verifyTransactionAmount(
   return transferAmount >= lowerBound && transferAmount <= upperBound;
 }
 
+const waitForTransactionConfirmation = async (
+  signature: string,
+  maxAttempts = 30
+) => {
+  for (let i = 0; i < maxAttempts; i++) {
+    const confirmation = await connection.getSignatureStatus(signature, {
+      searchTransactionHistory: true,
+    });
+    console.log(confirmation);
+
+    if (
+      confirmation &&
+      confirmation.value &&
+      confirmation.value.confirmationStatus === "confirmed"
+    ) {
+      return true;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for 2 seconds before next check
+  }
+  throw new Error("Transaction confirmation timed out");
+};
+
 const connection = new Connection(process.env.RPC_URL!);
 
 export async function POST(req: Request, res: NextApiResponse) {
   const { orderId, signedTransaction, priceInSol } = await req.json();
-  console.log("orderId", orderId);
-  console.log("signedTransaction", signedTransaction);
 
   if (!orderId) {
     return NextResponse.json(
@@ -90,8 +111,6 @@ export async function POST(req: Request, res: NextApiResponse) {
       .eq("id", orderId)
       .single();
 
-    console.log("order", order);
-
     if (!order) {
       return NextResponse.json(
         { success: false, error: "Invalid Tansaction" },
@@ -99,7 +118,7 @@ export async function POST(req: Request, res: NextApiResponse) {
       );
     }
 
-    if (order.status !== "pending") {
+    if (order.status == "completed") {
       throw new Error("No transaction found");
     }
 
@@ -114,16 +133,10 @@ export async function POST(req: Request, res: NextApiResponse) {
         );
       }
       let transaction;
-      try {
-        transaction = VersionedTransaction.deserialize(
-          Buffer.from(signedTransaction, "base64")
-        );
-      } catch (e) {
-        // If it's not a versioned transaction, try as legacy
-        transaction = Transaction.from(
-          Buffer.from(signedTransaction, "base64")
-        );
-      }
+
+      transaction = VersionedTransaction.deserialize(
+        Buffer.from(signedTransaction, "base64")
+      );
 
       // Verify transaction amount
       const isAmountCorrect = verifyTransactionAmount(transaction, priceInSol);
@@ -131,18 +144,45 @@ export async function POST(req: Request, res: NextApiResponse) {
         throw new Error("Transaction amount does not match the NFT price");
       }
 
-      txSignature = await connection.sendRawTransaction(
-        transaction.serialize()
-      );
-      console.log("Transaction sent. Signature:", txSignature);
-
-      const confirmation = await connection.getSignatureStatus(txSignature);
-      console.log("Transaction confirmation:", confirmation);
-
-      if (confirmation && confirmation.value && confirmation.value.err) {
-        throw new Error(
-          `Transaction failed: ${JSON.stringify(confirmation.value.err)}`
+      let txSignature;
+      try {
+        txSignature = await connection.sendRawTransaction(
+          transaction.serialize(),
+          {
+            skipPreflight: true,
+            maxRetries: 3,
+          }
         );
+        await waitForTransactionConfirmation(txSignature);
+        console.log("Transaction confirmed");
+      } catch (error) {
+        if (error instanceof SendTransactionError) {
+          // Check if the error is due to an expired blockhash
+          if (error.message.includes("Blockhash not found")) {
+            // Get a new blockhash
+            const { blockhash, lastValidBlockHeight } =
+              await connection.getLatestBlockhash();
+
+            // Update the transaction with the new blockhash
+            transaction.message.recentBlockhash = blockhash;
+
+            // Retry sending the transaction
+            txSignature = await connection.sendRawTransaction(
+              transaction.serialize(),
+              {
+                skipPreflight: true,
+                maxRetries: 3,
+              }
+            );
+            console.log("Transaction sent. Signature:", txSignature);
+
+            await waitForTransactionConfirmation(txSignature);
+          } else {
+            throw error; // Re-throw if it's not a blockhash issue
+          }
+        } else {
+          throw error; // Re-throw if it's not a SendTransactionError
+        }
       }
     }
 

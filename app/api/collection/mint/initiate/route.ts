@@ -33,8 +33,6 @@ export async function POST(req: Request, res: NextApiResponse) {
       deviceId
     );
 
-    console.log("reason", reason);
-
     if (!eligible) {
       return NextResponse.json(
         {
@@ -55,7 +53,7 @@ export async function POST(req: Request, res: NextApiResponse) {
         collection_id: collectionId,
         status: "pending",
         price_usd: collectible.price_usd,
-        nft_type: collectible.quantity_type, // Assuming quantity_type corresponds to nft_type
+        nft_type: collectible.quantity_type,
         max_supply: collectible.quantity || null, // Use null for unlimited supply
         device_id: deviceId,
       })

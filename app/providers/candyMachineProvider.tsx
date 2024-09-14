@@ -32,7 +32,6 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { Signer } from "@solana/web3.js";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 interface ExpectedCandyMachineState {
