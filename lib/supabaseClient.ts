@@ -34,6 +34,7 @@ export type Collectible = {
     location?: string;
     gallery_urls: string[];
     metadata_uri?: string;
+    nfc_public_key?: string;
 };
 
 interface Order {
@@ -51,10 +52,6 @@ interface Order {
     // Add other fields as necessary
 }
 
-interface CreateOrderResponse {
-    success: boolean;
-    order: Order;
-}
 
 export type PopulatedCollection = {
     id: number;
@@ -483,35 +480,6 @@ export const fetchCollectiblesByCollectionId = async (collectionId: number) => {
     return data;
 };
 
-export async function createOrder(walletAddress: string, collectibleId: number, deviceId: string, signature: string): Promise<Order> {
-    try {
-        const { data, error } = await supabase
-            .rpc('create_order_and_record_attempt', {
-                p_wallet_address: walletAddress,
-                p_collectible_id: collectibleId,
-                p_device_id: deviceId,
-                p_transaction_signature: signature
-            });
-
-        if (error) {
-            throw error;
-        }
-
-        console.log(data);
-        // Assert the type of data
-        const response = data as any;
-
-        if (!response.success) {
-            throw new Error('Failed to create order');
-        }
-
-        return response.order;
-    } catch (error) {
-        console.error("Error in createOrder:", error);
-        throw error;
-    }
-}
-
 export async function checkMintEligibility(walletAddress: string, collectibleId: number, deviceId: string): Promise<{ eligible: boolean; reason?: string }> {
     try {
         // Check if the NFT is still available and get its details
@@ -550,9 +518,11 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             .eq('wallet_address', walletAddress)
             .eq('collectible_id', collectibleId)
             .eq('status', 'completed')
-            .limit(1);
+            .single();
 
         if (orderError && orderError.code !== 'PGRST116') throw orderError; // PGRST116 means no rows returned
+
+
         if (existingOrder) {
             return { eligible: false, reason: 'You have already minted this NFT.' };
         }
@@ -564,7 +534,7 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             .eq('device_id', deviceId)
             .eq('collectible_id', collectibleId)
             .eq('status', 'completed')
-            .limit(1);
+            .single();
 
         if (deviceError && deviceError.code !== 'PGRST116') throw deviceError;
         if (existingDeviceMint) {

@@ -62,6 +62,7 @@ export type Database = {
           location: string | null
           metadata_uri: string | null
           name: string
+          nfc_public_key: string | null
           price_usd: number
           primary_image_url: string
           quantity: number | null
@@ -77,6 +78,7 @@ export type Database = {
           location?: string | null
           metadata_uri?: string | null
           name: string
+          nfc_public_key?: string | null
           price_usd: number
           primary_image_url: string
           quantity?: number | null
@@ -92,6 +94,7 @@ export type Database = {
           location?: string | null
           metadata_uri?: string | null
           name?: string
+          nfc_public_key?: string | null
           price_usd?: number
           primary_image_url?: string
           quantity?: number | null
@@ -141,38 +144,6 @@ export type Database = {
             columns: ["artist"]
             isOneToOne: false
             referencedRelation: "artists"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      minting_attempts: {
-        Row: {
-          attempted_at: string | null
-          collectible_id: number | null
-          device_id: string
-          id: string
-          wallet_address: string
-        }
-        Insert: {
-          attempted_at?: string | null
-          collectible_id?: number | null
-          device_id: string
-          id?: string
-          wallet_address: string
-        }
-        Update: {
-          attempted_at?: string | null
-          collectible_id?: number | null
-          device_id?: string
-          id?: string
-          wallet_address?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "minting_attempts_collectible_id_fkey"
-            columns: ["collectible_id"]
-            isOneToOne: false
-            referencedRelation: "collectibles"
             referencedColumns: ["id"]
           },
         ]
@@ -294,14 +265,6 @@ export type Database = {
           p_device_id: string
         }
         Returns: boolean
-      }
-      record_minting_attempt: {
-        Args: {
-          p_wallet_address: string
-          p_collectible_id: number
-          p_device_id: string
-        }
-        Returns: undefined
       }
     }
     Enums: {

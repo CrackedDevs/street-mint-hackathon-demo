@@ -9,14 +9,15 @@ import {
   Transaction,
   SystemProgram,
   LAMPORTS_PER_SOL,
+  TransactionMessage,
+  VersionedTransaction,
 } from "@solana/web3.js";
 import ShimmerButton from "./magicui/shimmer-button";
-import WhiteBgShimmerButton from "./magicui/whiteBg-shimmer-button"
+import WhiteBgShimmerButton from "./magicui/whiteBg-shimmer-button";
 import {
   checkMintEligibility,
   Collectible,
   Collection,
-  createOrder,
   getExistingOrder,
 } from "@/lib/supabaseClient";
 import { generateDeviceId } from "@/lib/fingerPrint";
@@ -34,12 +35,7 @@ export default function MintButton({
   collection,
   walletAddress: initialWalletAddress,
 }: MintButtonProps) {
-  const {
-    connected,
-    connect,
-    publicKey,
-    signTransaction,
-  } = useWallet();
+  const { connected, connect, publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   const [isMinting, setIsMinting] = useState(false);
   const [isEligible, setIsEligible] = useState(false);
@@ -180,24 +176,55 @@ export default function MintButton({
           "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
         );
         const solPriceData = await solPrice.json();
+        console.log(solPriceData);
+
+        if (solPriceData && !solPriceData.solana) {
+          return;
+        }
         const solPriceUSD = solPriceData.solana.usd;
         priceInSol = collectible.price_usd / solPriceUSD;
         const lamports = Math.round(priceInSol * LAMPORTS_PER_SOL);
 
-        const { blockhash, lastValidBlockHeight } =
-          await connection.getLatestBlockhash();
+        // const transaction = new Transaction().add(
+        //   SystemProgram.transfer({
+        //     fromPubkey: publicKey,
+        //     toPubkey: treasuryWallet,
+        //     lamports,
+        //   })
+        // );
 
-        const transaction = new Transaction().add(
+        const instructions = [
           SystemProgram.transfer({
             fromPubkey: publicKey,
             toPubkey: treasuryWallet,
-            lamports,
-          })
-        );
+            lamports: lamports,
+          }),
+        ];
 
-        transaction.recentBlockhash = blockhash;
-        transaction.lastValidBlockHeight = lastValidBlockHeight;
-        transaction.feePayer = publicKey;
+        // const transaction = new Transaction({
+        //   feePayer: publicKey,
+        //   recentBlockhash: blockhash,
+        // }).add(
+        //   SystemProgram.transfer({
+        //     fromPubkey: publicKey,
+        //     toPubkey: treasuryWallet,
+        //     lamports,
+        //   })
+        // );
+
+        const { blockhash, lastValidBlockHeight } =
+          await connection.getLatestBlockhash();
+        const messageV0 = new TransactionMessage({
+          payerKey: publicKey,
+          recentBlockhash: blockhash,
+          instructions,
+        }).compileToV0Message();
+
+        const transaction = new VersionedTransaction(messageV0);
+
+        // transaction.recentBlockhash = blockhash;
+        // transaction.lastValidBlockHeight = lastValidBlockHeight;
+        // transaction.feePayer = publicKey;
 
         // Sign the transaction
         if (!signTransaction) {
@@ -211,7 +238,10 @@ export default function MintButton({
         let signedTx;
         // Serialize the signed transaction
         signedTx = await signTransaction(transaction);
-        signedTransaction = signedTx.serialize().toString("base64");
+        signedTransaction = Buffer.from(signedTx.serialize()).toString(
+          "base64"
+        );
+        // signedTransaction = signedTx.serialize().toString();
       }
 
       const processResponse = await fetch("/api/collection/mint/process", {
@@ -329,7 +359,7 @@ export default function MintButton({
             {getButtonText()}
           </WhiteBgShimmerButton>
         </div>
-      ) : !connected && !isIrlMint ? (
+      ) : !connected ? (
         <WalletMultiButton
           style={{
             backgroundColor: "white",
@@ -343,7 +373,7 @@ export default function MintButton({
         isEligible && (
           <WhiteBgShimmerButton
             borderRadius="6px"
-            className="w-full mb-4 bg-black text-white hover:bg-gray-800 h-[40px] rounded font-bold"
+            className="w-full mb-4  text-black hover:bg-gray-800 h-[40px] rounded font-bold"
             onClick={handleMintClick}
             disabled={
               isMinting || !isEligible || existingOrder?.status == "completed"

@@ -7,13 +7,10 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useRouter } from "next/navigation";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
 import Page from "@/app/dashboard/profile/page";
-import { useCandyMachine } from "../providers/candyMachineProvider";
-import { Button } from "@/components/ui/button";
 
 const DashboardPage = () => {
-  const { connected, connecting, wallet } = useWallet();
+  const { connected } = useWallet();
   const { isLoading } = useUserProfile();
-  const { umi, setupCandyMachineAndCreateCollection } = useCandyMachine();
   const router = useRouter();
   const { userProfile } = useUserProfile();
 
@@ -73,7 +70,10 @@ const DashboardPage = () => {
                   </span>
                 </ShimmerButton>
               ) : (
-                <ShimmerButton className="shadow-2xl" onClick={() => handleConnect()}>
+                <ShimmerButton
+                  className="shadow-2xl"
+                  onClick={() => handleConnect()}
+                >
                   <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
                     Connect Wallet
                   </span>
