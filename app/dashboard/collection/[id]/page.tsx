@@ -126,7 +126,7 @@ export default function Component() {
                     >
                       {collectible.quantity_type === "limited"
                         ? `Limited (${collectible.quantity})`
-                        : "Unlimited"}
+                        : "Open Edition"}
                     </Badge>
                     <span className="text-lg font-bold text-gray-900">
                       ${collectible.price_usd}

@@ -14,7 +14,15 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { TrashIcon, Loader2, ArrowLeftIcon, UploadIcon } from "lucide-react";
+import {
+  TrashIcon,
+  Loader2,
+  ArrowLeftIcon,
+  UploadIcon,
+  CalendarIcon,
+  TruckIcon,
+  CheckCircleIcon,
+} from "lucide-react";
 import {
   Collectible,
   createCollectible,
@@ -26,7 +34,14 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { NumericUUID } from "@/lib/utils";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
 import { Switch } from "@/components/ui/switch";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
+import Delivery from "@/app/assets/delivery.svg";
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export default function CreateCollectiblePage() {
@@ -36,6 +51,7 @@ export default function CreateCollectiblePage() {
   const { publicKey } = useWallet();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { userProfile } = useUserProfile();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [collectible, setCollectible] = useState<Collectible>({
     id: NumericUUID(),
@@ -168,12 +184,7 @@ export default function CreateCollectiblePage() {
       );
 
       if (createdCollectible) {
-        toast({
-          title: "Success",
-          description: "Collectible created successfully",
-          variant: "default",
-        });
-        router.push(`/dashboard/collection/${collectionId}`);
+        setShowSuccessModal(true);
       } else {
         throw new Error("Failed to create collectible");
       }
@@ -190,6 +201,69 @@ export default function CreateCollectiblePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-12 px-4 sm:px-6 lg:px-8">
+      <AnimatePresence>
+        {showSuccessModal && (
+          <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+            <DialogContent className="sm:max-w-[500px] bg-gradient-to-br from-primary/10 to-secondary/10 border-2 border-primary/20">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="text-center"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{
+                    delay: 0.2,
+                    type: "spring",
+                    stiffness: 200,
+                    damping: 10,
+                  }}
+                  className="mb-6"
+                >
+                  <div className="relative inline-block">
+                    <div className="absolute inset-0  rounded-full blur-xl"></div>
+                    {/* <CheckCircleIcon className="w-24 h-24 text-primary relative z-10" />
+                     */}
+                    <Image
+                      width={300}
+                      height={300}
+                      src={Delivery}
+                      alt="Delivery"
+                      className="text-primary relative z-10"
+                    />
+                  </div>
+                </motion.div>
+
+                <h2 className="text-3xl font-bold mb-4 text-primary">
+                  Collectible Created ⭐!
+                </h2>
+
+                <p className="text-lg mb-6">
+                  Your NFC tag is on its way to you 🎉
+                </p>
+
+                <p className="text-sm mb-6 bg-primary/10 p-3 rounded-lg inline-block">
+                  Keep an eye on your mailbox. Youll receive a tracking number
+                  soon!
+                </p>
+
+                <Button
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    router.push(`/dashboard/collection/${collectionId}`);
+                  }}
+                  className="w-full bg-primary hover:bg-primary/90 text-white"
+                >
+                  Back to Collection
+                </Button>
+              </motion.div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
       <div className="max-w-4xl mx-auto">
         <Button
           variant="ghost"
