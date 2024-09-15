@@ -1,10 +1,8 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import {
   Connection,
   Transaction,
-  PublicKey,
   VersionedTransaction,
-  TransactionInstruction,
   SystemProgram,
   LAMPORTS_PER_SOL,
   SendTransactionError,

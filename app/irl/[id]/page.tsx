@@ -1,4 +1,4 @@
-"use client"; // This is crucial to make this a client component
+"use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -18,6 +18,7 @@ import PriceComponent from "./PriceComponent";
 import IrlInputButton from "@/components/IrlInputButton";
 import ArtistInfoComponent from "@/app/mint/[id]/ArtistInfoComponent";
 import MintButton from "@/components/mintButton";
+import EditionInformation from "@/app/mint/[id]/EditionInformation";
 
 async function fetchNFTData(
   id: string,
@@ -27,6 +28,7 @@ async function fetchNFTData(
 ) {
   try {
     // Fetch SOL price
+    console.log("Fetching SOL price");
     const response = await fetch(
       "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
     );
@@ -34,16 +36,15 @@ async function fetchNFTData(
     if (!response.ok || !data || !data.solana) {
       return null;
     }
+    console.log("SOL price fetched");
     const solPriceUSD = data.solana.usd;
 
     const collectible = await fetchCollectibleById(Number(id));
-    if (!collectible || !collectible.nfc_public_key) return null;
 
-    const isValid = await verifyNfcSignature(
-      rnd,
-      sign,
-      collectible.nfc_public_key
-    );
+    // if (!collectible || !collectible.nfc_public_key) return null;
+    if (!collectible) return null;
+
+    // const isValid = await verifyNfcSignature(rnd, sign, collectible.nfc_public_key);
     //TODO: UNCOMMENT THIS
     // if (!isValid) {
     //   console.log("Signature is not valid");
@@ -52,9 +53,11 @@ async function fetchNFTData(
     //TODO: UNCOMMENT THIS
 
     const collection = await getCollectionById(collectible.collection_id);
+    console.log("Collection fetched");
     if (!collection) return;
 
     const artist = await getArtistById(collection.artist);
+    console.log("Artist fetched");
     if (!artist) return;
 
     // Calculate NFT price in SOL
@@ -99,6 +102,7 @@ export default function NFTPage({
     fetchNFTData(params.id, searchParams.rnd, searchParams.sign, setNFTData);
   }, [params.id, searchParams.rnd, searchParams.sign]);
 
+  console.log(nftData);
   if (!nftData) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -119,11 +123,11 @@ export default function NFTPage({
   const getEditionTypeText = (type: QuantityType) => {
     switch (type) {
       case "unlimited":
-        return "Unlimited Edition";
+        return "Open Edition";
       case "limited":
         return "Limited Edition";
       case "single":
-        return "Single Edition";
+        return "1 of 1";
       default:
         return "Unknown Edition Type";
     }
@@ -157,7 +161,7 @@ export default function NFTPage({
               alt="Harold CollectorX"
               width={150}
               height={150}
-              className="mx-auto h-max w-max object-contain rounded-lg"
+              className="mx-auto  h-max w-max object-contain rounded-lg"
             />
           </div>
           <p className="text-center text-lg mb-4">
@@ -180,9 +184,11 @@ export default function NFTPage({
           {/* Left column - Main Image */}
           <div className="relative aspect-square">
             <Image
+              width={500}
+              height={500}
               src={collectible.primary_image_url}
               alt={`${collectible.name} - Main Image`}
-              layout="fill"
+              className="w-full h-full object-contain"
             />
           </div>
 
@@ -195,52 +201,9 @@ export default function NFTPage({
 
             {/* Artist Information */}
             <ArtistInfoComponent artist={artist} />
-            <PriceComponent
-              priceUSD={collectible.price_usd}
-              priceSOL={priceInSOL}
-            />
 
             {/* Edition Information Section */}
-            <div className="bg-black text-white p-4 rounded-lg mb-6">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold">
-                  {getEditionTypeText(
-                    collectible.quantity_type as QuantityType
-                  )}
-                </span>
-                {collectible.quantity_type === QuantityType.Limited &&
-                  remainingQuantity !== null && (
-                    <span className="text-3xl font-bold">
-                      {remainingQuantity} of {collectible.quantity}
-                    </span>
-                  )}
-              </div>
-              {collectible.quantity_type === "limited" && (
-                <div className="mt-2 text-sm text-gray-300">
-                  {remainingQuantity === 1
-                    ? "Last one available!"
-                    : `${remainingQuantity} editions left`}
-                </div>
-              )}
-              {collectible.quantity_type === "single" && (
-                <div className="mt-2 text-sm text-gray-300">
-                  Unique, one-of-a-kind piece
-                </div>
-              )}
-              {collectible.quantity_type === "unlimited" && (
-                <div className="mt-2 text-sm text-gray-300">
-                  Unlimited supply available
-                </div>
-              )}
-            </div>
-            <MintButton
-              walletAddress={walletAddress}
-              collectible={{
-                ...collectible,
-                quantity_type: collectible.quantity_type as QuantityType,
-                location: collectible.metadata_uri || "",
-                metadata_uri: collectible.metadata_uri || "",
-              }}
+            <EditionInformation
               collection={{
                 ...collection,
                 artist: collection.artist || 0,
@@ -250,11 +213,16 @@ export default function NFTPage({
                 metadata_uri: collection.metadata_uri || "",
                 merkle_tree_public_key: collection.merkle_tree_public_key || "",
               }}
+              collectible={{
+                ...collectible,
+                quantity_type: collectible.quantity_type as QuantityType,
+                location: collectible.metadata_uri || "",
+                metadata_uri: collectible.metadata_uri || "",
+                nfc_public_key: collectible.nfc_public_key || "",
+              }}
+              remainingQuantity={remainingQuantity}
+              artistWalletAddress={artist.wallet_address}
             />
-            <p className="text-sm text-gray-600 mb-8">
-              This digital collectible is configured for minting. Once minted,
-              it will be added to your collection.
-            </p>
           </div>
         </div>
 

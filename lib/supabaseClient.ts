@@ -502,7 +502,7 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         // Check availability based on NFT type
         if (collectible.quantity_type === 'single') {
             if (count && count > 0) {
-                return { eligible: false, reason: 'This single edition NFT has already been minted.' };
+                return { eligible: false, reason: 'This 1 of 1 collectible has already been minted.' };
             }
         } else if (collectible.quantity_type === 'limited') {
             if (collectible.quantity && count && count >= collectible.quantity) {
