@@ -78,9 +78,7 @@ const EditionInformation = ({
               </div>
             )}
             {collectible.quantity_type === "single" && <div className="text-lg text-grey-300">1 of 1</div>}
-            {collectible.quantity_type === "unlimited" && (
-              <div className="text-lg text-grey-300">Open Edition</div>
-            )}
+            {collectible.quantity_type === "unlimited" && <div className="text-lg text-grey-300">Open Edition</div>}
           </div>
           <MintButton
             artistWalletAddress={artistWalletAddress}

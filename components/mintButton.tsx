@@ -4,28 +4,13 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useEffect, useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import {
-  PublicKey,
-  SystemProgram,
-  LAMPORTS_PER_SOL,
-  TransactionMessage,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { PublicKey, SystemProgram, LAMPORTS_PER_SOL, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import WhiteBgShimmerButton from "./magicui/whiteBg-shimmer-button";
-import {
-  checkMintEligibility,
-  Collectible,
-  Collection,
-  getExistingOrder,
-} from "@/lib/supabaseClient";
+import { checkMintEligibility, Collectible, Collection, getExistingOrder } from "@/lib/supabaseClient";
 import { generateDeviceId } from "@/lib/fingerPrint";
 import { Input } from "./ui/input";
 import confetti from "canvas-confetti";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckIcon, CopyIcon, HeartIcon } from "lucide-react";
 import { Button } from "./ui/button";
@@ -48,16 +33,12 @@ export default function MintButton({
   const [isMinting, setIsMinting] = useState(false);
   const [isEligible, setIsEligible] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [transactionSignature, setTransactionSignature] = useState<
-    string | null
-  >(null);
+  const [transactionSignature, setTransactionSignature] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState("");
   const [existingOrder, setExistingOrder] = useState<any | null>(null);
   const isFreeMint = collectible.price_usd === 0;
-  const [walletAddress, setWalletAddress] = useState(
-    initialWalletAddress || ""
-  );
-  const [showDonationModal, setShowDonationModal] = useState(false);
+  const [walletAddress, setWalletAddress] = useState(initialWalletAddress || "");
+  const [showDonationModal, setShowDonationModal] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const isIrlMint = !!initialWalletAddress;
 
@@ -109,11 +90,7 @@ export default function MintButton({
     const addressToCheck = isFreeMint ? walletAddress : publicKey?.toString();
     if (addressToCheck && deviceId) {
       try {
-        const { eligible, reason } = await checkMintEligibility(
-          addressToCheck,
-          collectible.id,
-          deviceId
-        );
+        const { eligible, reason } = await checkMintEligibility(addressToCheck, collectible.id, deviceId);
         setIsEligible(eligible);
         if (!eligible) {
           setError(reason || "You are not eligible to mint this NFT.");
@@ -139,14 +116,7 @@ export default function MintButton({
 
   useEffect(() => {
     checkEligibilityAndExistingOrder();
-  }, [
-    connected,
-    publicKey,
-    walletAddress,
-    deviceId,
-    collectible.id,
-    isFreeMint,
-  ]);
+  }, [connected, publicKey, walletAddress, deviceId, collectible.id, isFreeMint]);
 
   const handlePaymentAndMint = async () => {
     const addressToUse = isFreeMint ? walletAddress : publicKey?.toString();
@@ -179,9 +149,7 @@ export default function MintButton({
 
       if (!isFree && publicKey) {
         // Step 2: Create payment transaction (only for paid mints)
-        const solPrice = await fetch(
-          "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
-        );
+        const solPrice = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
         const solPriceData = await solPrice.json();
         console.log(solPriceData);
 
@@ -199,8 +167,7 @@ export default function MintButton({
           }),
         ];
 
-        const { blockhash, lastValidBlockHeight } =
-          await connection.getLatestBlockhash();
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
         const messageV0 = new TransactionMessage({
           payerKey: publicKey,
           recentBlockhash: blockhash,
@@ -221,9 +188,7 @@ export default function MintButton({
         let signedTx;
         // Serialize the signed transaction
         signedTx = await signTransaction(transaction);
-        signedTransaction = Buffer.from(signedTx.serialize()).toString(
-          "base64"
-        );
+        signedTransaction = Buffer.from(signedTx.serialize()).toString("base64");
       }
 
       const processResponse = await fetch("/api/collection/mint/process", {
@@ -241,8 +206,7 @@ export default function MintButton({
         throw new Error(errorData.error || "Failed to process minting");
       }
 
-      const { success, txSignature, mintSignature } =
-        await processResponse.json();
+      const { success, txSignature, mintSignature } = await processResponse.json();
       if (success) {
         setTransactionSignature(mintSignature);
         TriggerConfetti();
@@ -262,9 +226,7 @@ export default function MintButton({
       console.error("Error minting NFT:", error);
       toast({
         title: "Something went wrong while minting your collectible",
-        description:
-          error.message ||
-          "An unexpected error occurred. Please try again later.",
+        description: error.message || "An unexpected error occurred. Please try again later.",
         variant: "destructive",
       });
       setError("An unexpected error occurred");
@@ -336,10 +298,7 @@ export default function MintButton({
       {showDonationModal && (
         <div>
           <AnimatePresence>
-            <Dialog
-              open={showDonationModal}
-              onOpenChange={setShowDonationModal}
-            >
+            <Dialog open={showDonationModal} onOpenChange={setShowDonationModal}>
               <DialogContent className=" ">
                 <div
                   className="absolute  inset-0 z-0"
@@ -374,32 +333,16 @@ export default function MintButton({
                     </div>
                   </motion.div>
 
-                  <DialogTitle className="text-3xl font-bold mb-4 text-primary">
-                    Support the Creator
-                  </DialogTitle>
+                  <DialogTitle className="text-3xl font-bold mb-4 text-primary">Support the Creator</DialogTitle>
 
-                  <p className="text-lg mb-6">
-                    Your donation helps the artist continue creating amazing
-                    arts!
-                  </p>
+                  <p className="text-lg mb-6">Dig this artwork? Give the artist some love and donate a little SOL</p>
 
                   <div className="bg-black text-white p-4 rounded-lg shadow-lg mb-6">
-                    <h3 className="font-semibold mb-2">
-                      Creators Wallet Address
-                    </h3>
+                    <h3 className="font-semibold mb-2">Creators Wallet Address</h3>
                     <div className="flex items-center justify-between bg-white text-black p-2 rounded">
                       <code className="text-sm">{artistWalletAddress}</code>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={copyToClipboard}
-                        className="ml-2"
-                      >
-                        {isCopied ? (
-                          <CheckIcon className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <CopyIcon className="h-4 w-4" />
-                        )}
+                      <Button variant="ghost" size="sm" onClick={copyToClipboard} className="ml-2">
+                        {isCopied ? <CheckIcon className="h-4 w-4 text-green-500" /> : <CopyIcon className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
@@ -443,9 +386,7 @@ export default function MintButton({
             borderRadius="6px"
             className="w-full mb-4  text-black hover:bg-gray-800 h-[40px] rounded font-bold"
             onClick={handleMintClick}
-            disabled={
-              isMinting || !isEligible || existingOrder?.status == "completed"
-            }
+            disabled={isMinting || !isEligible || existingOrder?.status == "completed"}
           >
             {getButtonText()}
           </WhiteBgShimmerButton>
@@ -454,9 +395,11 @@ export default function MintButton({
       {error && <p className="text-red-500 mt-2">{error}</p>}
       {transactionSignature && (
         <a
-          href={process.env.NODE_ENV === 'development'
-            ? `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`
-            : `https://explorer.solana.com/tx/${transactionSignature}`}
+          href={
+            process.env.NODE_ENV === "development"
+              ? `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`
+              : `https://explorer.solana.com/tx/${transactionSignature}`
+          }
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-500 mt-2 hover:underline"

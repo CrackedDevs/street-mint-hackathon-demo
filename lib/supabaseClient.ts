@@ -364,7 +364,6 @@ export const getArtistById = async (id: number): Promise<Artist | null> => {
 
 export const fetchProfileData = async () => {
     const { user, error: authError } = await getAuthenticatedUser();
-    console.log(user);
 
     if (!user || authError) {
         return { exists: false, data: null, error: authError || null };

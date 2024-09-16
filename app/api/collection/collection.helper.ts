@@ -63,8 +63,8 @@ export async function createBubbleGumTree(collectionData: Collection) {
 
     const builder = await createTree(umi, {
       merkleTree,
-      maxDepth: 14,
-      maxBufferSize: 64,
+      maxDepth: 5,
+      maxBufferSize: 8,
     });
     const tx = await builder.sendAndConfirm(umi);
 
