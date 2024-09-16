@@ -93,7 +93,7 @@ export const CandyMachineProvider: React.FC<CandyMachineProviderProps> = ({
 
   useEffect(() => {
     if (wallet) {
-      const initUmi = createUmi("https://api.devnet.solana.com")
+      const initUmi = createUmi(process.env.NEXT_PUBLIC_RPC_URL!)
         .use(mplTokenMetadata())
         .use(mplCandyMachine())
         .use(walletAdapterIdentity(wallet.adapter));

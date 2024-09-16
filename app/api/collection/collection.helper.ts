@@ -1,9 +1,7 @@
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import {
   Umi,
-  PublicKey,
   generateSigner,
-  TransactionBuilderSendAndConfirmOptions,
   createSignerFromKeypair,
   signerIdentity,
   publicKey,
@@ -15,7 +13,7 @@ import {
   fetchDigitalAsset,
   mplTokenMetadata,
 } from "@metaplex-foundation/mpl-token-metadata";
-import { decode, encode } from "bs58";
+import bs58 from "bs58";
 import {
   createTree,
   mplBubblegum,
@@ -37,7 +35,7 @@ function initializeUmi(endpoint: string, privateKey: string): Umi {
 }
 
 function privateKeyToUint8Array(privateKeyString: string): Uint8Array {
-  return new Uint8Array(decode(privateKeyString));
+  return new Uint8Array(bs58.decode(privateKeyString));
 }
 
 export async function createBubbleGumTree(collectionData: Collection) {
@@ -125,8 +123,11 @@ export async function mintNFTWithBubbleGumTree(
     }).sendAndConfirm(umi);
     console.log("Minting transaction completed:", tx.signature.toString());
 
-    const txSignature = encode(tx.signature);
-    const solscanLink = `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`;
+    const txSignature = bs58.encode(tx.signature);
+
+    const solscanLink = process.env.NODE_ENV === 'development'
+      ? `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
+      : `https://explorer.solana.com/tx/${txSignature}`;
     return { signature: txSignature, solscanLink: solscanLink };
   } catch (error) {
     console.error("Error minting NFT with BubbleGum Tree:", error);

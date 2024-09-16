@@ -29,7 +29,7 @@ export default function MyGallery() {
     const walletAddress = publicKey?.toBase58();
 
     const response = await fetch(
-      `https://devnet.helius-rpc.com/?api-key=${process.env.NEXT_PUBLIC_HELIUS_API_KEY}`,
+     process.env.NEXT_PUBLIC_RPC_URL!,
       {
         method: "POST",
         headers: {

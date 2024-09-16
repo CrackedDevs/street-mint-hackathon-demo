@@ -1,10 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  ConnectionProvider,
-  WalletProvider,
-} from "@solana/wallet-adapter-react";
+import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
 import {
   BaseMessageSignerWalletAdapter,
   WalletAdapterNetwork,
@@ -15,20 +12,11 @@ import {
   WalletError,
 } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import {
-  clusterApiUrl,
-  Connection,
-  PublicKey,
-  Transaction,
-  TransactionVersion,
-} from "@solana/web3.js";
+import { clusterApiUrl, Connection, PublicKey, Transaction, TransactionVersion } from "@solana/web3.js";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
 import { Web3Auth } from "@web3auth/modal";
 import "@solana/wallet-adapter-react-ui/styles.css";
-import {
-  SolanaPrivateKeyProvider,
-  SolanaWallet,
-} from "@web3auth/solana-provider";
+import { SolanaPrivateKeyProvider, SolanaWallet } from "@web3auth/solana-provider";
 import { CHAIN_NAMESPACES, CustomChainConfig } from "@web3auth/base";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 
@@ -58,10 +46,7 @@ class Web3AuthWalletAdapter extends BaseMessageSignerWalletAdapter {
       this.emit("readyStateChange", this.readyState);
     } catch (error) {
       console.error("Failed to initialize Web3Auth:", error);
-      this.emit(
-        "error",
-        new WalletError("Failed to initialize Web3Auth", error as Error)
-      );
+      this.emit("error", new WalletError("Failed to initialize Web3Auth", error as Error));
     }
   }
 
@@ -81,9 +66,7 @@ class Web3AuthWalletAdapter extends BaseMessageSignerWalletAdapter {
     try {
       if (this.connected || this.connecting) return;
       if (!this._ready) {
-        throw new WalletError(
-          "Wallet is not ready yet, Login modal is not initialized"
-        );
+        throw new WalletError("Wallet is not ready yet, Login modal is not initialized");
       }
       this._connecting = true;
 
@@ -122,9 +105,7 @@ class Web3AuthWalletAdapter extends BaseMessageSignerWalletAdapter {
     }
   }
 
-  async signTransaction<T extends TransactionOrVersionedTransaction<any>>(
-    transaction: T
-  ): Promise<T> {
+  async signTransaction<T extends TransactionOrVersionedTransaction<any>>(transaction: T): Promise<T> {
     try {
       const wallet = this._wallet;
       if (!wallet) throw new WalletNotConnectedError();
@@ -143,17 +124,13 @@ class Web3AuthWalletAdapter extends BaseMessageSignerWalletAdapter {
     }
   }
 
-  async signAllTransactions<T extends TransactionOrVersionedTransaction<any>>(
-    transactions: T[]
-  ): Promise<T[]> {
+  async signAllTransactions<T extends TransactionOrVersionedTransaction<any>>(transactions: T[]): Promise<T[]> {
     try {
       const wallet = this._wallet;
       if (!wallet) throw new WalletNotConnectedError();
 
       if (transactions[0] instanceof Transaction) {
-        return (await wallet.signAllTransactions(
-          transactions as Transaction[]
-        )) as T[];
+        return (await wallet.signAllTransactions(transactions as Transaction[])) as T[];
       } else if (transactions[0]) {
         // Implement VersionedTransaction signing if supported by Web3Auth
         throw new Error("VersionedTransaction signing not implemented");
@@ -182,18 +159,14 @@ const privateKeyProvider = new SolanaPrivateKeyProvider({
   config: {
     chainConfig: {
       chainNamespace: CHAIN_NAMESPACES.SOLANA,
-      chainId: process.env.NEXT_PUBLIC_CHAIN_ID!, // Solana devnet
+      chainId: process.env.NEXT_PUBLIC_CHAIN_ID!,
       rpcTarget: process.env.NEXT_PUBLIC_RPC_URL!,
     },
   },
 });
 
-export default function AppWalletProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const network = WalletAdapterNetwork.Devnet;
+export default function AppWalletProvider({ children }: { children: React.ReactNode }) {
+  const network = process.env.NODE_ENV === "development" ? WalletAdapterNetwork.Devnet : WalletAdapterNetwork.Mainnet;
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
   const [web3auth, setWeb3auth] = useState<Web3Auth | null>(null);

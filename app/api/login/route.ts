@@ -1,5 +1,4 @@
 import * as nacl from "tweetnacl";
-import { createClient } from "@supabase/supabase-js";
 import { NextApiResponse } from "next";
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";

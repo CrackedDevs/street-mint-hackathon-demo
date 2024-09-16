@@ -179,9 +179,6 @@ export default function MintButton({
 
       if (!isFree && publicKey) {
         // Step 2: Create payment transaction (only for paid mints)
-        const treasuryWallet = new PublicKey(
-          process.env.NEXT_PUBLIC_TREASURY_WALLET!
-        );
         const solPrice = await fetch(
           "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
         );
@@ -457,7 +454,9 @@ export default function MintButton({
       {error && <p className="text-red-500 mt-2">{error}</p>}
       {transactionSignature && (
         <a
-          href={`https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`}
+          href={process.env.NODE_ENV === 'development'
+            ? `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`
+            : `https://explorer.solana.com/tx/${transactionSignature}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-500 mt-2 hover:underline"
