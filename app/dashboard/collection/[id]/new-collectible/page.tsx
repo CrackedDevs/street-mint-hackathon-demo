@@ -504,7 +504,7 @@ export default function CreateCollectiblePage() {
                     <Input
                       id="mint-start-date"
                       type="datetime-local"
-                      value={collectible.mint_start_date}
+                      value={collectible.mint_start_date ?? ""}
                       onChange={(e) =>
                         handleCollectibleChange(
                           "mint_start_date",
@@ -528,7 +528,7 @@ export default function CreateCollectiblePage() {
                     <Input
                       id="mint-end-date"
                       type="datetime-local"
-                      value={collectible.mint_end_date}
+                      value={collectible.mint_end_date ?? ""}
                       onChange={(e) =>
                         handleCollectibleChange("mint_end_date", e.target.value)
                       }

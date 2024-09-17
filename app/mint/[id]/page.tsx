@@ -181,7 +181,7 @@ export default async function NFTPage({
               </div>
               {collectible.location_note && (
                 <p className="text-md text-gray-400">
-                  <strong>Location</strong> {collectible.location_note}
+                  <strong>Where:</strong> {collectible.location_note}
                 </p>
               )}
               <div>

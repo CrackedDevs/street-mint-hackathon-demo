@@ -33,6 +33,7 @@ interface MintButtonProps {
   artistWalletAddress: string;
   isIRLtapped: boolean;
   inputWalletAddress?: string;
+  mintStatus: string;
 }
 
 export default function MintButton({
@@ -41,6 +42,7 @@ export default function MintButton({
   artistWalletAddress,
   inputWalletAddress: initialWalletAddress,
   isIRLtapped,
+  mintStatus,
 }: MintButtonProps) {
   const { connected, connect, publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
@@ -332,7 +334,10 @@ export default function MintButton({
   if (!isIRLtapped) {
     if (collectible.location)
       return (
-        <div className="flex flex-col w-full justify-center items-center">
+        <div className="flex flex-col gap-4 w-full justify-center items-center">
+          <span className="text-sm text-gray-400 mb-2">
+            {collectible.location_note}
+          </span>
           <LocationButton location={collectible.location} />
         </div>
       );
@@ -419,64 +424,70 @@ export default function MintButton({
           </AnimatePresence>
         </div>
       )}
-      {isFreeMint ? (
-        <div className="w-full flex flex-col items-center justify-center">
-          <Input
-            type="text"
-            placeholder="Enter wallet address"
-            value={initialWalletAddress || walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
-            className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
-          />
-          <WhiteBgShimmerButton
-            borderRadius="6px"
-            className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
-            onClick={handleMintClick}
-            disabled={
-              isMinting || !isEligible || existingOrder || !walletAddress
-            }
-          >
-            {getButtonText()}
-          </WhiteBgShimmerButton>
-        </div>
-      ) : !connected ? (
-        <WalletMultiButton
-          style={{
-            backgroundColor: "white",
-            color: "black",
-            width: "100%",
-            marginBottom: "20px",
-            borderRadius: "6px",
-          }}
-        />
-      ) : (
-        isEligible && (
-          <WhiteBgShimmerButton
-            borderRadius="6px"
-            className="w-full mb-4  text-black hover:bg-gray-800 h-[40px] rounded font-bold"
-            onClick={handleMintClick}
-            disabled={
-              isMinting || !isEligible || existingOrder?.status == "completed"
-            }
-          >
-            {getButtonText()}
-          </WhiteBgShimmerButton>
-        )
-      )}
-      {error && <p className="text-red-500 mt-2">{error}</p>}
-      {transactionSignature && (
-        <a
-          href={
-            process.env.NODE_ENV === "development"
-              ? `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`
-              : `https://explorer.solana.com/tx/${transactionSignature}`
-          }
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-500 mt-2 hover:underline"
-        >
-          View Transaction
-        </a>
+      {mintStatus === "ongoing" && (
+        <>
+          {isFreeMint ? (
+            <div className="w-full flex flex-col items-center justify-center">
+              <Input
+                type="text"
+                placeholder="Enter wallet address"
+                value={initialWalletAddress || walletAddress}
+                onChange={(e) => setWalletAddress(e.target.value)}
+                className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
+              />
+              <WhiteBgShimmerButton
+                borderRadius="6px"
+                className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
+                onClick={handleMintClick}
+                disabled={
+                  isMinting || !isEligible || existingOrder || !walletAddress
+                }
+              >
+                {getButtonText()}
+              </WhiteBgShimmerButton>
+            </div>
+          ) : !connected ? (
+            <WalletMultiButton
+              style={{
+                backgroundColor: "white",
+                color: "black",
+                width: "100%",
+                marginBottom: "20px",
+                borderRadius: "6px",
+              }}
+            />
+          ) : (
+            isEligible && (
+              <WhiteBgShimmerButton
+                borderRadius="6px"
+                className="w-full mb-4  text-black hover:bg-gray-800 h-[40px] rounded font-bold"
+                onClick={handleMintClick}
+                disabled={
+                  isMinting ||
+                  !isEligible ||
+                  existingOrder?.status == "completed"
+                }
+              >
+                {getButtonText()}
+              </WhiteBgShimmerButton>
+            )
+          )}
+          {error && <p className="text-red-500 mt-2">{error}</p>}
+          {transactionSignature && (
+            <a
+              href={
+                process.env.NODE_ENV === "development"
+                  ? `https://explorer.solana.com/tx/${transactionSignature}?cluster=devnet`
+                  : `https://explorer.solana.com/tx/${transactionSignature}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 mt-2 hover:underline"
+            >
+              View Transaction
+            </a>
+          )}
+        </>
       )}
     </div>
   );

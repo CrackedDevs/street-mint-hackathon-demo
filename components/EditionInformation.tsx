@@ -13,7 +13,7 @@ import SparklesText from "@/components/magicui/sparkles-text";
 import AnimatedShinyText from "@/components/magicui/animated-shiny-text";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { Stars } from "lucide-react";
+import { Earth, Stars } from "lucide-react";
 
 const EditionInformation = ({
   collection,
@@ -137,7 +137,7 @@ const EditionInformation = ({
                 }`}
               />
             </div>
-            <div className="flex flex-row w-full justify-between">
+            <div className="flex  flex-row w-full justify-between">
               <div>
                 {soldCount > 0 && (
                   <span className="text-white text-lg">
@@ -145,6 +145,9 @@ const EditionInformation = ({
                   </span>
                 )}
               </div>
+              <Badge variant="secondary" className="text-black text-sm">
+                EXCLUSIVE IRL MINT <Earth className="ml-2" />
+              </Badge>
             </div>
           </div>
 
@@ -175,25 +178,25 @@ const EditionInformation = ({
           </div>
 
           {/* Render MintButton only if minting has started */}
-          {mintingStatus == "ongoing" && (
-            <MintButton
-              inputWalletAddress={inputWalletAddress}
-              isIRLtapped={isIRLtapped}
-              artistWalletAddress={artistWalletAddress}
-              collectible={{
-                ...collectible,
-                quantity_type: collectible.quantity_type as QuantityType,
-              }}
-              collection={{
-                ...collection,
-              }}
-            />
-          )}
+
+          <MintButton
+            inputWalletAddress={inputWalletAddress}
+            isIRLtapped={isIRLtapped}
+            artistWalletAddress={artistWalletAddress}
+            collectible={{
+              ...collectible,
+              quantity_type: collectible.quantity_type as QuantityType,
+            }}
+            collection={{
+              ...collection,
+            }}
+            mintStatus={mintingStatus}
+          />
         </CardContent>
         <CardFooter>
           <p className="text-sm text-gray-300">
-            This digital collectible is configured for minting. Once minted, it
-            will be added to your collection.
+            Locate the Street Mint mint station, tap it with your phone to claim
+            your digital collectible.
           </p>
         </CardFooter>
       </Card>

@@ -1135,7 +1135,7 @@
 
 "@metaplex-foundation/digital-asset-standard-api@^1.0.4":
   version "1.0.4"
-  resolved "https://registry.npmjs.org/@metaplex-foundation/digital-asset-standard-api/-/digital-asset-standard-api-1.0.4.tgz"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/digital-asset-standard-api/-/digital-asset-standard-api-1.0.4.tgz#a321ed36e8aa5fc988faea8e38288fdc8690dca7"
   integrity sha512-YSYyMnIoKNykDZTXsSCeiIOJ7NT5Ke2pzghXDsinRwHvwIZWv+zY5kJQBvTglAzYlt/GaI+noAhUZXXmSbp07A==
   dependencies:
     package.json "^2.0.1"
@@ -1271,6 +1271,11 @@
     "@metaplex-foundation/mpl-toolbox" "^0.9.0"
     "@noble/hashes" "^1.2.0"
     merkletreejs "^0.3.9"
+
+"@metaplex-foundation/mpl-core-das@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@metaplex-foundation/mpl-core-das/-/mpl-core-das-0.0.3.tgz#342a89d0f7e0ebd18718bc0c89f6e879e53d8477"
+  integrity sha512-5rx4R1F8VdSVcO1+sJMw0dhZ3S6E7H8GcWy0n+hTOxvUAIidD57AMoT0JuWuuDtedHO6/XmzueOXQvWFoCSmeA==
 
 "@metaplex-foundation/mpl-core@^1.1.1":
   version "1.1.1"

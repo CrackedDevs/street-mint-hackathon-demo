@@ -36,8 +36,8 @@ export type Collectible = {
     gallery_urls: string[];
     metadata_uri: string | null;
     nfc_public_key: string | null;
-    mint_start_date?: string;
-    mint_end_date?: string;
+    mint_start_date: string | null;
+    mint_end_date: string | null;
 };
 
 interface Order {
@@ -504,11 +504,13 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         // Check if the NFT is still available and get its details
         const { data: collectible, error: collectibleError } = await supabase
             .from('collectibles')
-            .select('quantity, quantity_type')
+            .select('quantity, quantity_type, mint_start_date, mint_end_date')
             .eq('id', collectibleId)
             .single();
 
         if (collectibleError) throw collectibleError;
+
+        // Check if the minting period has started
 
         // Get the count of existing orders for this collectible
         const { count, error: countError } = await supabase
@@ -530,7 +532,6 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         }
 
         // Check if the wallet has already minted this NFT
-
         const { data: existingOrder, error: orderError } = await supabase
             .from('orders')
             .select('id')
@@ -540,7 +541,6 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             .single();
 
         if (orderError && orderError.code !== 'PGRST116') throw orderError; // PGRST116 means no rows returned
-
 
         if (existingOrder) {
             return { eligible: false, reason: 'You have already minted this NFT.' };
@@ -558,6 +558,17 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         if (deviceError && deviceError.code !== 'PGRST116') throw deviceError;
         if (existingDeviceMint) {
             return { eligible: false, reason: 'This device has already been used to mint this NFT.' };
+        }
+
+        //CHECK FOR MINT START AND END DATE
+        const now = new Date();
+        if (collectible.mint_start_date && now < new Date(collectible.mint_start_date)) {
+            return { eligible: false, reason: 'Minting not started yet.' };
+        }
+
+        // Check if the minting period has ended
+        if (collectible.mint_end_date && now > new Date(collectible.mint_end_date)) {
+            return { eligible: false, reason: 'Minting period has ended.' };
         }
 
         // If all checks pass, the user is eligible to mint

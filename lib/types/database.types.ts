@@ -62,6 +62,8 @@ export type Database = {
           location: string | null
           location_note: string | null
           metadata_uri: string | null
+          mint_end_date: string | null
+          mint_start_date: string | null
           name: string
           nfc_public_key: string | null
           price_usd: number
@@ -79,6 +81,8 @@ export type Database = {
           location?: string | null
           location_note?: string | null
           metadata_uri?: string | null
+          mint_end_date?: string | null
+          mint_start_date?: string | null
           name: string
           nfc_public_key?: string | null
           price_usd: number
@@ -96,6 +100,8 @@ export type Database = {
           location?: string | null
           location_note?: string | null
           metadata_uri?: string | null
+          mint_end_date?: string | null
+          mint_start_date?: string | null
           name?: string
           nfc_public_key?: string | null
           price_usd?: number

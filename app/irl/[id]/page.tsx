@@ -19,10 +19,17 @@ import IrlInputButton from "@/components/IrlInputButton";
 import ArtistInfoComponent from "@/components/ArtistInfoComponent";
 import EditionInformation from "@/components/EditionInformation";
 
-async function fetchNFTData(id: string, rnd: string, sign: string, setNFTData: (data: any) => void) {
+async function fetchNFTData(
+  id: string,
+  rnd: string,
+  sign: string,
+  setNFTData: (data: any) => void
+) {
   try {
     // Fetch SOL price
-    const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
+    const response = await fetch(
+      "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+    );
     const data = await response.json();
     if (!response.ok || !data || !data.solana) {
       return null;
@@ -36,7 +43,11 @@ async function fetchNFTData(id: string, rnd: string, sign: string, setNFTData: (
     // if (!collectible) return null;
 
     if (collectible.nfc_public_key) {
-      const isValid = await verifyNfcSignature(rnd, sign, collectible.nfc_public_key);
+      const isValid = await verifyNfcSignature(
+        rnd,
+        sign,
+        collectible.nfc_public_key
+      );
       if (!isValid) {
         console.log("Signature is not valid");
         isIRLtapped = false;
@@ -113,7 +124,8 @@ export default function NFTPage({
     );
   }
 
-  const { collectible, collection, artist, priceInSOL, remainingQuantity } = nftData;
+  const { collectible, collection, artist, priceInSOL, remainingQuantity } =
+    nftData;
 
   const getEditionTypeText = (type: QuantityType) => {
     switch (type) {
@@ -134,7 +146,13 @@ export default function NFTPage({
       <header className="py-6 px-6 border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex justify-center items-center w-full">
-            <Image src="/irlLogo.svg" alt="Street mint logo" width={200} height={70} className="h-10 w-auto" />
+            <Image
+              src="/irlLogo.svg"
+              alt="Street mint logo"
+              width={200}
+              height={70}
+              className="h-10 w-auto"
+            />
           </div>
         </div>
       </header>
@@ -142,7 +160,9 @@ export default function NFTPage({
       <div className="min-h-[95vh] flex items-center justify-center bg-white">
         <div className="max-w-md w-full px-6 py-8 gap-10 bg-white shadow-lg rounded-lg">
           <div className="text-center mb-6 gap-10">
-            <h2 className="text-2xl font-semibold mb-4 ">Welcome to {collection.name}</h2>
+            <h2 className="text-2xl font-semibold mb-4 ">
+              Welcome to {collection.name}
+            </h2>
             <Image
               src={collectible.primary_image_url}
               alt="Harold CollectorX"
@@ -152,14 +172,21 @@ export default function NFTPage({
             />
           </div>
           <p className="text-center text-lg mb-4">
-            Collect <span className="font-bold">{collectible.name}</span> and add it to your collection
+            Collect <span className="font-bold">{collectible.name}</span> and
+            add it to your collection
           </p>
-          <IrlInputButton walletAddress={walletAddress} setwalletAddress={setwalletAddress} />
+          <IrlInputButton
+            walletAddress={walletAddress}
+            setwalletAddress={setwalletAddress}
+          />
         </div>
       </div>
 
       {/* Main content */}
-      <main id="main-content" className="flex-grow flex min-h-screen justify-center align-middle flex-col px-4">
+      <main
+        id="main-content"
+        className="flex-grow flex min-h-screen justify-center align-middle flex-col px-4"
+      >
         <div className="max-w-7xl mx-auto w-full  py-8 grid md:grid-cols-2 gap-8">
           {/* Left column - Main Image */}
           <div className="relative aspect-square">
@@ -175,7 +202,9 @@ export default function NFTPage({
           {/* Right column - Details */}
           <div>
             <h1 className="text-3xl font-bold mb-2">{collectible.name}</h1>
-            <p className="text-xl text-gray-600 mb-4">From the &quot;{collection.name}&quot; Collection</p>
+            <p className="text-xl text-gray-600 mb-4">
+              From the &quot;{collection.name}&quot; Collection
+            </p>
 
             {/* Artist Information */}
             <ArtistInfoComponent artist={artist} />
@@ -188,7 +217,8 @@ export default function NFTPage({
                 ...collection,
                 artist: collection.artist || 0,
                 collectibles: collection.collectibles || [],
-                collection_mint_public_key: collection.collection_mint_public_key || "",
+                collection_mint_public_key:
+                  collection.collection_mint_public_key || "",
                 metadata_uri: collection.metadata_uri || "",
                 merkle_tree_public_key: collection.merkle_tree_public_key || "",
               }}
@@ -219,7 +249,7 @@ export default function NFTPage({
               </div>
               {collectible.location_note && (
                 <p className="text-md text-gray-400">
-                  <strong>Location</strong> {collectible.location_note}
+                  <strong>Where:</strong> {collectible.location_note}
                 </p>
               )}
               <div>
@@ -236,7 +266,8 @@ export default function NFTPage({
               <div>
                 <p className="text-gray-400">Price per edition</p>
                 <p>
-                  ${collectible.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)} SOL)
+                  ${collectible.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)}{" "}
+                  SOL)
                 </p>
               </div>
               <div>
