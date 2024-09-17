@@ -93,6 +93,7 @@ export default async function NFTPage({
       </div>
     );
   }
+
   const {
     collectible,
     collection,
@@ -102,6 +103,7 @@ export default async function NFTPage({
     soldCount,
     isIRLtapped,
   } = data;
+  console.log("isIRLtapped", isIRLtapped);
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -183,9 +185,9 @@ export default async function NFTPage({
                 </p>
               )}
               <div>
-                <p className="text-gray-400">Location to minted</p>
+                <p className="text-gray-400">Location to mint</p>
                 <a
-                  className="text-blue-400"
+                  className="text-blue-400 break-words"
                   href={collectible.location || ""}
                   target="_blank"
                   rel="noopener noreferrer"

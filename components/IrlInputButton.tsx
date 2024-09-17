@@ -11,6 +11,7 @@ const IrlInputButton = ({
 }) => {
   const handleCollect = () => {
     if (walletAddress.length > 0) {
+      setwalletAddress(walletAddress);
       window.scrollTo({
         top: document.getElementById("main-content")?.offsetTop,
         behavior: "smooth",

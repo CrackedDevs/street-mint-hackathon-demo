@@ -19,23 +19,14 @@ import IrlInputButton from "@/components/IrlInputButton";
 import ArtistInfoComponent from "@/components/ArtistInfoComponent";
 import EditionInformation from "@/components/EditionInformation";
 
-async function fetchNFTData(
-  id: string,
-  rnd: string,
-  sign: string,
-  setNFTData: (data: any) => void
-) {
+async function fetchNFTData(id: string, rnd: string, sign: string, setNFTData: (data: any) => void) {
   try {
     // Fetch SOL price
-    console.log("Fetching SOL price");
-    const response = await fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
-    );
+    const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
     const data = await response.json();
     if (!response.ok || !data || !data.solana) {
       return null;
     }
-    console.log("SOL price fetched");
     const solPriceUSD = data.solana.usd;
 
     let isIRLtapped = false;
@@ -45,11 +36,7 @@ async function fetchNFTData(
     // if (!collectible) return null;
 
     if (collectible.nfc_public_key) {
-      const isValid = await verifyNfcSignature(
-        rnd,
-        sign,
-        collectible.nfc_public_key
-      );
+      const isValid = await verifyNfcSignature(rnd, sign, collectible.nfc_public_key);
       if (!isValid) {
         console.log("Signature is not valid");
         isIRLtapped = false;
@@ -59,11 +46,9 @@ async function fetchNFTData(
     }
 
     const collection = await getCollectionById(collectible.collection_id);
-    console.log("Collection fetched");
     if (!collection) return;
 
     const artist = await getArtistById(collection.artist);
-    console.log("Artist fetched");
     if (!artist) return;
 
     // Calculate NFT price in SOL
@@ -114,7 +99,6 @@ export default function NFTPage({
     fetchNFTData(params.id, searchParams.rnd, searchParams.sign, setNFTData);
   }, [params.id, searchParams.rnd, searchParams.sign]);
 
-  console.log(nftData);
   if (!nftData) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -129,8 +113,7 @@ export default function NFTPage({
     );
   }
 
-  const { collectible, collection, artist, priceInSOL, remainingQuantity } =
-    nftData;
+  const { collectible, collection, artist, priceInSOL, remainingQuantity } = nftData;
 
   const getEditionTypeText = (type: QuantityType) => {
     switch (type) {
@@ -151,13 +134,7 @@ export default function NFTPage({
       <header className="py-6 px-6 border-b border-gray-200">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex justify-center items-center w-full">
-            <Image
-              src="/irlLogo.svg"
-              alt="Street mint logo"
-              width={200}
-              height={70}
-              className="h-10 w-auto"
-            />
+            <Image src="/irlLogo.svg" alt="Street mint logo" width={200} height={70} className="h-10 w-auto" />
           </div>
         </div>
       </header>
@@ -165,9 +142,7 @@ export default function NFTPage({
       <div className="min-h-[95vh] flex items-center justify-center bg-white">
         <div className="max-w-md w-full px-6 py-8 gap-10 bg-white shadow-lg rounded-lg">
           <div className="text-center mb-6 gap-10">
-            <h2 className="text-2xl font-semibold mb-4 ">
-              Welcome to {collection.name}
-            </h2>
+            <h2 className="text-2xl font-semibold mb-4 ">Welcome to {collection.name}</h2>
             <Image
               src={collectible.primary_image_url}
               alt="Harold CollectorX"
@@ -177,21 +152,14 @@ export default function NFTPage({
             />
           </div>
           <p className="text-center text-lg mb-4">
-            Collect <span className="font-bold">{collectible.name}</span> and
-            add it to your collection
+            Collect <span className="font-bold">{collectible.name}</span> and add it to your collection
           </p>
-          <IrlInputButton
-            walletAddress={walletAddress}
-            setwalletAddress={setwalletAddress}
-          />
+          <IrlInputButton walletAddress={walletAddress} setwalletAddress={setwalletAddress} />
         </div>
       </div>
 
       {/* Main content */}
-      <main
-        id="main-content"
-        className="flex-grow flex min-h-screen justify-center align-middle flex-col px-4"
-      >
+      <main id="main-content" className="flex-grow flex min-h-screen justify-center align-middle flex-col px-4">
         <div className="max-w-7xl mx-auto w-full  py-8 grid md:grid-cols-2 gap-8">
           {/* Left column - Main Image */}
           <div className="relative aspect-square">
@@ -207,9 +175,7 @@ export default function NFTPage({
           {/* Right column - Details */}
           <div>
             <h1 className="text-3xl font-bold mb-2">{collectible.name}</h1>
-            <p className="text-xl text-gray-600 mb-4">
-              From the &quot;{collection.name}&quot; Collection
-            </p>
+            <p className="text-xl text-gray-600 mb-4">From the &quot;{collection.name}&quot; Collection</p>
 
             {/* Artist Information */}
             <ArtistInfoComponent artist={artist} />
@@ -222,8 +188,7 @@ export default function NFTPage({
                 ...collection,
                 artist: collection.artist || 0,
                 collectibles: collection.collectibles || [],
-                collection_mint_public_key:
-                  collection.collection_mint_public_key || "",
+                collection_mint_public_key: collection.collection_mint_public_key || "",
                 metadata_uri: collection.metadata_uri || "",
                 merkle_tree_public_key: collection.merkle_tree_public_key || "",
               }}
@@ -231,6 +196,7 @@ export default function NFTPage({
                 ...collectible,
                 quantity_type: collectible.quantity_type as QuantityType,
               }}
+              inputWalletAddress={walletAddress}
               remainingQuantity={remainingQuantity}
               artistWalletAddress={artist.wallet_address}
             />
@@ -238,28 +204,44 @@ export default function NFTPage({
         </div>
 
         {/* Full-width description */}
-        <div className="max-w-7xl mx-auto w-full bg-black text-white rounded-lg  py-8">
+        <div className="max-w-7xl mx-auto w-full bg-black text-white rounded-xl  py-8">
           <div className="max-w-7xl mx-auto px-4">
             <h2 className="text-2xl font-bold mb-4">Description</h2>
             <p className="text-lg mb-6">{collectible.description}</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div>
-                <p className="text-gray-600">Art title</p>
+                <p className="text-gray-400">Art title</p>
                 <p>{collectible.name}</p>
               </div>
               <div>
-                <p className="text-gray-600">Edition Type</p>
+                <p className="text-gray-400">Artist</p>
+                <p>{artist.username}</p>
+              </div>
+              {collectible.location_note && (
+                <p className="text-md text-gray-400">
+                  <strong>Location</strong> {collectible.location_note}
+                </p>
+              )}
+              <div>
+                <p className="text-gray-400">Location to mint</p>
+                <a
+                  className="text-blue-400 break-words"
+                  href={collectible.location || ""}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {collectible.location || "N/A"}
+                </a>
+              </div>
+              <div>
+                <p className="text-gray-400">Price per edition</p>
                 <p>
-                  {getEditionTypeText(
-                    collectible.quantity_type as QuantityType
-                  )}
+                  ${collectible.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)} SOL)
                 </p>
               </div>
               <div>
-                <p className="text-gray-600">Price</p>
-                <p>
-                  {collectible.price_usd} USD / {priceInSOL.toFixed(3)} SOL
-                </p>
+                <p className="text-gray-600">Blockchain</p>
+                <p>Solana</p>
               </div>
             </div>
           </div>

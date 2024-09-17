@@ -30,16 +30,16 @@ import LocationButton from "./LocationButton";
 interface MintButtonProps {
   collectible: Collectible;
   collection: Collection;
-  walletAddress?: string;
   artistWalletAddress: string;
   isIRLtapped: boolean;
+  inputWalletAddress?: string;
 }
 
 export default function MintButton({
   collectible,
   collection,
-  walletAddress: initialWalletAddress,
   artistWalletAddress,
+  inputWalletAddress: initialWalletAddress,
   isIRLtapped,
 }: MintButtonProps) {
   const { connected, connect, publicKey, signTransaction } = useWallet();
@@ -182,7 +182,6 @@ export default function MintButton({
           "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
         );
         const solPriceData = await solPrice.json();
-        console.log(solPriceData);
 
         if (solPriceData && !solPriceData.solana) {
           return;
@@ -315,12 +314,12 @@ export default function MintButton({
   };
 
   const getButtonText = () => {
-    if (isFreeMint && !walletAddress) return "Enter wallet address";
+    if (isFreeMint && !walletAddress) return "COLLECT NOW";
     if (isMinting) return "PROCESSING...";
     if (existingOrder && existingOrder.status == "completed") return "MINTED!";
     if (isEligible) return "MINT NOW";
     if (!isEligible) return "NOT ELIGIBLE";
-    return "NOT";
+    return "NOT STARTED";
   };
 
   const copyToClipboard = () => {
@@ -420,12 +419,12 @@ export default function MintButton({
           </AnimatePresence>
         </div>
       )}
-      {isFreeMint && !isIrlMint ? (
+      {isFreeMint ? (
         <div className="w-full flex flex-col items-center justify-center">
           <Input
             type="text"
             placeholder="Enter wallet address"
-            value={walletAddress}
+            value={initialWalletAddress || walletAddress}
             onChange={(e) => setWalletAddress(e.target.value)}
             className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
           />
@@ -433,7 +432,9 @@ export default function MintButton({
             borderRadius="6px"
             className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
             onClick={handleMintClick}
-            disabled={isMinting || !isEligible || existingOrder}
+            disabled={
+              isMinting || !isEligible || existingOrder || !walletAddress
+            }
           >
             {getButtonText()}
           </WhiteBgShimmerButton>

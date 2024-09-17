@@ -22,6 +22,7 @@ const EditionInformation = ({
   artistWalletAddress,
   soldCount,
   isIRLtapped,
+  inputWalletAddress,
 }: {
   collection: Collection;
   collectible: Collectible;
@@ -29,6 +30,7 @@ const EditionInformation = ({
   artistWalletAddress: string;
   soldCount: number;
   isIRLtapped: boolean;
+  inputWalletAddress?: string;
 }) => {
   const [mintingStatus, setMintingStatus] = useState<
     "not-started" | "ongoing" | "ended"
@@ -137,21 +139,6 @@ const EditionInformation = ({
             </div>
             <div className="flex flex-row w-full justify-between">
               <div>
-                {collectible.quantity_type === "limited" && (
-                  <div className="text-lg mt-4 text-grey-300">
-                    {remainingQuantity === 1
-                      ? "Last one available!"
-                      : `${remainingQuantity} editions left`}
-                  </div>
-                )}
-                {collectible.quantity_type === "single" && (
-                  <div className="text-lg text-grey-300">1 of 1</div>
-                )}
-                {collectible.quantity_type === "unlimited" && (
-                  <div className="text-lg text-grey-300">Open Edition</div>
-                )}
-              </div>
-              <div>
                 {soldCount > 0 && (
                   <span className="text-white text-lg">
                     Minted: {soldCount}
@@ -190,6 +177,7 @@ const EditionInformation = ({
           {/* Render MintButton only if minting has started */}
           {mintingStatus == "ongoing" && (
             <MintButton
+              inputWalletAddress={inputWalletAddress}
               isIRLtapped={isIRLtapped}
               artistWalletAddress={artistWalletAddress}
               collectible={{
