@@ -60,6 +60,7 @@ export type Database = {
           gallery_urls: string[]
           id: number
           location: string | null
+          location_note: string | null
           metadata_uri: string | null
           name: string
           nfc_public_key: string | null
@@ -76,6 +77,7 @@ export type Database = {
           gallery_urls: string[]
           id?: number
           location?: string | null
+          location_note?: string | null
           metadata_uri?: string | null
           name: string
           nfc_public_key?: string | null
@@ -92,6 +94,7 @@ export type Database = {
           gallery_urls?: string[]
           id?: number
           location?: string | null
+          location_note?: string | null
           metadata_uri?: string | null
           name?: string
           nfc_public_key?: string | null
@@ -243,29 +246,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_nft_availability: {
-        Args: {
-          p_collectible_id: number
-        }
-        Returns: boolean
-      }
-      create_order_and_record_attempt: {
-        Args: {
-          p_wallet_address: string
-          p_collectible_id: number
-          p_device_id: string
-          p_transaction_signature: string
-        }
-        Returns: Json
-      }
-      is_mint_allowed: {
-        Args: {
-          p_wallet_address: string
-          p_collectible_id: number
-          p_device_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       quantity_type: "limited" | "unlimited" | "single"

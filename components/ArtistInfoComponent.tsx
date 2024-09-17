@@ -12,7 +12,18 @@ const ArtistInfoComponent: React.FC<ArtistInfoComponentProps> = ({
 }) => {
   return (
     <div className="flex items-center space-x-2 mb-4">
-      <div className="w-6 h-6 bg-purple-600 rounded-full"></div>
+      {artist.avatar_url ? (
+        <Image
+          src={artist.avatar_url}
+          alt={`${artist.username}'s avatar`}
+          width={40}
+          height={40}
+          className="rounded-full w-10 h-10"
+        />
+      ) : (
+        <div className="w-10 h-10 bg-purple-600 rounded-full"></div>
+      )}
+
       <span className="font-semibold">{artist.username}</span>
       {artist.x_username && (
         <a

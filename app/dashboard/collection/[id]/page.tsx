@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  PlusCircle,
+  MapPin,
+  Calendar,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -103,13 +109,14 @@ export default function Component() {
               key={collectible.id}
               className="overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col"
             >
-              <CardContent className="p-0 flex-grow">
-                <div className="aspect-square relative">
+              <CardContent className="flex pt-5 w-full h-full justify-center flex-col">
+                <div className=" relative">
                   <Image
+                    width={300}
+                    height={300}
                     src={collectible.primary_image_url}
                     alt={collectible.name}
-                    layout="fill"
-                    objectFit="cover"
+                    className="object-contain w-full h-full object-center items-center"
                   />
                 </div>
                 <div className="p-4">
@@ -157,14 +164,49 @@ export default function Component() {
                         </div>
                       </div>
                     )}
+                  <div className="space-y-2 mt-4">
+                    <div className="flex items-center text-sm text-blue-600">
+                      <MapPin className="mr-2 h-4 w-4" />
+                      <a
+                        href={collectible.location ?? ""}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {collectible.location || "Location not specified"}
+                      </a>
+                    </div>
+                    {collectible.location_note && (
+                      <p className="text-sm text-gray-600 ml-6">
+                        {collectible.location_note}
+                      </p>
+                    )}
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <span>
+                        Mint Start:{" "}
+                        {collectible.mint_start_date || "Not specified"}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <span>
+                        Mint End: {collectible.mint_end_date || "Not specified"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
               <div className="p-4 bg-gray-50 border-t border-gray-200">
                 <Button
+                  onClick={() =>
+                    router.push(
+                      `/dashboard/collection/${collection.id}/edit-collectible/${collectible.id}`
+                    )
+                  }
                   variant="ghost"
                   className="w-full text-sm text-gray-600 hover:text-gray-900 flex items-center justify-center"
                 >
-                  Setup Details
+                  Edit Details
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>

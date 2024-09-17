@@ -28,23 +28,20 @@ export default function MyGallery() {
   async function fetchNFTs() {
     const walletAddress = publicKey?.toBase58();
 
-    const response = await fetch(
-     process.env.NEXT_PUBLIC_RPC_URL!,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    const response = await fetch(process.env.NEXT_PUBLIC_RPC_URL!, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: "text",
+        method: "getAssetsByOwner",
+        params: {
+          ownerAddress: walletAddress,
         },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: "text",
-          method: "getAssetsByOwner",
-          params: {
-            ownerAddress: walletAddress,
-          },
-        }),
-      }
-    );
+      }),
+    });
 
     const data = await response.json();
 

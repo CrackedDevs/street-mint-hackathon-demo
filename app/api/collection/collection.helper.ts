@@ -125,9 +125,10 @@ export async function mintNFTWithBubbleGumTree(
 
     const txSignature = bs58.encode(tx.signature);
 
-    const solscanLink = process.env.NODE_ENV === 'development'
-      ? `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
-      : `https://explorer.solana.com/tx/${txSignature}`;
+    const solscanLink =
+      process.env.NODE_ENV === "development"
+        ? `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
+        : `https://explorer.solana.com/tx/${txSignature}`;
     return { signature: txSignature, solscanLink: solscanLink };
   } catch (error) {
     console.error("Error minting NFT with BubbleGum Tree:", error);

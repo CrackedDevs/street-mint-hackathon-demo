@@ -9525,7 +9525,7 @@ sucrase@^3.32.0:
 
 supabase@^1.192.5:
   version "1.192.5"
-  resolved "https://registry.npmjs.org/supabase/-/supabase-1.192.5.tgz"
+  resolved "https://registry.yarnpkg.com/supabase/-/supabase-1.192.5.tgz#57b649923d7e5c24a8930cbcb780b3326966a513"
   integrity sha512-xRn5wu4jtSgaPXfNrYRYv6Y1oxevxp7Ff95rJyhh1Us7WqSxjmJcpFygXG/tZx/Oxp/iD1JMhip+mFVlfcaVcw==
   dependencies:
     bin-links "^4.0.3"

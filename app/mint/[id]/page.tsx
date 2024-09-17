@@ -1,19 +1,20 @@
 import Image from "next/image";
-import MintButton from "@/components/mintButton";
 import {
   getCollectionById,
   getArtistById,
   fetchCollectibleById,
   QuantityType,
   verifyNfcSignature,
+  getCompletedOrdersCount,
 } from "@/lib/supabaseClient";
 import Gallery from "@/components/gallery";
 import { Toaster } from "@/components/ui/toaster";
-import ArtistInfoComponent from "./ArtistInfoComponent";
-import EditionInformation from "./EditionInformation";
+import ArtistInfoComponent from "@/components/ArtistInfoComponent";
+import EditionInformation from "@/components/EditionInformation";
 
 async function getNFTData(id: string, rnd: string, sign: string) {
   // Fetch SOL price
+  let isIRLtapped = false;
 
   const response = await fetch(
     "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
@@ -25,16 +26,22 @@ async function getNFTData(id: string, rnd: string, sign: string) {
   const solPriceUSD = data.solana.usd;
 
   const collectible = await fetchCollectibleById(Number(id));
-  // if (!collectible || !collectible.nfc_public_key) return null;
   if (!collectible) return null;
+  // if (!collectible) return null;
 
-  // const isValid = await verifyNfcSignature(rnd, sign, collectible.nfc_public_key);
-  //TODO: UNCOMMENT THIS
-  // if (!isValid) {
-  //   console.log("Signature is not valid");
-  //   return null;
-  // }
-  //TODO: UNCOMMENT THIS
+  if (collectible.nfc_public_key) {
+    const isValid = await verifyNfcSignature(
+      rnd,
+      sign,
+      collectible.nfc_public_key
+    );
+    if (!isValid) {
+      console.log("Signature is not valid");
+      isIRLtapped = false;
+    } else {
+      isIRLtapped = true;
+    }
+  }
 
   const collection = await getCollectionById(collectible.collection_id);
   if (!collection) return null;
@@ -50,8 +57,17 @@ async function getNFTData(id: string, rnd: string, sign: string) {
   if (collectible.quantity_type === "limited") {
     remainingQuantity = collectible.quantity;
   }
+  const soldCount = await getCompletedOrdersCount(collectible.id);
 
-  return { collectible, collection, artist, priceInSOL, remainingQuantity };
+  return {
+    collectible,
+    collection,
+    artist,
+    priceInSOL,
+    remainingQuantity,
+    isIRLtapped,
+    soldCount,
+  };
 }
 
 // Convert to an async Server Component
@@ -77,8 +93,15 @@ export default async function NFTPage({
       </div>
     );
   }
-  const { collectible, collection, artist, priceInSOL, remainingQuantity } =
-    data;
+  const {
+    collectible,
+    collection,
+    artist,
+    priceInSOL,
+    remainingQuantity,
+    soldCount,
+    isIRLtapped,
+  } = data;
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -98,15 +121,16 @@ export default async function NFTPage({
       </header>
 
       {/* Main content */}
-      <main className="py-8 px-4">
+      <main className="py-8 px-10">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8">
           {/* Left column - Main Image */}
-          <div className="relative aspect-square">
+          <div className="relative flex justify-center items-center h-full w-full">
             <Image
               src={collectible.primary_image_url}
               alt={`${collectible.name} - Main Image`}
-              layout="fill"
               objectFit="contain"
+              width={500}
+              height={500}
             />
           </div>
 
@@ -120,6 +144,8 @@ export default async function NFTPage({
             <ArtistInfoComponent artist={artist} />
             {/* Edition Information Section */}
             <EditionInformation
+              soldCount={soldCount}
+              isIRLtapped={isIRLtapped}
               collection={{
                 ...collection,
                 artist: collection.artist || 0,
@@ -135,44 +161,63 @@ export default async function NFTPage({
                 location: collectible.metadata_uri || "",
                 metadata_uri: collectible.metadata_uri || "",
                 nfc_public_key: collectible.nfc_public_key || "",
+                location_note: collectible.location_note || "",
               }}
               remainingQuantity={remainingQuantity}
               artistWalletAddress={artist.wallet_address}
             />
-
-            <div className="space-y-4 mt-6">
-              <p className="text-lg">{collectible.description}</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-gray-600">Art title</p>
-                  <p>{collectible.name}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Artist</p>
-                  <p>{artist.username}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Location minted</p>
-                  <p>{collectible.location || "N/A"}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Price per edition</p>
-                  <p>
-                    ${collectible.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)}{" "}
-                    SOL)
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Blockchain</p>
-                  <p>Solana</p>
-                </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto w-full bg-black text-white rounded-xl  py-8">
+          <div className="max-w-7xl mx-auto px-4">
+            <h2 className="text-2xl font-bold mb-4">Description</h2>
+            <p className="text-lg mb-6">{collectible.description}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div>
+                <p className="text-gray-400">Art title</p>
+                <p>{collectible.name}</p>
               </div>
-              {collectible.gallery_urls.length > 0 && (
-                <Gallery images={collectible.gallery_urls} />
+              <div>
+                <p className="text-gray-400">Artist</p>
+                <p>{artist.username}</p>
+              </div>
+              {collectible.location_note && (
+                <p className="text-md text-gray-400">
+                  <strong>Location</strong> {collectible.location_note}
+                </p>
               )}
+              <div>
+                <p className="text-gray-400">Location to minted</p>
+                <a
+                  className="text-blue-400"
+                  href={collectible.location || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {collectible.location || "N/A"}
+                </a>
+              </div>
+              <div>
+                <p className="text-gray-400">Price per edition</p>
+                <p>
+                  ${collectible.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)}{" "}
+                  SOL)
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-600">Blockchain</p>
+                <p>Solana</p>
+              </div>
             </div>
           </div>
         </div>
+        {collectible.gallery_urls.length > 0 && (
+          <div className="w-full bg-white py-4">
+            <div className="max-w-7xl mx-auto px-4">
+              <Gallery images={collectible.gallery_urls} />
+            </div>
+          </div>
+        )}
       </main>
       <Toaster />
     </div>

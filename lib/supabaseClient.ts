@@ -29,12 +29,15 @@ export type Collectible = {
     description: string;
     primary_image_url: string;
     quantity_type: QuantityType;
-    quantity?: number | null;
+    quantity: number | null;
     price_usd: number;
-    location?: string;
+    location: string | null;
+    location_note: string | null;
     gallery_urls: string[];
-    metadata_uri?: string;
-    nfc_public_key?: string;
+    metadata_uri: string | null;
+    nfc_public_key: string | null;
+    mint_start_date?: string;
+    mint_end_date?: string;
 };
 
 interface Order {
@@ -416,6 +419,23 @@ export const fetchCollectibleById = async (id: number) => {
     return data;
 };
 
+export const updateCollectible = async (collectible: Collectible): Promise<boolean> => {
+    const { user, error: authError } = await getAuthenticatedUser();
+    if (!user || authError) {
+        return false;
+    }
+    const { error } = await supabase
+        .from('collectibles')
+        .update(collectible)
+        .eq('id', collectible.id);
+
+    if (error) {
+        console.error("Error updating collectible:", error);
+        return false;
+    }
+
+    return true;
+};
 
 export const updateProfile = async (profileData: Artist) => {
     const { user, error: authError } = await getAuthenticatedUser();
@@ -605,4 +625,19 @@ export async function verifyNfcSignature(rnd: string, sign: string, pubKey: stri
         return false
     }
     return true;
+}
+
+export async function getCompletedOrdersCount(collectibleId: number): Promise<number> {
+    const { count, error } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('collectible_id', collectibleId)
+        .eq('status', 'completed');
+
+    if (error) {
+        console.error('Error fetching completed orders count:', error);
+        return 0;
+    }
+
+    return count || 0;
 }

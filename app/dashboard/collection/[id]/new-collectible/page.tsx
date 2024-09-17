@@ -19,9 +19,8 @@ import {
   Loader2,
   ArrowLeftIcon,
   UploadIcon,
+  MapPinIcon,
   CalendarIcon,
-  TruckIcon,
-  CheckCircleIcon,
 } from "lucide-react";
 import {
   Collectible,
@@ -34,12 +33,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { NumericUUID } from "@/lib/utils";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
 import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import Delivery from "@/app/assets/delivery.svg";
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -62,6 +56,12 @@ export default function CreateCollectiblePage() {
     quantity: 0,
     price_usd: 0,
     gallery_urls: [],
+    location: "",
+    location_note: "",
+    metadata_uri: "", // Add this line
+    nfc_public_key: "",
+    mint_start_date: "",
+    mint_end_date: "",
   });
   const [primaryImageLocalFile, setPrimaryImageLocalFile] =
     useState<File | null>(null);
@@ -448,6 +448,95 @@ export default function CreateCollectiblePage() {
                       />
                     </div>
                   )}
+                </div>
+
+                <div className="space-y-6 bg-primary/5 p-6 border-2 border-black rounded-lg">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="collectible-location"
+                      className="text-lg font-semibold flex items-center"
+                    >
+                      <MapPinIcon className="mr-2 h-5 w-5" />
+                      Location (Google Maps URL) *
+                    </Label>
+                    <Input
+                      id="collectible-location"
+                      value={collectible.location ?? ""}
+                      onChange={(e) =>
+                        handleCollectibleChange("location", e.target.value)
+                      }
+                      placeholder="Enter Google Maps URL"
+                      className="text-base"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="collectible-location-note"
+                      className="text-lg font-semibold"
+                    >
+                      Location Note
+                    </Label>
+                    <Textarea
+                      id="collectible-location-note"
+                      value={collectible.location_note ?? ""}
+                      onChange={(e) =>
+                        handleCollectibleChange("location_note", e.target.value)
+                      }
+                      placeholder="Add any additional details about the location"
+                      className="min-h-[80px] text-base"
+                    />
+                  </div>
+                  <span className="mt-2 ">You can edit this later</span>
+                </div>
+
+                <div className="space-y-6 bg-primary/5 p-6 border-2 border-black rounded-lg">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="mint-start-date"
+                      className="text-lg font-semibold flex items-center"
+                    >
+                      <CalendarIcon className="mr-2 h-5 w-5" />
+                      Minting Start Date and Time *
+                    </Label>
+                    <span>Mention the timings in GMT</span>
+                    <Input
+                      id="mint-start-date"
+                      type="datetime-local"
+                      value={collectible.mint_start_date}
+                      onChange={(e) =>
+                        handleCollectibleChange(
+                          "mint_start_date",
+                          e.target.value
+                        )
+                      }
+                      className="text-base w-fit"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="mint-end-date"
+                      className="text-lg font-semibold flex items-center"
+                    >
+                      <CalendarIcon className="mr-2 h-5 w-5" />
+                      Minting End Date and Time *
+                    </Label>
+                    <span>Mention the timings in GMT</span>
+                    <Input
+                      id="mint-end-date"
+                      type="datetime-local"
+                      value={collectible.mint_end_date}
+                      onChange={(e) =>
+                        handleCollectibleChange("mint_end_date", e.target.value)
+                      }
+                      className="text-base w-fit"
+                      required
+                    />
+                  </div>
+                  <span className="mt-2 ">You can edit this later</span>
                 </div>
 
                 <div className="space-y-2">

@@ -11,14 +11,13 @@ import {
   Collectible,
   Artist,
   verifyNfcSignature,
+  getCompletedOrdersCount,
 } from "@/lib/supabaseClient";
 import Gallery from "@/components/gallery";
 import { Toaster } from "@/components/ui/toaster";
-import PriceComponent from "./PriceComponent";
 import IrlInputButton from "@/components/IrlInputButton";
-import ArtistInfoComponent from "@/app/mint/[id]/ArtistInfoComponent";
-import MintButton from "@/components/mintButton";
-import EditionInformation from "@/app/mint/[id]/EditionInformation";
+import ArtistInfoComponent from "@/components/ArtistInfoComponent";
+import EditionInformation from "@/components/EditionInformation";
 
 async function fetchNFTData(
   id: string,
@@ -39,18 +38,25 @@ async function fetchNFTData(
     console.log("SOL price fetched");
     const solPriceUSD = data.solana.usd;
 
+    let isIRLtapped = false;
+
     const collectible = await fetchCollectibleById(Number(id));
-
-    // if (!collectible || !collectible.nfc_public_key) return null;
     if (!collectible) return null;
+    // if (!collectible) return null;
 
-    // const isValid = await verifyNfcSignature(rnd, sign, collectible.nfc_public_key);
-    //TODO: UNCOMMENT THIS
-    // if (!isValid) {
-    //   console.log("Signature is not valid");
-    //   return null;
-    // }
-    //TODO: UNCOMMENT THIS
+    if (collectible.nfc_public_key) {
+      const isValid = await verifyNfcSignature(
+        rnd,
+        sign,
+        collectible.nfc_public_key
+      );
+      if (!isValid) {
+        console.log("Signature is not valid");
+        isIRLtapped = false;
+      } else {
+        isIRLtapped = true;
+      }
+    }
 
     const collection = await getCollectionById(collectible.collection_id);
     console.log("Collection fetched");
@@ -69,12 +75,16 @@ async function fetchNFTData(
       remainingQuantity = collectible.quantity;
     }
 
+    const soldCount = await getCompletedOrdersCount(collectible.id);
+
     setNFTData({
       collectible,
       collection,
       artist,
       priceInSOL,
       remainingQuantity,
+      soldCount,
+      isIRLtapped,
     });
   } catch (error) {
     console.error("Failed to fetch NFT data", error);
@@ -94,6 +104,8 @@ export default function NFTPage({
     artist: Artist;
     priceInSOL: number;
     remainingQuantity: number | null;
+    soldCount: number | 0;
+    isIRLtapped: false;
   }>();
 
   const [walletAddress, setwalletAddress] = useState("");
@@ -204,6 +216,8 @@ export default function NFTPage({
 
             {/* Edition Information Section */}
             <EditionInformation
+              soldCount={nftData.soldCount}
+              isIRLtapped={nftData.isIRLtapped}
               collection={{
                 ...collection,
                 artist: collection.artist || 0,
@@ -219,6 +233,7 @@ export default function NFTPage({
                 location: collectible.metadata_uri || "",
                 metadata_uri: collectible.metadata_uri || "",
                 nfc_public_key: collectible.nfc_public_key || "",
+                location_note: collectible.location_note || "",
               }}
               remainingQuantity={remainingQuantity}
               artistWalletAddress={artist.wallet_address}
