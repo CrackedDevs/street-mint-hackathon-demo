@@ -121,7 +121,7 @@ export default async function NFTPage({
       </header>
 
       {/* Main content */}
-      <main className="py-8 px-10">
+      <main className="py-8 md:px-10 px-4">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8">
           {/* Left column - Main Image */}
           <div className="relative flex justify-center items-center h-full w-full">
@@ -158,10 +158,6 @@ export default async function NFTPage({
               collectible={{
                 ...collectible,
                 quantity_type: collectible.quantity_type as QuantityType,
-                location: collectible.metadata_uri || "",
-                metadata_uri: collectible.metadata_uri || "",
-                nfc_public_key: collectible.nfc_public_key || "",
-                location_note: collectible.location_note || "",
               }}
               remainingQuantity={remainingQuantity}
               artistWalletAddress={artist.wallet_address}
@@ -190,7 +186,7 @@ export default async function NFTPage({
                 <p className="text-gray-400">Location to minted</p>
                 <a
                   className="text-blue-400"
-                  href={collectible.location || "#"}
+                  href={collectible.location || ""}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

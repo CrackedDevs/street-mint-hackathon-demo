@@ -221,7 +221,7 @@ export default function NFTPage({
               collection={{
                 ...collection,
                 artist: collection.artist || 0,
-                collectibles: [],
+                collectibles: collection.collectibles || [],
                 collection_mint_public_key:
                   collection.collection_mint_public_key || "",
                 metadata_uri: collection.metadata_uri || "",
@@ -230,10 +230,6 @@ export default function NFTPage({
               collectible={{
                 ...collectible,
                 quantity_type: collectible.quantity_type as QuantityType,
-                location: collectible.metadata_uri || "",
-                metadata_uri: collectible.metadata_uri || "",
-                nfc_public_key: collectible.nfc_public_key || "",
-                location_note: collectible.location_note || "",
               }}
               remainingQuantity={remainingQuantity}
               artistWalletAddress={artist.wallet_address}

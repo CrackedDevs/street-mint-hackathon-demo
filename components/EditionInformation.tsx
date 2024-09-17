@@ -71,7 +71,7 @@ const EditionInformation = ({
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    return `${days}d ${hours % 24}h`;
+    return `${days}d ${hours % 24}h ${minutes % 60}m ${seconds % 60}s`;
   };
 
   const getEditionTypeText = (type: QuantityType) => {
@@ -168,6 +168,16 @@ const EditionInformation = ({
                 Live <Stars className="ml-2" />
               </Badge>
             )}
+            {mintingStatus === "not-started" && (
+              <Badge variant="secondary" className="text-black text-md">
+                Upcoming <Stars className="ml-2" />
+              </Badge>
+            )}
+            {mintingStatus === "ended" && (
+              <Badge variant="secondary" className="text-black text-md">
+                Ended <Stars className="ml-2" />
+              </Badge>
+            )}
             {timeLeft && (
               <div className="text-lg font-semibold">
                 {mintingStatus === "not-started"
@@ -185,18 +195,9 @@ const EditionInformation = ({
               collectible={{
                 ...collectible,
                 quantity_type: collectible.quantity_type as QuantityType,
-                location: collectible.metadata_uri || "",
-                metadata_uri: collectible.metadata_uri || "",
-                nfc_public_key: collectible.nfc_public_key || "",
               }}
               collection={{
                 ...collection,
-                artist: collection.artist || 0,
-                collectibles: [],
-                collection_mint_public_key:
-                  collection.collection_mint_public_key || "",
-                metadata_uri: collection.metadata_uri || "",
-                merkle_tree_public_key: collection.merkle_tree_public_key || "",
               }}
             />
           )}
