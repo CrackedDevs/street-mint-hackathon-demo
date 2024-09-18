@@ -8,25 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ArrowLeftIcon,
-  MapPinIcon,
-  UploadIcon,
-  TrashIcon,
-  CalendarIcon,
-} from "lucide-react";
-import {
-  Collectible,
-  fetchCollectibleById,
-  QuantityType,
-  updateCollectible,
-  uploadImage,
-} from "@/lib/supabaseClient";
+import { ArrowLeftIcon, MapPinIcon, UploadIcon, TrashIcon, CalendarIcon } from "lucide-react";
+import { Collectible, fetchCollectibleById, QuantityType, updateCollectible, uploadImage } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
+import withAuth from "@/app/dashboard/withAuth";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-export default function EditCollectiblePage() {
+function EditCollectiblePage() {
   const router = useRouter();
   const { id: collectionId, collectibleId } = useParams();
   const { toast } = useToast();
@@ -38,9 +27,7 @@ export default function EditCollectiblePage() {
     // Fetch the collectible data
     const fetchCollectible = async () => {
       // Implement this function in your supabaseClient
-      const fetchedCollectible = await fetchCollectibleById(
-        Number(collectibleId)
-      );
+      const fetchedCollectible = await fetchCollectibleById(Number(collectibleId));
       if (fetchedCollectible) {
         setCollectible({
           ...fetchedCollectible,
@@ -65,9 +52,7 @@ export default function EditCollectiblePage() {
   const handleGalleryImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && newGalleryImages.length < 5) {
       const filesArray = Array.from(e.target.files);
-      const validFiles = filesArray.filter(
-        (file) => file.size <= MAX_FILE_SIZE
-      );
+      const validFiles = filesArray.filter((file) => file.size <= MAX_FILE_SIZE);
       const invalidFiles = filesArray.length - validFiles.length;
 
       if (invalidFiles > 0) {
@@ -83,8 +68,7 @@ export default function EditCollectiblePage() {
       } else {
         toast({
           title: "Error",
-          description:
-            "You can only upload a maximum of 5 images per collectible.",
+          description: "You can only upload a maximum of 5 images per collectible.",
           variant: "destructive",
         });
       }
@@ -109,8 +93,7 @@ export default function EditCollectiblePage() {
     if (
       collectible.mint_start_date &&
       collectible.mint_end_date &&
-      new Date(collectible.mint_start_date) >=
-        new Date(collectible.mint_end_date)
+      new Date(collectible.mint_start_date) >= new Date(collectible.mint_end_date)
     ) {
       toast({
         title: "Invalid Date Range",
@@ -130,10 +113,7 @@ export default function EditCollectiblePage() {
 
       const updatedCollectible: Collectible = {
         ...collectible,
-        gallery_urls: [
-          ...collectible.gallery_urls,
-          ...uploadedGalleryUrls.filter(Boolean),
-        ],
+        gallery_urls: [...collectible.gallery_urls, ...uploadedGalleryUrls.filter(Boolean)],
       };
 
       const success = await updateCollectible(updatedCollectible);
@@ -165,55 +145,39 @@ export default function EditCollectiblePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => router.push(`/dashboard/collection/${collectionId}`)}
-          className="mb-8"
-        >
+        <Button variant="ghost" onClick={() => router.push(`/dashboard/collection/${collectionId}`)} className="mb-8">
           <ArrowLeftIcon className="mr-2 h-4 w-4" />
           Back to Collection
         </Button>
         <Card className="w-full shadow-lg">
           <CardHeader className="space-y-1 pb-8">
-            <CardTitle className="text-4xl font-bold text-center">
-              Edit Collectible
-            </CardTitle>
+            <CardTitle className="text-4xl font-bold text-center">Edit Collectible</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="space-y-6 bg-primary/5 p-6 border-2 border-black rounded-lg">
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="collectible-location"
-                    className="text-lg font-semibold flex items-center"
-                  >
+                  <Label htmlFor="collectible-location" className="text-lg font-semibold flex items-center">
                     <MapPinIcon className="mr-2 h-5 w-5" />
                     Location (Google Maps URL)
                   </Label>
                   <Input
                     id="collectible-location"
                     value={collectible.location ?? ""}
-                    onChange={(e) =>
-                      handleCollectibleChange("location", e.target.value)
-                    }
+                    onChange={(e) => handleCollectibleChange("location", e.target.value)}
                     placeholder="Enter Google Maps URL"
                     className="text-base"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="collectible-location-note"
-                    className="text-lg font-semibold"
-                  >
+                  <Label htmlFor="collectible-location-note" className="text-lg font-semibold">
                     Location Note
                   </Label>
                   <Textarea
                     id="collectible-location-note"
                     value={collectible.location_note ?? ""}
-                    onChange={(e) =>
-                      handleCollectibleChange("location_note", e.target.value)
-                    }
+                    onChange={(e) => handleCollectibleChange("location_note", e.target.value)}
                     placeholder="Add any additional details about the location"
                     className="min-h-[80px] text-base"
                   />
@@ -222,10 +186,7 @@ export default function EditCollectiblePage() {
 
               <div className="space-y-6 bg-primary/5 p-6 border-2 border-black rounded-lg">
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="mint-start-date"
-                    className="text-lg font-semibold flex items-center"
-                  >
+                  <Label htmlFor="mint-start-date" className="text-lg font-semibold flex items-center">
                     <CalendarIcon className="mr-2 h-5 w-5" />
                     Minting Start Date and Time
                   </Label>
@@ -234,18 +195,13 @@ export default function EditCollectiblePage() {
                     id="mint-start-date"
                     type="datetime-local"
                     value={collectible.mint_start_date ?? ""}
-                    onChange={(e) =>
-                      handleCollectibleChange("mint_start_date", e.target.value)
-                    }
+                    onChange={(e) => handleCollectibleChange("mint_start_date", e.target.value)}
                     className="text-base"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="mint-end-date"
-                    className="text-lg font-semibold flex items-center"
-                  >
+                  <Label htmlFor="mint-end-date" className="text-lg font-semibold flex items-center">
                     <CalendarIcon className="mr-2 h-5 w-5" />
                     Minting End Date and Time
                   </Label>
@@ -254,24 +210,17 @@ export default function EditCollectiblePage() {
                     id="mint-end-date"
                     type="datetime-local"
                     value={collectible.mint_end_date ?? ""}
-                    onChange={(e) =>
-                      handleCollectibleChange("mint_end_date", e.target.value)
-                    }
+                    onChange={(e) => handleCollectibleChange("mint_end_date", e.target.value)}
                     className="text-base"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label
-                  htmlFor="gallery-images"
-                  className="text-lg font-semibold"
-                >
+                <Label htmlFor="gallery-images" className="text-lg font-semibold">
                   Gallery Images (Max 5)
                 </Label>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Current images: {collectible.gallery_urls.length}
-                </p>
+                <p className="text-sm text-muted-foreground mb-2">Current images: {collectible.gallery_urls.length}</p>
                 <div className="flex flex-wrap gap-4 mt-4">
                   {collectible.gallery_urls.map((url, index) => (
                     <div key={index} className="relative group">
@@ -319,11 +268,7 @@ export default function EditCollectiblePage() {
                     accept="image/*"
                     multiple
                     onChange={handleGalleryImageChange}
-                    disabled={
-                      collectible.gallery_urls.length +
-                        newGalleryImages.length >=
-                      5
-                    }
+                    disabled={collectible.gallery_urls.length + newGalleryImages.length >= 5}
                     className="sr-only"
                   />
                   <Label
@@ -334,9 +279,7 @@ export default function EditCollectiblePage() {
                       <UploadIcon className="w-6 h-6 text-muted-foreground" />
                       <span className="text-base font-medium text-muted-foreground">
                         {newGalleryImages.length > 0
-                          ? `${newGalleryImages.length} new file${
-                              newGalleryImages.length > 1 ? "s" : ""
-                            } selected`
+                          ? `${newGalleryImages.length} new file${newGalleryImages.length > 1 ? "s" : ""} selected`
                           : "Add more images"}
                       </span>
                     </div>
@@ -344,11 +287,7 @@ export default function EditCollectiblePage() {
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full text-lg h-14 mt-8"
-                disabled={isSubmitting}
-              >
+              <Button type="submit" className="w-full text-lg h-14 mt-8" disabled={isSubmitting}>
                 {isSubmitting ? "Updating..." : "Update Collectible"}
               </Button>
             </form>
@@ -358,3 +297,5 @@ export default function EditCollectiblePage() {
     </div>
   );
 }
+
+export default withAuth(EditCollectiblePage);

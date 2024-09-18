@@ -460,10 +460,13 @@ export const createProfile = async (profileData: Artist) => {
 };
 
 export const getCollectionsByArtistId = async (artistId: number): Promise<PopulatedCollection[]> => {
-    const { data, error } = await supabase
-        .from("collections")
-        .select("*")
-        .eq("artist", artistId);
+    let query = supabase.from("collections").select("*");
+
+    if (artistId !== 0) {
+        query = query.eq("artist", artistId);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 

@@ -9,7 +9,6 @@ import {
   PopulatedCollection,
   deleteCollectionAndNFTs,
 } from "@/lib/supabaseClient";
-import { AnimatedSubscribeButton } from "@/components/magicui/animated-subscribe-button";
 import { useWallet } from "@solana/wallet-adapter-react";
 import withAuth from "../withAuth";
 import { PlusIcon, Loader2Icon, TrashIcon } from "lucide-react";

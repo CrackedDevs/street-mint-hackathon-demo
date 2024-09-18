@@ -4,10 +4,10 @@ import { ChevronRight } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { pluralize } from "@/lib/plural";
 
 export default function CollectionCard({
   collection,
+  isAdmin = false,
 }: {
   collection: {
     id: string;
@@ -15,13 +15,10 @@ export default function CollectionCard({
     description: string;
     collectible_image_urls: string[];
   };
+  isAdmin?: boolean;
 }) {
   const imagesToShow =
-    collection.collectible_image_urls.length >= 9
-      ? 9
-      : collection.collectible_image_urls.length >= 4
-      ? 4
-      : 1;
+    collection.collectible_image_urls.length >= 9 ? 9 : collection.collectible_image_urls.length >= 4 ? 4 : 1;
 
   return (
     <Card className="overflow-hidden bg-white h-[280px] flex flex-col justify-between z-20">
@@ -47,18 +44,14 @@ export default function CollectionCard({
           </div>
         </div>
         <div className="flex-1 space-y-2">
-          <h3 className="text-xl font-semibold leading-tight">
-            {collection.name}
-          </h3>
-          <p className="text-sm text-muted-foreground line-clamp-3">
-            {collection.description}
-          </p>
+          <h3 className="text-xl font-semibold leading-tight">{collection.name}</h3>
+          <p className="text-sm text-muted-foreground line-clamp-3">{collection.description}</p>
           <p className="text-sm text-muted-foreground line-clamp-3">
             Total collectibles: {collection.collectible_image_urls.length}
           </p>
         </div>
         <div className="mt-4">
-          <Link href={`/dashboard/collection/${collection.id}`}>
+          <Link href={isAdmin ? `/admin/collection/${collection.id}` : `/dashboard/collection/${collection.id}`}>
             <Button variant="secondary" size="sm" className="w-full">
               View Collection
               <ChevronRight className="ml-2 h-4 w-4" />
