@@ -2,31 +2,21 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import {
-  ChevronLeft,
-  ChevronRight,
-  PlusCircle,
-  MapPin,
-  Calendar,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, PlusCircle, MapPin, Calendar } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Collection,
-  Collectible,
-  getCollectionById,
-  fetchCollectiblesByCollectionId,
-} from "@/lib/supabaseClient";
+import { Collection, Collectible, getCollectionById, fetchCollectiblesByCollectionId } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import withAuth from "../../withAuth";
 
 type CollectionWithIds = Omit<Collection, "collectibles">;
 
-export default function Component() {
+function Component() {
   const { id } = useParams();
   const router = useRouter();
   const [collection, setCollection] = useState<CollectionWithIds | null>(null);
@@ -42,9 +32,7 @@ export default function Component() {
         setCollection({ ...collectionData } as CollectionWithIds);
       }
 
-      const collectiblesData = await fetchCollectiblesByCollectionId(
-        Number(id)
-      );
+      const collectiblesData = await fetchCollectiblesByCollectionId(Number(id));
 
       if (!collectiblesData) {
         console.error("Error fetching collectibles: No data returned");
@@ -86,9 +74,7 @@ export default function Component() {
           <Button
             className="inline-flex items-center"
             onClick={() => {
-              router.push(
-                `/dashboard/collection/${collection.id}/new-collectible`
-              );
+              router.push(`/dashboard/collection/${collection.id}/new-collectible`);
             }}
           >
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -97,9 +83,7 @@ export default function Component() {
         </div>
         <Card className="mb-8 bg-white shadow-lg">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-gray-900 mb-2">
-              {collection.name}
-            </CardTitle>
+            <CardTitle className="text-3xl font-bold text-gray-900 mb-2">{collection.name}</CardTitle>
             <p className="text-lg text-gray-600">{collection.description}</p>
           </CardHeader>
         </Card>
@@ -123,75 +107,46 @@ export default function Component() {
                   <h3 className="text-xl font-semibold mb-2 text-gray-900">
                     {collectible.name} #{collectible.id}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    {collectible.description}
-                  </p>
+                  <p className="text-sm text-gray-600 mb-4">{collectible.description}</p>
                   <div className="flex justify-between items-center mb-4">
-                    <Badge
-                      variant="secondary"
-                      className="text-xs font-semibold"
-                    >
+                    <Badge variant="secondary" className="text-xs font-semibold">
                       {collectible.quantity_type === "limited"
                         ? `Limited (${collectible.quantity})`
                         : collectible.quantity_type === "single"
                         ? "1 of 1"
                         : "Open Edition"}
                     </Badge>
-                    <span className="text-lg font-bold text-gray-900">
-                      ${collectible.price_usd}
-                    </span>
+                    <span className="text-lg font-bold text-gray-900">${collectible.price_usd}</span>
                   </div>
-                  {collectible.gallery_urls &&
-                    collectible.gallery_urls.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                          Gallery
-                        </h4>
-                        <div className="flex space-x-2">
-                          {collectible.gallery_urls.map((url, index) => (
-                            <div
-                              key={index}
-                              className="w-16 h-16 relative rounded-md overflow-hidden"
-                            >
-                              <Image
-                                src={url}
-                                alt={`Gallery image ${index + 1}`}
-                                layout="fill"
-                                objectFit="cover"
-                              />
-                            </div>
-                          ))}
-                        </div>
+                  {collectible.gallery_urls && collectible.gallery_urls.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Gallery</h4>
+                      <div className="flex space-x-2">
+                        {collectible.gallery_urls.map((url, index) => (
+                          <div key={index} className="w-16 h-16 relative rounded-md overflow-hidden">
+                            <Image src={url} alt={`Gallery image ${index + 1}`} layout="fill" objectFit="cover" />
+                          </div>
+                        ))}
                       </div>
-                    )}
+                    </div>
+                  )}
                   <div className="space-y-2 mt-4">
                     <div className="flex items-center text-sm text-blue-600">
                       <MapPin className="mr-2 h-4 w-4" />
-                      <a
-                        href={collectible.location ?? ""}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={collectible.location ?? ""} target="_blank" rel="noopener noreferrer">
                         {collectible.location || "Location not specified"}
                       </a>
                     </div>
                     {collectible.location_note && (
-                      <p className="text-sm text-gray-600 ml-6">
-                        {collectible.location_note}
-                      </p>
+                      <p className="text-sm text-gray-600 ml-6">{collectible.location_note}</p>
                     )}
                     <div className="flex items-center text-sm text-gray-600">
                       <Calendar className="mr-2 h-4 w-4" />
-                      <span>
-                        Mint Start:{" "}
-                        {collectible.mint_start_date || "Not specified"}
-                      </span>
+                      <span>Mint Start: {collectible.mint_start_date || "Not specified"}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Calendar className="mr-2 h-4 w-4" />
-                      <span>
-                        Mint End: {collectible.mint_end_date || "Not specified"}
-                      </span>
+                      <span>Mint End: {collectible.mint_end_date || "Not specified"}</span>
                     </div>
                   </div>
                 </div>
@@ -199,9 +154,7 @@ export default function Component() {
               <div className="p-4 bg-gray-50 border-t border-gray-200">
                 <Button
                   onClick={() =>
-                    router.push(
-                      `/dashboard/collection/${collection.id}/edit-collectible/${collectible.id}`
-                    )
+                    router.push(`/dashboard/collection/${collection.id}/edit-collectible/${collectible.id}`)
                   }
                   variant="ghost"
                   className="w-full text-sm text-gray-600 hover:text-gray-900 flex items-center justify-center"
@@ -217,3 +170,4 @@ export default function Component() {
     </div>
   );
 }
+export default withAuth(Component);

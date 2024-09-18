@@ -7,27 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import {
-  TrashIcon,
-  Loader2,
-  ArrowLeftIcon,
-  UploadIcon,
-  MapPinIcon,
-  CalendarIcon,
-} from "lucide-react";
-import {
-  Collectible,
-  createCollectible,
-  QuantityType,
-  uploadImage,
-} from "@/lib/supabaseClient";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { TrashIcon, Loader2, ArrowLeftIcon, UploadIcon, MapPinIcon, CalendarIcon } from "lucide-react";
+import { Collectible, createCollectible, QuantityType, uploadImage } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { NumericUUID } from "@/lib/utils";
@@ -36,9 +18,10 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import Delivery from "@/app/assets/delivery.svg";
+import withAuth from "@/app/dashboard/withAuth";
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-export default function CreateCollectiblePage() {
+function CreateCollectiblePage() {
   const router = useRouter();
   const { id: collectionId } = useParams();
   const { toast } = useToast();
@@ -63,8 +46,7 @@ export default function CreateCollectiblePage() {
     mint_start_date: "",
     mint_end_date: "",
   });
-  const [primaryImageLocalFile, setPrimaryImageLocalFile] =
-    useState<File | null>(null);
+  const [primaryImageLocalFile, setPrimaryImageLocalFile] = useState<File | null>(null);
   const [galleryImages, setGalleryImages] = useState<File[]>([]);
   const [isFreeMint, setIsFreeMint] = useState(false);
 
@@ -91,9 +73,7 @@ export default function CreateCollectiblePage() {
   const handleGalleryImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && galleryImages.length < 5) {
       const filesArray = Array.from(e.target.files);
-      const validFiles = filesArray.filter(
-        (file) => file.size <= MAX_FILE_SIZE
-      );
+      const validFiles = filesArray.filter((file) => file.size <= MAX_FILE_SIZE);
       const invalidFiles = filesArray.length - validFiles.length;
 
       if (invalidFiles > 0) {
@@ -109,8 +89,7 @@ export default function CreateCollectiblePage() {
       } else {
         toast({
           title: "Error",
-          description:
-            "You can only upload a maximum of 5 images per collectible.",
+          description: "You can only upload a maximum of 5 images per collectible.",
           variant: "destructive",
         });
       }
@@ -146,10 +125,7 @@ export default function CreateCollectiblePage() {
       });
       return;
     }
-    if (
-      collectible.quantity_type === QuantityType.Limited &&
-      !collectible.quantity
-    ) {
+    if (collectible.quantity_type === QuantityType.Limited && !collectible.quantity) {
       toast({
         title: "Enter quantity",
         description: "Enter quantity for limited quantity type",
@@ -178,10 +154,7 @@ export default function CreateCollectiblePage() {
         price_usd: isFreeMint ? 0 : collectible.price_usd,
       };
 
-      const createdCollectible = await createCollectible(
-        newCollectible,
-        Number(collectionId)
-      );
+      const createdCollectible = await createCollectible(newCollectible, Number(collectionId));
 
       if (createdCollectible) {
         setShowSuccessModal(true);
@@ -237,17 +210,12 @@ export default function CreateCollectiblePage() {
                   </div>
                 </motion.div>
 
-                <h2 className="text-3xl font-bold mb-4 text-primary">
-                  Collectible Created ⭐!
-                </h2>
+                <h2 className="text-3xl font-bold mb-4 text-primary">Collectible Created ⭐!</h2>
 
-                <p className="text-lg mb-6">
-                  Your NFC tag is on its way to you 🎉
-                </p>
+                <p className="text-lg mb-6">Your NFC tag is on its way to you 🎉</p>
 
                 <p className="text-sm mb-6 bg-primary/10 p-3 rounded-lg inline-block">
-                  Keep an eye on your mailbox. Youll receive a tracking number
-                  soon!
+                  Keep an eye on your mailbox. Youll receive a tracking number soon!
                 </p>
 
                 <Button
@@ -265,19 +233,13 @@ export default function CreateCollectiblePage() {
         )}
       </AnimatePresence>
       <div className="max-w-4xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => router.push(`/dashboard/collection/${collectionId}`)}
-          className="mb-8"
-        >
+        <Button variant="ghost" onClick={() => router.push(`/dashboard/collection/${collectionId}`)} className="mb-8">
           <ArrowLeftIcon className="mr-2 h-4 w-4" />
           Back to Collection
         </Button>
         <Card className="w-full shadow-lg">
           <CardHeader className="space-y-1 pb-8">
-            <CardTitle className="text-4xl font-bold text-center">
-              Create New Collectible
-            </CardTitle>
+            <CardTitle className="text-4xl font-bold text-center">Create New Collectible</CardTitle>
             <CardDescription className="text-center text-lg">
               Fill in the details below to create your new collectible.
             </CardDescription>
@@ -286,53 +248,37 @@ export default function CreateCollectiblePage() {
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="collectible-name"
-                    className="text-lg font-semibold"
-                  >
+                  <Label htmlFor="collectible-name" className="text-lg font-semibold">
                     Collectible Name <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="collectible-name"
                     value={collectible.name}
-                    onChange={(e) =>
-                      handleCollectibleChange("name", e.target.value)
-                    }
+                    onChange={(e) => handleCollectibleChange("name", e.target.value)}
                     className="text-lg"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="collectible-description"
-                    className="text-lg font-semibold"
-                  >
-                    Collectible Description{" "}
-                    <span className="text-destructive">*</span>
+                  <Label htmlFor="collectible-description" className="text-lg font-semibold">
+                    Collectible Description <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="collectible-description"
                     value={collectible.description}
-                    onChange={(e) =>
-                      handleCollectibleChange("description", e.target.value)
-                    }
+                    onChange={(e) => handleCollectibleChange("description", e.target.value)}
                     className="min-h-[120px] text-base"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="collectible-image"
-                    className="text-lg font-semibold"
-                  >
-                    Collectible Media{" "}
-                    <span className="text-destructive">*</span>
+                  <Label htmlFor="collectible-image" className="text-lg font-semibold">
+                    Collectible Media <span className="text-destructive">*</span>
                   </Label>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Supported formats: .png, .jpg, .jpeg, .gif, .mp4, .mov,
-                    .webm (Max size: 10MB)
+                    Supported formats: .png, .jpg, .jpeg, .gif, .mp4, .mov, .webm (Max size: 10MB)
                   </p>
                   <div className="relative">
                     <Input
@@ -350,9 +296,7 @@ export default function CreateCollectiblePage() {
                       <div className="flex items-center space-x-2">
                         <UploadIcon className="w-6 h-6 text-muted-foreground" />
                         <span className="text-base font-medium text-muted-foreground">
-                          {primaryImageLocalFile
-                            ? primaryImageLocalFile.name
-                            : "Choose file"}
+                          {primaryImageLocalFile ? primaryImageLocalFile.name : "Choose file"}
                         </span>
                       </div>
                     </Label>
@@ -360,50 +304,32 @@ export default function CreateCollectiblePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="collectible-quantity-type"
-                    className="text-lg font-semibold"
-                  >
+                  <Label htmlFor="collectible-quantity-type" className="text-lg font-semibold">
                     Quantity Type <span className="text-destructive">*</span>
                   </Label>
                   <select
                     id="collectible-quantity-type"
                     value={collectible.quantity_type}
-                    onChange={(e) =>
-                      handleCollectibleChange(
-                        "quantity_type",
-                        e.target.value as QuantityType
-                      )
-                    }
+                    onChange={(e) => handleCollectibleChange("quantity_type", e.target.value as QuantityType)}
                     className="w-full p-2 border rounded-md bg-background text-base"
                     required
                   >
                     <option value={QuantityType.Unlimited}>Open Edition</option>
                     <option value={QuantityType.Single}>1 of 1</option>
-                    <option value={QuantityType.Limited}>
-                      Limited Edition
-                    </option>
+                    <option value={QuantityType.Limited}>Limited Edition</option>
                   </select>
                 </div>
 
                 {collectible.quantity_type === QuantityType.Limited && (
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="collectible-quantity"
-                      className="text-lg font-semibold"
-                    >
+                    <Label htmlFor="collectible-quantity" className="text-lg font-semibold">
                       Quantity <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       id="collectible-quantity"
                       type="number"
                       value={collectible?.quantity || ""}
-                      onChange={(e) =>
-                        handleCollectibleChange(
-                          "quantity",
-                          parseInt(e.target.value)
-                        )
-                      }
+                      onChange={(e) => handleCollectibleChange("quantity", parseInt(e.target.value))}
                       className="text-base"
                     />
                   </div>
@@ -411,10 +337,7 @@ export default function CreateCollectiblePage() {
 
                 <div className="space-y-6 bg-primary/5 p-6 border-2 border-black rounded-lg">
                   <div className="flex items-center justify-between">
-                    <Label
-                      htmlFor="free-mint-toggle"
-                      className="text-lg font-semibold"
-                    >
+                    <Label htmlFor="free-mint-toggle" className="text-lg font-semibold">
                       Make Free Claim
                     </Label>
                     <Switch
@@ -426,22 +349,14 @@ export default function CreateCollectiblePage() {
                   </div>
                   {!isFreeMint && (
                     <div className="space-y-2">
-                      <Label
-                        htmlFor="collectible-price"
-                        className="text-lg font-semibold"
-                      >
+                      <Label htmlFor="collectible-price" className="text-lg font-semibold">
                         Price (USD) <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="collectible-price"
                         type="number"
                         value={collectible.price_usd}
-                        onChange={(e) =>
-                          handleCollectibleChange(
-                            "price_usd",
-                            parseFloat(e.target.value)
-                          )
-                        }
+                        onChange={(e) => handleCollectibleChange("price_usd", parseFloat(e.target.value))}
                         placeholder="Enter price in USD"
                         required
                         className="text-base"
@@ -452,19 +367,14 @@ export default function CreateCollectiblePage() {
 
                 <div className="space-y-6 bg-primary/5 p-6 border-2 border-black rounded-lg">
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="collectible-location"
-                      className="text-lg font-semibold flex items-center"
-                    >
+                    <Label htmlFor="collectible-location" className="text-lg font-semibold flex items-center">
                       <MapPinIcon className="mr-2 h-5 w-5" />
                       Location (Google Maps URL) *
                     </Label>
                     <Input
                       id="collectible-location"
                       value={collectible.location ?? ""}
-                      onChange={(e) =>
-                        handleCollectibleChange("location", e.target.value)
-                      }
+                      onChange={(e) => handleCollectibleChange("location", e.target.value)}
                       placeholder="Enter Google Maps URL"
                       className="text-base"
                       required
@@ -472,18 +382,13 @@ export default function CreateCollectiblePage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="collectible-location-note"
-                      className="text-lg font-semibold"
-                    >
+                    <Label htmlFor="collectible-location-note" className="text-lg font-semibold">
                       Location Note
                     </Label>
                     <Textarea
                       id="collectible-location-note"
                       value={collectible.location_note ?? ""}
-                      onChange={(e) =>
-                        handleCollectibleChange("location_note", e.target.value)
-                      }
+                      onChange={(e) => handleCollectibleChange("location_note", e.target.value)}
                       placeholder="Add any additional details about the location"
                       className="min-h-[80px] text-base"
                     />
@@ -493,10 +398,7 @@ export default function CreateCollectiblePage() {
 
                 <div className="space-y-6 bg-primary/5 p-6 border-2 border-black rounded-lg">
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="mint-start-date"
-                      className="text-lg font-semibold flex items-center"
-                    >
+                    <Label htmlFor="mint-start-date" className="text-lg font-semibold flex items-center">
                       <CalendarIcon className="mr-2 h-5 w-5" />
                       Minting Start Date and Time *
                     </Label>
@@ -505,22 +407,14 @@ export default function CreateCollectiblePage() {
                       id="mint-start-date"
                       type="datetime-local"
                       value={collectible.mint_start_date ?? ""}
-                      onChange={(e) =>
-                        handleCollectibleChange(
-                          "mint_start_date",
-                          e.target.value
-                        )
-                      }
+                      onChange={(e) => handleCollectibleChange("mint_start_date", e.target.value)}
                       className="text-base w-fit"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="mint-end-date"
-                      className="text-lg font-semibold flex items-center"
-                    >
+                    <Label htmlFor="mint-end-date" className="text-lg font-semibold flex items-center">
                       <CalendarIcon className="mr-2 h-5 w-5" />
                       Minting End Date and Time *
                     </Label>
@@ -529,9 +423,7 @@ export default function CreateCollectiblePage() {
                       id="mint-end-date"
                       type="datetime-local"
                       value={collectible.mint_end_date ?? ""}
-                      onChange={(e) =>
-                        handleCollectibleChange("mint_end_date", e.target.value)
-                      }
+                      onChange={(e) => handleCollectibleChange("mint_end_date", e.target.value)}
                       className="text-base w-fit"
                       required
                     />
@@ -540,15 +432,11 @@ export default function CreateCollectiblePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="gallery-images"
-                    className="text-lg font-semibold"
-                  >
+                  <Label htmlFor="gallery-images" className="text-lg font-semibold">
                     Gallery Images (Max 5)
                   </Label>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Supported formats: .png, .jpg, .jpeg, .gif, .mp4, .mov,
-                    .webm (Max size: 10MB)
+                    Supported formats: .png, .jpg, .jpeg, .gif, .mp4, .mov, .webm (Max size: 10MB)
                   </p>
                   <div className="relative">
                     <Input
@@ -568,9 +456,7 @@ export default function CreateCollectiblePage() {
                         <UploadIcon className="w-6 h-6 text-muted-foreground" />
                         <span className="text-base font-medium text-muted-foreground">
                           {galleryImages.length > 0
-                            ? `${galleryImages.length} file${
-                                galleryImages.length > 1 ? "s" : ""
-                              } selected`
+                            ? `${galleryImages.length} file${galleryImages.length > 1 ? "s" : ""} selected`
                             : "Choose files"}
                         </span>
                       </div>
@@ -588,12 +474,7 @@ export default function CreateCollectiblePage() {
                             className="rounded-md object-cover"
                           />
                         ) : (
-                          <video
-                            src={URL.createObjectURL(file)}
-                            width={100}
-                            height={100}
-                            className="rounded-md"
-                          />
+                          <video src={URL.createObjectURL(file)} width={100} height={100} className="rounded-md" />
                         )}
                         <Button
                           variant="destructive"
@@ -609,11 +490,7 @@ export default function CreateCollectiblePage() {
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full text-lg h-14 mt-8"
-                disabled={isSubmitting}
-              >
+              <Button type="submit" className="w-full text-lg h-14 mt-8" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-6 w-6 animate-spin" />
@@ -630,3 +507,4 @@ export default function CreateCollectiblePage() {
     </div>
   );
 }
+export default withAuth(CreateCollectiblePage);
