@@ -613,6 +613,7 @@ export async function verifyNfcSignature(rnd: string, sign: string, pubKey: stri
     }
     const isValid = await isSignatureValid(rnd, sign, pubKey);
     if (!isValid) {
+        console.log("NFC signature is not valid");
         return false;
     }
 
@@ -627,6 +628,7 @@ export async function verifyNfcSignature(rnd: string, sign: string, pubKey: stri
         false
     }
     if (data) {
+        console.log("NFC tap already recorded");
         return false;
     }
 
