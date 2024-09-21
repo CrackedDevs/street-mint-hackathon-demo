@@ -625,7 +625,7 @@ export async function verifyNfcSignature(rnd: string, sign: string, pubKey: stri
 
     if (error && error.code !== 'PGRST116') {
         console.error('Error checking NFC tap:', error);
-        false
+        return false
     }
     if (data) {
         console.log("NFC tap already recorded");
