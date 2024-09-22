@@ -14,6 +14,7 @@ import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import withAuth from "../../withAuth";
+import { TimeService } from "@/lib/services/timeService";
 
 type CollectionWithIds = Omit<Collection, "collectibles">;
 
@@ -147,11 +148,11 @@ function Component() {
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Calendar className="mr-2 h-4 w-4" />
-                      <span>Mint Start: {formatDate(collectible.mint_start_date)}</span>
+                      <span>Mint Start: {TimeService.formatDate(collectible.mint_start_date)}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Calendar className="mr-2 h-4 w-4" />
-                      <span>Mint End: {formatDate(collectible.mint_end_date)}</span>
+                      <span>Mint End: {TimeService.formatDate(collectible.mint_end_date)}</span>
                     </div>
                   </div>
                 </div>
@@ -175,18 +176,5 @@ function Component() {
     </div>
   );
 }
-
-const formatDate = (dateString: string | null): string => {
-  if (!dateString) return "Not specified";
-  const date = new Date(dateString);
-  return date.toLocaleString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric', 
-    hour: '2-digit', 
-    minute: '2-digit',
-    hour12: true 
-  });
-};
 
 export default withAuth(Component);

@@ -1,10 +1,9 @@
-export class SolanaExplorerService {
-    private static readonly BASE_URL = 'https://explorer.solana.com';
-    private static readonly CLUSTER = process.env.NODE_ENV === 'development' ? 'devnet' : 'mainnet';
+export class SolanaFMService {
+    private static readonly BASE_URL = 'https://solana.fm';
+    private static readonly CLUSTER = process.env.NODE_ENV === 'development' ? 'devnet-alpha' : 'mainnet-beta';
 
     private static getUrl(type: 'tx' | 'address', id: string): string {
-        const clusterParam = this.CLUSTER === 'devnet' ? '?cluster=devnet' : '';
-        return `${this.BASE_URL}/${type}/${id}${clusterParam}`;
+        return `${this.BASE_URL}/${type}/${id}?cluster=${this.CLUSTER}`;
     }
 
     static getTransaction(transactionSignature: string): string {

@@ -14,6 +14,8 @@ import AnimatedShinyText from "@/components/magicui/animated-shiny-text";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Earth, Stars } from "lucide-react";
+import { TimeService } from "@/lib/services/timeService";
+import { EditionService } from "@/lib/services/editionService";
 
 const EditionInformation = ({
   collection,
@@ -50,11 +52,11 @@ const EditionInformation = ({
       if (now < startDate) {
         setMintingStatus("not-started");
         const timeToStart = startDate.getTime() - now.getTime();
-        setTimeLeft(formatTimeLeft(timeToStart));
+        setTimeLeft(TimeService.formatTimeLeft(timeToStart));
       } else if (now >= startDate && now <= endDate) {
         setMintingStatus("ongoing");
         const timeToEnd = endDate.getTime() - now.getTime();
-        setTimeLeft(formatTimeLeft(timeToEnd));
+        setTimeLeft(TimeService.formatTimeLeft(timeToEnd));
       } else {
         setMintingStatus("ended");
         setTimeLeft("");
@@ -67,28 +69,6 @@ const EditionInformation = ({
     return () => clearInterval(interval);
   }, [collectible.mint_start_date, collectible.mint_end_date]);
 
-  const formatTimeLeft = (ms: number) => {
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    return `${days}d ${hours % 24}h ${minutes % 60}m ${seconds % 60}s`;
-  };
-
-  const getEditionTypeText = (type: QuantityType) => {
-    switch (type) {
-      case "unlimited":
-        return "Open Edition";
-      case "limited":
-        return "Limited Edition";
-      case "single":
-        return "1 0f 1";
-      default:
-        return "Unknown Edition Type";
-    }
-  };
-
   return (
     <div>
       <Card className="bg-black mx-auto text-white my-2">
@@ -99,7 +79,7 @@ const EditionInformation = ({
                 variant="secondary"
                 className="text-black text-md md:text-lg"
               >
-                {getEditionTypeText(collectible.quantity_type as QuantityType)}
+                {EditionService.getEditionTypeText(collectible.quantity_type as QuantityType)}
               </Badge>
               <span className="md:text-2xl text-md ml-2 font-bold">
                 {collectible.quantity_type === QuantityType.Limited &&

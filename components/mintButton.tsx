@@ -27,7 +27,8 @@ import { CheckIcon, CopyIcon, HeartIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import Artist from "@/app/assets/artist.png";
 import LocationButton from "./LocationButton";
-import { SolanaExplorerService } from "@/lib/services/solanaExplorerService";
+import { SolanaFMService } from "@/lib/services/solanaExplorerService";
+
 interface MintButtonProps {
   collectible: Collectible;
   collection: Collection;
@@ -476,7 +477,7 @@ export default function MintButton({
           {error && <p className="text-red-500 mt-2">{error}</p>}
           {transactionSignature && (
             <a
-              href={SolanaExplorerService.getTransaction(transactionSignature)}
+              href={SolanaFMService.getTransaction(transactionSignature)}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-500 mt-2 hover:underline"

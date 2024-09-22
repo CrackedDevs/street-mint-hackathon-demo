@@ -5,20 +5,19 @@ import {
   createSignerFromKeypair,
   signerIdentity,
   publicKey,
-  percentAmount,
 } from "@metaplex-foundation/umi";
 
 import {
-  createNft,
   fetchDigitalAsset,
   mplTokenMetadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import bs58 from "bs58";
 import {
-  createTree,
   mplBubblegum,
-  mintV1 as mintV1BubbleGum,
   mintToCollectionV1,
+  findLeafAssetIdPda,
+  LeafSchema,
+  parseLeafFromMintToCollectionV1Transaction,
 } from "@metaplex-foundation/mpl-bubblegum";
 import { Collection } from "@/lib/supabaseClient";
 
@@ -48,25 +47,9 @@ export async function createBubbleGumTree(collectionData: Collection) {
       throw new Error("No collection data found");
     }
 
-    const collectionTx = await createNft(umi, {
-      mint: collectionMint,
-      name: collectionData.name,
-      uri: collectionData.metadata_uri || "",
-      sellerFeeBasisPoints: percentAmount(5), // 5.5%
-      isCollection: true,
-    }).sendAndConfirm(umi);
-
     console.log(
       `✅ Created collection: ${collectionMint.publicKey.toString()}`
     );
-    // console.log(`Collection transaction: ${collectionTx.signature.toString()}`);
-
-    const builder = await createTree(umi, {
-      merkleTree,
-      maxDepth: 5,
-      maxBufferSize: 8,
-    });
-    const tx = await builder.sendAndConfirm(umi);
 
     console.log(
       `✅ Created Bubble Gum Tree: ${merkleTree.publicKey.toString()}`
@@ -121,15 +104,19 @@ export async function mintNFTWithBubbleGumTree(
         ],
       },
     }).sendAndConfirm(umi);
-    console.log("Minting transaction completed:", tx.signature.toString());
+
+    const leaf: LeafSchema = await parseLeafFromMintToCollectionV1Transaction(umi, tx.signature);
+    const assetId = findLeafAssetIdPda(umi, { merkleTree, leafIndex: leaf.nonce });
+
+    const tokenAddress = assetId.toString().split(",")[0];
 
     const txSignature = bs58.encode(tx.signature);
-
     const solscanLink =
       process.env.NODE_ENV === "development"
         ? `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
         : `https://explorer.solana.com/tx/${txSignature}`;
-    return { signature: txSignature, solscanLink: solscanLink };
+
+    return { signature: txSignature, solscanLink: solscanLink, tokenAddress };
   } catch (error) {
     console.error("Error minting NFT with BubbleGum Tree:", error);
     throw error;

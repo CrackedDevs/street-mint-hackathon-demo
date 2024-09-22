@@ -218,6 +218,7 @@ export async function POST(req: Request, res: NextApiResponse) {
         status: "completed",
         transaction_signature: txSignature,
         mint_signature: mintResult.signature,
+        mint_address: mintResult.tokenAddress,
       })
       .eq("id", orderId);
 

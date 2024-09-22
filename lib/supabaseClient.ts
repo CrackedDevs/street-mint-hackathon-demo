@@ -1,6 +1,7 @@
 import { AuthError, createClient, User } from '@supabase/supabase-js';
 import { Database } from './types/database.types';
 import { isSignatureValid } from './nfcVerificationHellper';
+import { GalleryItem } from '@/app/gallery/galleryGrid';
 export const dynamic = 'force-dynamic';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -675,4 +676,35 @@ export async function getCompletedOrdersCount(collectibleId: number): Promise<nu
     }
 
     return count || 0;
+}
+
+export async function getGalleryInformationByTokenAddresses(tokenAddresses: string[]) {
+    const { data, error } = await supabase
+        .from('orders')
+        .select(`
+            mint_address,
+            created_at,
+            collectibles(name, primary_image_url, quantity_type, location),
+            collections(name)
+        `)
+        .in('mint_address', tokenAddresses)
+        .eq('status', 'completed');
+
+    if (error) {
+        console.error('Error fetching gallery information:', error);
+        return [];
+    }
+
+    // Format the returned data to include only the relevant fields
+    const formattedData: GalleryItem[] = data.map((order: any) => ({
+        imageUrl: order.collectibles.primary_image_url,
+        collectibleName: order.collectibles.name,
+        collectionName: order.collections.name,
+        quantityType: order.collectibles.quantity_type,
+        mintAddress: order.mint_address,
+        locationMinted: order.collectibles.location,
+        orderDate: order.created_at
+    }));
+
+    return formattedData;
 }

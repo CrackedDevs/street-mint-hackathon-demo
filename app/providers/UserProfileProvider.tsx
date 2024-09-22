@@ -44,7 +44,6 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(false);
   const { publicKey, signMessage, disconnect, connected } = useWallet();
   const router = useRouter();
-  const pathname = usePathname();
 
   const signAndSendMessage = async () => {
     const message = new TextEncoder().encode(
@@ -140,7 +139,6 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("supabase_token");
     disconnect();
     setUserProfile(null);
-    router.push("/dashboard");
   };
 
   return (
