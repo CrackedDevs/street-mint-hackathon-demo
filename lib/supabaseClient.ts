@@ -462,11 +462,30 @@ export const createProfile = async (profileData: Artist) => {
 export const getCollectionsByArtistId = async (artistId: number): Promise<PopulatedCollection[]> => {
     let query = supabase.from("collections").select("*");
 
-    if (artistId !== 0) {
+    if (artistId) {
         query = query.eq("artist", artistId);
     }
 
     const { data, error } = await query;
+
+    if (error) throw error;
+
+    const transformedData = await Promise.all(data.map(async (collection) => {
+        const collectibles = await fetchCollectiblesByCollectionId(collection.id);
+        return {
+            id: collection.id,
+            name: collection.name,
+            description: collection.description,
+            collectible_image_urls: collectibles?.map(collectible => collectible.primary_image_url) || []
+        };
+    }));
+
+    return transformedData;
+};
+
+
+export const getAllCollections = async (): Promise<PopulatedCollection[]> => {
+    const { data, error } = await supabase.from("collections").select("*");
 
     if (error) throw error;
 

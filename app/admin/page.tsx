@@ -1,22 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { getCollectionsByArtistId, PopulatedCollection } from "@/lib/supabaseClient";
-import Link from "next/link";
+import { PopulatedCollection } from "@/lib/supabaseClient";
 import CollectionCard from "@/components/collectionCard";
+import { loginAdmin } from "./actions";
 
 export default function AdminDashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [password, setPassword] = useState("");
   const [collections, setCollections] = useState<PopulatedCollection[]>([]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === "admin1234") {
-      // Dummy password
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const result = await loginAdmin(password);
+    if (result.success) {
       setIsLoggedIn(true);
-      const fetchedCollections = await getCollectionsByArtistId(0); // 0 or some admin ID
-      setCollections(fetchedCollections);
+      setCollections(result.collections);
     } else {
       alert("Incorrect password");
     }

@@ -21,7 +21,7 @@ export default function CollectionCard({
     collection.collectible_image_urls.length >= 9 ? 9 : collection.collectible_image_urls.length >= 4 ? 4 : 1;
 
   return (
-    <Card className="overflow-hidden bg-white h-[280px] flex flex-col justify-between z-20">
+    <Card className="overflow-hidden bg-white h-[300px] flex flex-col justify-between z-20">
       <CardContent className="p-6 flex flex-col h-full">
         <div className="mb-4">
           <div className={`grid gap-1 grid-cols-6 overflow-hidden`}>
@@ -48,6 +48,9 @@ export default function CollectionCard({
           <p className="text-sm text-muted-foreground line-clamp-3">{collection.description}</p>
           <p className="text-sm text-muted-foreground line-clamp-3">
             Total collectibles: {collection.collectible_image_urls.length}
+          </p>
+          <p className="text-sm text-muted-foreground line-clamp-3">
+            Collection ID: {collection.id}
           </p>
         </div>
         <div className="mt-4">

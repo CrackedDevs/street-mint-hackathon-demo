@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Badge, Calendar, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { Badge, Calendar, ChevronLeft, ChevronRight, MapPin, MapPinned } from "lucide-react";
 
 export default async function CollectionDetails({ params }: { params: { id: string } }) {
   const id = params.id;
@@ -49,15 +49,19 @@ export default async function CollectionDetails({ params }: { params: { id: stri
                 </div>
                 <div className="p-4">
                   <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                    {collectible.name} #{collectible.id}
+                    {collectible.name}
                   </h3>
                   <p className="text-sm text-gray-600 mb-4 line-clamp-2">{collectible.description}</p>
 
                   <div className="space-y-2 mt-4">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Badge className="mr-2 h-4 w-4" />
+                      <span>Mint ID: {collectible.id}</span>
+                    </div>
                     <div className="flex items-center text-sm text-blue-600">
-                      <MapPin className="mr-2 h-4 w-4" />
+                      <MapPinned className="h-4 w-4 mr-2 flex-shrink-0" />
                       <a href={collectible.location ?? ""} target="_blank" rel="noopener noreferrer">
-                        {collectible.location || "Location not specified"}
+                        {collectible.location && 'View Location' || "Location not specified"}
                       </a>
                     </div>
                   </div>
