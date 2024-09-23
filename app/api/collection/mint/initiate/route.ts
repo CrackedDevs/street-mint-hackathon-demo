@@ -2,6 +2,7 @@ import { NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 import { checkMintEligibility, supabase } from "@/lib/supabaseClient";
 import { NextResponse } from "next/server";
+import { getSupabaseAdmin } from "@/lib/supabaseAdminClient";
 
 export async function POST(req: Request, res: NextApiResponse) {
   const { collectibleId, walletAddress, deviceId, collectionId } =
@@ -44,7 +45,8 @@ export async function POST(req: Request, res: NextApiResponse) {
     }
 
     // Create order in database
-    const { data: order, error: insertError } = await supabase
+    const supabaseAdmin = await getSupabaseAdmin();
+    const { data: order, error: insertError } = await supabaseAdmin
       .from("orders")
       .insert({
         id: uuidv4(),

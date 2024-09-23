@@ -10,6 +10,7 @@ import {
 import { supabase } from "@/lib/supabaseClient";
 import { mintNFTWithBubbleGumTree } from "../../collection.helper";
 import { NextResponse } from "next/server";
+import { getSupabaseAdmin } from "@/lib/supabaseAdminClient";
 
 function verifyTransactionAmount(
   transaction: Transaction | VersionedTransaction,
@@ -120,8 +121,6 @@ export async function POST(req: Request, res: NextApiResponse) {
       throw new Error("No transaction found");
     }
 
-    let txSignature = null;
-
     // For paid mints, verify and send transaction
     if (order.price_usd && order.price_usd > 0) {
       if (!signedTransaction) {
@@ -212,12 +211,13 @@ export async function POST(req: Request, res: NextApiResponse) {
       throw new Error("Failed to mint NFT");
     }
     // Update order status
-    const { error: updateError } = await supabase
+    const supabaseAdmin = await getSupabaseAdmin();
+    const { error: updateError } = await supabaseAdmin
       .from("orders")
       .update({
         status: "completed",
-        transaction_signature: txSignature,
         mint_signature: mintResult.signature,
+        mint_address: mintResult.tokenAddress,
       })
       .eq("id", orderId);
 
@@ -228,15 +228,16 @@ export async function POST(req: Request, res: NextApiResponse) {
     return NextResponse.json(
       {
         success: true,
-        txSignature,
         mintSignature: mintResult.signature,
+        tokenAddress: mintResult.tokenAddress,
       },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error processing minting:", error);
     // Update order status to failed
-    await supabase
+    const supabaseAdmin = await getSupabaseAdmin();
+    await supabaseAdmin
       .from("orders")
       .update({ status: "failed" })
       .eq("id", orderId);

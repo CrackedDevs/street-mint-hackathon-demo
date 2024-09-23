@@ -198,8 +198,14 @@ export default async function NFTPage({
               <div>
                 <p className="text-gray-400">Price per edition</p>
                 <p>
-                  ${collectible.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)}{" "}
-                  SOL)
+                {collectible.price_usd > 0 ? (
+                    <>
+                      ${collectible.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)}{" "}
+                      SOL)
+                    </>
+                  ) : (
+                    "Free"
+                  )}
                 </p>
               </div>
               <div>

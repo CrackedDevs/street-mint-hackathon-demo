@@ -7,12 +7,14 @@ import { ChevronLeft, ChevronRight, PlusCircle, MapPin, Calendar } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Badge as BadgeIcon } from "lucide-react";
 import { Collection, Collectible, getCollectionById, fetchCollectiblesByCollectionId } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import withAuth from "../../withAuth";
+import { TimeService } from "@/lib/services/timeService";
 
 type CollectionWithIds = Omit<Collection, "collectibles">;
 
@@ -105,7 +107,7 @@ function Component() {
                 </div>
                 <div className="p-4">
                   <h3 className="text-xl font-semibold mb-2 text-gray-900">
-                    {collectible.name} #{collectible.id}
+                    {collectible.name}
                   </h3>
                   <p className="text-sm text-gray-600 mb-4">{collectible.description}</p>
                   <div className="flex justify-between items-center mb-4">
@@ -116,7 +118,7 @@ function Component() {
                         ? "1 of 1"
                         : "Open Edition"}
                     </Badge>
-                    <span className="text-lg font-bold text-gray-900">${collectible.price_usd}</span>
+                    <span className="text-lg font-bold text-gray-900">{collectible.price_usd > 0 ? `$${collectible.price_usd}` : "Free"}</span>
                   </div>
                   {collectible.gallery_urls && collectible.gallery_urls.length > 0 && (
                     <div className="mb-4">
@@ -134,19 +136,23 @@ function Component() {
                     <div className="flex items-center text-sm text-blue-600">
                       <MapPin className="mr-2 h-4 w-4" />
                       <a href={collectible.location ?? ""} target="_blank" rel="noopener noreferrer">
-                        {collectible.location || "Location not specified"}
+                        {collectible.location && 'View Location' || "Location not specified"}
                       </a>
                     </div>
                     {collectible.location_note && (
                       <p className="text-sm text-gray-600 ml-6">{collectible.location_note}</p>
                     )}
                     <div className="flex items-center text-sm text-gray-600">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      <span>Mint Start: {collectible.mint_start_date || "Not specified"}</span>
+                      <BadgeIcon className="mr-2 h-4 w-4" />
+                      <span>Collectible ID: {collectible.id}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Calendar className="mr-2 h-4 w-4" />
-                      <span>Mint End: {collectible.mint_end_date || "Not specified"}</span>
+                      <span>Mint Start: {TimeService.formatDate(collectible.mint_start_date)}</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <span>Mint End: {TimeService.formatDate(collectible.mint_end_date)}</span>
                     </div>
                   </div>
                 </div>
@@ -170,4 +176,5 @@ function Component() {
     </div>
   );
 }
+
 export default withAuth(Component);

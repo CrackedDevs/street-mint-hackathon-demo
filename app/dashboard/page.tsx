@@ -10,9 +10,8 @@ import Page from "@/app/dashboard/profile/page";
 
 const DashboardPage = () => {
   const { connected } = useWallet();
-  const { isLoading } = useUserProfile();
+  const { isLoading, userProfile } = useUserProfile();
   const router = useRouter();
-  const { userProfile } = useUserProfile();
 
   const [profileNotComplete, setProfileNotComplete] = useState(false);
 
@@ -24,6 +23,12 @@ const DashboardPage = () => {
     }
   }, [userProfile]);
 
+  useEffect(() => {
+    if (connected && !isLoading && userProfile) {
+      router.push("/dashboard/collection");
+    }
+  }, [connected, isLoading, router]);
+
   const handleConnect = () => {
     const button = document.querySelector(
       ".wallet-adapter-button"
@@ -31,10 +36,6 @@ const DashboardPage = () => {
     if (button) {
       button.click();
     }
-  };
-
-  const handleGoToCollection = () => {
-    router.push("/dashboard/collection");
   };
 
   return (
@@ -53,32 +54,21 @@ const DashboardPage = () => {
               <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto font-raleway">
                 Start selling your digital collectibles in minutes.
               </p>
-              {isLoading ? (
-                <ShimmerButton className="shadow-2xl">
-                  <div className="flex items-center w-16 h-6 justify-center">
-                    <div className="animate-spin text-white rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                  </div>
-                </ShimmerButton>
-              ) : connected ? (
-                <ShimmerButton
-                  className="shadow-2xl"
-                  onClick={() => handleGoToCollection()}
-                  // Always use () => handleFunction() to avoid calling the function on render
-                >
-                  <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-                    Create Collection!
-                  </span>
-                </ShimmerButton>
-              ) : (
                 <ShimmerButton
                   className="shadow-2xl"
                   onClick={() => handleConnect()}
+                  disabled={isLoading}
                 >
-                  <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-                    Connect Wallet
-                  </span>
-                </ShimmerButton>
-              )}
+                  {isLoading ? (
+                    <div className="flex items-center w-16 h-6 justify-center">
+                      <div className="animate-spin text-white rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                    </div>
+                  ) : (
+                    <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+                      Connect Wallet
+                    </span>
+                )}
+              </ShimmerButton>
               <div className="hidden">
                 <WalletMultiButton />
               </div>

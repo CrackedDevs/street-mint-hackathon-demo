@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { SolanaFMService } from "@/lib/services/solanaExplorerService";
 
 interface Order {
   id: string;
@@ -96,7 +97,7 @@ const columns: ColumnDef<Order>[] = [
       const signature = row.getValue("mint_signature") as string;
       return signature ? (
         <a
-          href={`https://explorer.solana.com/tx/${signature}?cluster=devnet`}
+          href={SolanaFMService.getTransaction(signature)}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 hover:underline"

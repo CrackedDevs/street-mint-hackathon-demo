@@ -63,30 +63,6 @@ function CollectionsPage() {
     fetchCollections();
   }, [userProfile]);
 
-  const handleDeleteCollection = async (collectionId: number) => {
-    try {
-      const { success, error } = await deleteCollectionAndNFTs(collectionId);
-      if (success) {
-        setCollections(collections.filter((c) => c.id !== collectionId));
-        toast({
-          title: "Success",
-          description: "Collection deleted successfully.",
-          variant: "default",
-        });
-      } else {
-        throw new Error(error || "Unknown error occurred");
-      }
-    } catch (error) {
-      console.error("Error deleting collection:", error);
-      toast({
-        title: "Failed to delete collection",
-        description:
-          "One probable reason can be that the collectible has is minted.",
-        variant: "destructive",
-      });
-    }
-  };
-
   if (!connected) {
     return <></>;
   }
@@ -103,7 +79,7 @@ function CollectionsPage() {
           </Link>
         </div>
 
-        {loading ? (
+        {loading || !connected ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(3)].map((_, index) => (
               <Card key={index} className="w-full h-64 animate-pulse z-20">

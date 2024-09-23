@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,18 +8,15 @@ import {
 import { Wallet, LogOut, Plug, User } from "lucide-react";
 import { shortenAddress } from "@/lib/shortenAddress";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { supabase } from "@/lib/supabaseClient";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useRouter } from "next/navigation";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
 
 const ConnectedWalletWidget = () => {
   const { publicKey, connected } = useWallet();
-  const router = useRouter();
   const { userProfile, isLoading, handleDisconnect } = useUserProfile();
 
   if (!connected || isLoading) {
-    return <></>;
+    return <div/>;
   }
 
   return (

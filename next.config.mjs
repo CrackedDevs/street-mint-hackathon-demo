@@ -24,6 +24,19 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "arweave.net",
+        port: "",
+        pathname: "/**",
+      },
+      // Add this new pattern for the specific Arweave hostname
+      {
+        protocol: "https",
+        hostname: "*.arweave.net",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "iaulwnqmthzvuxfubnsb.supabase.co",
         port: "",
         pathname: "/storage/v1/object/public/**",
