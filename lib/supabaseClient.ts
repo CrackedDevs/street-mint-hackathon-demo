@@ -5,6 +5,7 @@ import { GalleryItem } from '@/app/gallery/galleryGrid';
 export const dynamic = 'force-dynamic';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export type Collection = {
     id: number;
@@ -97,6 +98,14 @@ export const createFetch =
         };
 
 export const supabase = createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
+    global: {
+        fetch: createFetch({
+            cache: 'no-store',
+        }),
+    },
+},);
+
+export const supabaseAdmin = createClient<Database>(supabaseUrl!, supabaseServiceRoleKey!, {
     global: {
         fetch: createFetch({
             cache: 'no-store',

@@ -7,7 +7,7 @@ import {
   LAMPORTS_PER_SOL,
   SendTransactionError,
 } from "@solana/web3.js";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase, supabaseAdmin } from "@/lib/supabaseClient";
 import { mintNFTWithBubbleGumTree } from "../../collection.helper";
 import { NextResponse } from "next/server";
 
@@ -212,7 +212,7 @@ export async function POST(req: Request, res: NextApiResponse) {
       throw new Error("Failed to mint NFT");
     }
     // Update order status
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from("orders")
       .update({
         status: "completed",
@@ -237,7 +237,7 @@ export async function POST(req: Request, res: NextApiResponse) {
   } catch (error) {
     console.error("Error processing minting:", error);
     // Update order status to failed
-    await supabase
+    await supabaseAdmin
       .from("orders")
       .update({ status: "failed" })
       .eq("id", orderId);
