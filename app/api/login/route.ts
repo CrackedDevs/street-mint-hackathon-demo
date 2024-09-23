@@ -1,8 +1,9 @@
 import * as nacl from "tweetnacl";
 import { NextApiResponse } from "next";
 import { NextResponse } from "next/server";
-import { supabase, supabaseAdmin } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 import { NumericUUID } from "@/lib/utils";
+import { getSupabaseAdmin } from "@/lib/supabaseAdminClient";
 
 const getOrCreateArtist = async (walletAddress: string) => {
   try {
@@ -13,6 +14,7 @@ const getOrCreateArtist = async (walletAddress: string) => {
       .single();
 
     if (!user) {
+      const supabaseAdmin = await getSupabaseAdmin();
       const { data, error } = await supabaseAdmin
         .from("artists")
         .insert({
