@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { useWallet } from "@solana/wallet-adapter-react"
 import { CalendarIcon, ExternalLinkIcon, LayersIcon, LayoutGrid, List, MapPinIcon } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import { useEffect, useState } from "react"
 
 export type View = "grid" | "list";
@@ -97,10 +98,14 @@ export const GalleryGrid = () => {
               <CalendarIcon className="w-4 h-4 mr-2" />
               {TimeService.formatDate(nft.orderDate)}
             </div>
+            {nft.locationMinted && (
             <div className="flex items-center text-sm text-muted-foreground mb-1">
               <MapPinIcon className="w-4 h-4 mr-2" />
-              {nft.locationMinted}
+              <a href={nft.locationMinted ?? ""} target="_blank" rel="noopener noreferrer">
+                View Location
+              </a>
             </div>
+            )}
             <div className="flex items-center text-sm text-muted-foreground">
               <LayersIcon className="w-4 h-4 mr-2" />
               {EditionService.getEditionTypeText(nft.quantityType)}

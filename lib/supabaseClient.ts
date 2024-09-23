@@ -538,7 +538,8 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         const { count, error: countError } = await supabase
             .from('orders')
             .select('id', { count: 'exact', head: true })
-            .eq('collectible_id', collectibleId);
+            .eq('collectible_id', collectibleId)
+            .eq('status', 'completed');
 
         if (countError) throw countError;
 

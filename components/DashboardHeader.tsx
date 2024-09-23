@@ -33,12 +33,6 @@ const DashboardHeader: React.FC = () => {
             <div className="flex items-center space-x-4">
               {publicKey && (
                 <>
-                  <Link href="/dashboard/myGallery">
-                    <Button variant="ghost">
-                      <Bolt className="h-5 w-5 mr-2" />
-                      My Gallery
-                    </Button>
-                  </Link>
                   <Link href="/dashboard/collection">
                     <Button variant="ghost">
                       <PaletteIcon className="h-5 w-5 mr-2" />

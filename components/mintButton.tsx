@@ -23,11 +23,12 @@ import { Input } from "./ui/input";
 import confetti from "canvas-confetti";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckIcon, CopyIcon, HeartIcon } from "lucide-react";
+import { CheckIcon, CopyIcon, ExternalLink, HeartIcon, ImageIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import Artist from "@/app/assets/artist.png";
 import LocationButton from "./LocationButton";
 import { SolanaFMService } from "@/lib/services/solanaExplorerService";
+import Link from "next/link";
 
 interface MintButtonProps {
   collectible: Collectible;
@@ -46,7 +47,7 @@ export default function MintButton({
   isIRLtapped,
   mintStatus,
 }: MintButtonProps) {
-  const { connected, connect, publicKey, signTransaction } = useWallet();
+  const { connected, connect, publicKey, signTransaction, connecting } = useWallet();
   const { connection } = useConnection();
   const [isMinting, setIsMinting] = useState(false);
   const [isEligible, setIsEligible] = useState(false);
@@ -54,6 +55,7 @@ export default function MintButton({
   const [transactionSignature, setTransactionSignature] = useState<
     string | null
   >(null);
+  const [tokenAddress, setTokenAddress] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState("");
   const [existingOrder, setExistingOrder] = useState<any | null>(null);
   const isFreeMint = collectible.price_usd === 0;
@@ -243,15 +245,15 @@ export default function MintButton({
         throw new Error(errorData.error || "Failed to process minting");
       }
 
-      const { success, txSignature, mintSignature } =
+      const { success, tokenAddress, mintSignature } =
         await processResponse.json();
       if (success) {
         setTransactionSignature(mintSignature);
+        setTokenAddress(tokenAddress);
         TriggerConfetti();
         setExistingOrder({ id: orderId, status: "completed" });
         toast({
-          title: "NFT Minted Successfully",
-          description: `Mint signature: ${mintSignature}`,
+          title: "✅ NFT Minted Successfully",
         });
         setIsEligible(false);
         //TODO: UNCOMMENT THIS AFTER 20 SEPTEMBER 2024
@@ -276,6 +278,7 @@ export default function MintButton({
   };
 
   const handleMintClick = async () => {
+    setIsMinting(true);
     await checkEligibilityAndExistingOrder();
     if (isFreeMint) {
       if (!walletAddress) {
@@ -284,14 +287,17 @@ export default function MintButton({
           description: "Please enter a valid wallet address",
           variant: "destructive",
         });
+        setIsMinting(false);
         return;
       }
     } else if (!connected) {
       try {
         await connect();
+        setIsMinting(false);
         return;
       } catch (error) {
         console.error("Failed to connect wallet:", error);
+        setIsMinting(false);
         return;
       }
     }
@@ -302,6 +308,7 @@ export default function MintButton({
         description: "Unable to get device ID",
         variant: "destructive",
       });
+      setIsMinting(false);
       return;
     }
 
@@ -311,19 +318,21 @@ export default function MintButton({
         description: "You are not eligible to mint this NFT",
         variant: "destructive",
       });
+      setIsMinting(false);
       return;
     }
 
     await handlePaymentAndMint();
+    setIsMinting(false);
   };
 
   const getButtonText = () => {
     if (isFreeMint && !walletAddress) return "COLLECT NOW";
+    if (connecting) return "CONNECTING...";
     if (isMinting) return "PROCESSING...";
-    if (existingOrder && existingOrder.status == "completed") return "MINTED!";
     if (isEligible) return "MINT NOW";
     if (!isEligible) return "NOT ELIGIBLE";
-    return "NOT STARTED";
+    return "LOADING...";
   };
 
   const copyToClipboard = () => {
@@ -428,63 +437,76 @@ export default function MintButton({
       )}
       {mintStatus === "ongoing" && (
         <>
-          {isFreeMint ? (
-            <div className="w-full flex flex-col items-center justify-center">
-              <Input
-                type="text"
-                placeholder="Enter wallet address"
-                value={initialWalletAddress || walletAddress}
-                onChange={(e) => setWalletAddress(e.target.value)}
-                className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
-              />
-              <WhiteBgShimmerButton
-                borderRadius="6px"
-                className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
-                onClick={handleMintClick}
-                disabled={
-                  isMinting || !isEligible || existingOrder || !walletAddress
-                }
-              >
-                {getButtonText()}
-              </WhiteBgShimmerButton>
-            </div>
-          ) : !connected ? (
-            <WalletMultiButton
-              style={{
-                backgroundColor: "white",
-                color: "black",
-                width: "100%",
-                marginBottom: "20px",
-                borderRadius: "6px",
-              }}
-            />
+          {transactionSignature && tokenAddress ? (
+            <div className="flex flex-col items-center space-y-2 mt-4 w-full">
+              <Link href={SolanaFMService.getAddress(tokenAddress)} target="_blank" className="w-full">
+      <WhiteBgShimmerButton 
+                    borderRadius="6px"
+                    className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
+      >
+        VIEW COLLECTIBLE
+      </WhiteBgShimmerButton>
+        </Link>
+      <Link href={SolanaFMService.getTransaction(transactionSignature)} target="_blank">
+      <button 
+        className="text-sm text-white transition-colors flex items-center"
+      >
+        <ExternalLink className="w-4 h-4 mr-1" />
+        View Transaction
+      </button>
+                </Link>
+    </div>
           ) : (
-            isEligible && (
-              <WhiteBgShimmerButton
-                borderRadius="6px"
-                className="w-full mb-4  text-black hover:bg-gray-800 h-[40px] rounded font-bold"
-                onClick={handleMintClick}
-                disabled={
-                  isMinting ||
-                  !isEligible ||
-                  existingOrder?.status == "completed"
-                }
-              >
-                {getButtonText()}
-              </WhiteBgShimmerButton>
-            )
+            <>
+              {isFreeMint ? (
+                <div className="w-full flex flex-col items-center justify-center">
+                  <Input
+                    type="text"
+                    placeholder="Enter wallet address"
+                    value={initialWalletAddress || walletAddress}
+                    onChange={(e) => setWalletAddress(e.target.value)}
+                    className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
+                  />
+                  <WhiteBgShimmerButton
+                    borderRadius="6px"
+                    className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
+                    onClick={handleMintClick}
+                    disabled={
+                      isMinting || !isEligible || existingOrder || (isFreeMint && !walletAddress)
+                    }
+                  >
+                    {getButtonText()}
+                  </WhiteBgShimmerButton>
+                </div>
+              ) : !connected ? (
+                <WalletMultiButton
+                  style={{
+                    backgroundColor: "white",
+                    color: "black",
+                    width: "100%",
+                    marginBottom: "20px",
+                    borderRadius: "6px",
+                  }}
+                />
+              ) : (
+                isEligible && (
+                  <WhiteBgShimmerButton
+                    borderRadius="6px"
+                    className="w-full mb-4  text-black hover:bg-gray-800 h-[40px] rounded font-bold"
+                    onClick={handleMintClick}
+                    disabled={
+                      isMinting ||
+                      !isEligible ||
+                      existingOrder?.status == "completed"
+                    }
+                  >
+                    {getButtonText()}
+                  </WhiteBgShimmerButton>
+                )
+              )}
+            </>
           )}
           {error && <p className="text-red-500 mt-2">{error}</p>}
-          {transactionSignature && (
-            <a
-              href={SolanaFMService.getTransaction(transactionSignature)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 mt-2 hover:underline"
-            >
-              View Transaction
-            </a>
-          )}
         </>
       )}
     </div>

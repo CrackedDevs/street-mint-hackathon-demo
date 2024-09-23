@@ -8,7 +8,7 @@ export class EditionService {
             case "limited":
                 return "Limited Edition";
             case "single":
-                return "1 0f 1";
+                return "1 of 1";
             default:
                 return "Unknown Edition Type";
         }

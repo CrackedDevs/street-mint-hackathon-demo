@@ -5,9 +5,11 @@ import {
   createSignerFromKeypair,
   signerIdentity,
   publicKey,
+  percentAmount,
 } from "@metaplex-foundation/umi";
 
 import {
+  createNft,
   fetchDigitalAsset,
   mplTokenMetadata,
 } from "@metaplex-foundation/mpl-token-metadata";
@@ -18,6 +20,7 @@ import {
   findLeafAssetIdPda,
   LeafSchema,
   parseLeafFromMintToCollectionV1Transaction,
+  createTree,
 } from "@metaplex-foundation/mpl-bubblegum";
 import { Collection } from "@/lib/supabaseClient";
 
@@ -47,9 +50,24 @@ export async function createBubbleGumTree(collectionData: Collection) {
       throw new Error("No collection data found");
     }
 
+    await createNft(umi, {
+      mint: collectionMint,
+      name: collectionData.name,
+      uri: collectionData.metadata_uri || "",
+      sellerFeeBasisPoints: percentAmount(5), // 5.5%
+      isCollection: true,
+    }).sendAndConfirm(umi);
+
     console.log(
       `✅ Created collection: ${collectionMint.publicKey.toString()}`
     );
+
+    const builder = await createTree(umi, {
+      merkleTree,
+      maxDepth: 5,
+      maxBufferSize: 8,
+    });
+    await builder.sendAndConfirm(umi);
 
     console.log(
       `✅ Created Bubble Gum Tree: ${merkleTree.publicKey.toString()}`
@@ -80,6 +98,8 @@ export async function mintNFTWithBubbleGumTree(
     const merkleTree = publicKey(merkleTreePublicKey);
     const leafOwner = publicKey(minterAddress);
     const collectionMintPubkey = publicKey(collectionMintPublicKey);
+
+    console.log("GOT HERE-", collectionMintPubkey);
     const collectionAsset = await fetchDigitalAsset(umi, collectionMintPubkey);
 
     console.log(
@@ -105,9 +125,12 @@ export async function mintNFTWithBubbleGumTree(
       },
     }).sendAndConfirm(umi);
 
+    console.log("GOT HERERERERERERERE-", tx.signature);
     const leaf: LeafSchema = await parseLeafFromMintToCollectionV1Transaction(umi, tx.signature);
-    const assetId = findLeafAssetIdPda(umi, { merkleTree, leafIndex: leaf.nonce });
 
+    console.log("GOT to leaf-", leaf);
+    const assetId = findLeafAssetIdPda(umi, { merkleTree, leafIndex: leaf.nonce });
+    console.log("GOT to assetId-", assetId);
     const tokenAddress = assetId.toString().split(",")[0];
 
     const txSignature = bs58.encode(tx.signature);
@@ -116,6 +139,7 @@ export async function mintNFTWithBubbleGumTree(
         ? `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
         : `https://explorer.solana.com/tx/${txSignature}`;
 
+    console.log("GOT to solscanLink-", solscanLink);
     return { signature: txSignature, solscanLink: solscanLink, tokenAddress };
   } catch (error) {
     console.error("Error minting NFT with BubbleGum Tree:", error);

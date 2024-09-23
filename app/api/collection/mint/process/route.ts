@@ -121,8 +121,6 @@ export async function POST(req: Request, res: NextApiResponse) {
       throw new Error("No transaction found");
     }
 
-    let txSignature = null;
-
     // For paid mints, verify and send transaction
     if (order.price_usd && order.price_usd > 0) {
       if (!signedTransaction) {
@@ -218,7 +216,6 @@ export async function POST(req: Request, res: NextApiResponse) {
       .from("orders")
       .update({
         status: "completed",
-        transaction_signature: txSignature,
         mint_signature: mintResult.signature,
         mint_address: mintResult.tokenAddress,
       })
@@ -231,8 +228,8 @@ export async function POST(req: Request, res: NextApiResponse) {
     return NextResponse.json(
       {
         success: true,
-        txSignature,
         mintSignature: mintResult.signature,
+        tokenAddress: mintResult.tokenAddress,
       },
       { status: 200 }
     );

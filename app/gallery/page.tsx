@@ -18,7 +18,7 @@ export default function MyGallery() {
   };
 
   return (
-    <div className="flex flex-col h-full min-h-screen">
+    <div className="flex flex-col h-full min-h-screen mb-16">
       <GalleryHeader />
       <div>
         {
