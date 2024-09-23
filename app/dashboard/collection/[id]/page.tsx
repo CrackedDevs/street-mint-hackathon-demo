@@ -144,7 +144,7 @@ function Component() {
                     )}
                     <div className="flex items-center text-sm text-gray-600">
                       <BadgeIcon className="mr-2 h-4 w-4" />
-                      <span>Mint ID: {collectible.id}</span>
+                      <span>Collectible ID: {collectible.id}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Calendar className="mr-2 h-4 w-4" />

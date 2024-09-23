@@ -3,7 +3,13 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Badge, Calendar, ChevronLeft, ChevronRight, MapPin, MapPinned } from "lucide-react";
+import { Badge, Calendar, ChevronLeft, ChevronRight, CpuIcon, MapPin, MapPinned } from "lucide-react";
+import CopyableText from "@/components/copyableText";
+import { Toaster } from "@/components/ui/toaster";
+import { StringService } from "@/lib/services/stringService";
+import { Suspense } from "react";
+import UpdateNfcModal from "./updateNfcModal";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 export default async function CollectionDetails({ params }: { params: { id: string } }) {
   const id = params.id;
@@ -56,7 +62,11 @@ export default async function CollectionDetails({ params }: { params: { id: stri
                   <div className="space-y-2 mt-4">
                     <div className="flex items-center text-sm text-gray-600">
                       <Badge className="mr-2 h-4 w-4" />
-                      <span>Mint ID: {collectible.id}</span>
+                      <span>Collectible ID: {collectible.id}</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CpuIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                      <p className="flex items-center gap-x-1">Chip Public Key: {collectible.nfc_public_key ? <CopyableText displayText={StringService.formatNfcPublicKey(collectible.nfc_public_key ?? "None Connected 🛑")} copyText={collectible.nfc_public_key ?? "None"} /> : "⛔️ None Connected"}</p>
                     </div>
                     <div className="flex items-center text-sm text-blue-600">
                       <MapPinned className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -67,6 +77,22 @@ export default async function CollectionDetails({ params }: { params: { id: stri
                   </div>
                 </div>
               </CardContent>
+              <div className="p-4 bg-gray-50 border-t border-gray-200">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full text-sm text-gray-600 hover:text-gray-900 flex items-center justify-center"
+                    >
+                      Update Chip Public Key
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <UpdateNfcModal collectibleId={String(collectible.id)} oldNFCPublicKey={collectible.nfc_public_key ?? ""} />
+                  </DialogContent>
+                </Dialog>
+              </div>
               <div className="p-4 bg-gray-50 border-t border-gray-200">
                 <Link href={`/admin/collection/${id}/orders/${collectible.id}`}>
                   <Button
@@ -82,6 +108,7 @@ export default async function CollectionDetails({ params }: { params: { id: stri
           ))}
         </div>
       </div>
+      <Toaster />
     </div>
   );
 }
