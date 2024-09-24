@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       artists: {
         Row: {
+          app_password: string
           avatar_url: string
           bio: string
           collections: number[] | null
@@ -24,6 +25,7 @@ export type Database = {
           x_username: string | null
         }
         Insert: {
+          app_password?: string
           avatar_url: string
           bio: string
           collections?: number[] | null
@@ -37,6 +39,7 @@ export type Database = {
           x_username?: string | null
         }
         Update: {
+          app_password?: string
           avatar_url?: string
           bio?: string
           collections?: number[] | null
@@ -123,6 +126,7 @@ export type Database = {
         Row: {
           artist: number
           collection_mint_public_key: string | null
+          created_at: string | null
           description: string
           id: number
           merkle_tree_public_key: string | null
@@ -132,6 +136,7 @@ export type Database = {
         Insert: {
           artist: number
           collection_mint_public_key?: string | null
+          created_at?: string | null
           description: string
           id: number
           merkle_tree_public_key?: string | null
@@ -141,6 +146,7 @@ export type Database = {
         Update: {
           artist?: number
           collection_mint_public_key?: string | null
+          created_at?: string | null
           description?: string
           id?: number
           merkle_tree_public_key?: string | null

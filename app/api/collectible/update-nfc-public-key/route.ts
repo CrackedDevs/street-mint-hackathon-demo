@@ -3,20 +3,42 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    console.log(authHeader);
-    if (authHeader !== `Bearer ${process.env.API_SECRET}`) {
-      return new Response('Unauthorized', {
-        status: 401,
-      });
-    }
     const body = await request.json();
-    const { collectibleId, nfcPublicKey } = body;
+    const { collectibleId, nfcPublicKey, artistPassword } = body;
 
-    if (!collectibleId || !nfcPublicKey) {
-        return NextResponse.json({success: false, error: "Collectible ID or NFC public key is required"}, { status: 400 });
+    if (!collectibleId || !nfcPublicKey || !artistPassword) {
+      return NextResponse.json({success: false, error: "Collectible ID, NFC public key, and artist password are required"}, { status: 400 });
     }
+
     const supabaseClient = await getSupabaseAdmin();
+    const { data: collectible } = await supabaseClient
+      .from('collectibles')
+      .select('collection_id')
+      .eq('id', collectibleId)
+      .single();
+
+    if (!collectible) {
+      return NextResponse.json({success: false, error: "Collectible not found"}, { status: 404 });
+    }
+
+    const { data: artist } = await supabaseClient
+      .from('collections')
+      .select('artists(app_password)')
+      .eq('id', collectible.collection_id)
+      .single();
+
+    if (!artist) {
+      return NextResponse.json({success: false, error: "Artist not found"}, { status: 404 });
+    }
+
+    if (!artistPassword) {
+      return NextResponse.json({success: false, error: "Artist password not found"}, { status: 404 });
+    }
+
+    if (artistPassword !== artist.artists?.app_password && artistPassword !== process.env.APP_ADMIN_PASSWORD) {
+      return NextResponse.json({success: false, error: "Artist password is incorrect"}, { status: 401 });
+    }
+
     const { data: oldCollectible } = await supabaseClient.from('collectibles').select('nfc_public_key, id').eq('nfc_public_key', nfcPublicKey);
 
     await supabaseClient.from('collectibles').update({ nfc_public_key: nfcPublicKey }).eq('id', collectibleId);
