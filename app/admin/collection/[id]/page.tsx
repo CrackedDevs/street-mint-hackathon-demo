@@ -1,13 +1,12 @@
-import { getCollectionById, fetchCollectiblesByCollectionId, Collection, Collectible } from "@/lib/supabaseClient";
+import { getCollectionById, fetchCollectiblesByCollectionId, Collection, Collectible, getArtistPassword } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Badge, Calendar, ChevronLeft, ChevronRight, CpuIcon, MapPin, MapPinned } from "lucide-react";
+import { Badge, Calendar, ChevronLeft, ChevronRight, CpuIcon, MapPin, MapPinned, Lock } from "lucide-react";
 import CopyableText from "@/components/copyableText";
 import { Toaster } from "@/components/ui/toaster";
 import { StringService } from "@/lib/services/stringService";
-import { Suspense } from "react";
 import UpdateNfcModal from "./updateNfcModal";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
@@ -15,6 +14,7 @@ export default async function CollectionDetails({ params }: { params: { id: stri
   const id = params.id;
   const collection = await getCollectionById(Number(id));
   const collectibles = (await fetchCollectiblesByCollectionId(Number(id))) || [];
+  const creatorPassword = await getArtistPassword(Number(collection?.artist));
 
   if (!collection) return <div>Loading...</div>;
 
@@ -36,6 +36,13 @@ export default async function CollectionDetails({ params }: { params: { id: stri
             <CardTitle className="text-3xl font-bold text-gray-900 mb-2">{collection.name}</CardTitle>
             <p className="text-lg text-gray-600">{collection.description}</p>
           </CardHeader>
+          <CardContent>
+            <div className="flex items-center text-sm text-gray-600 mt-4">
+              <Lock className="mr-2 h-4 w-4" />
+              <span className="mr-2">Creator Password:</span>
+              <CopyableText displayText={creatorPassword?.app_password ?? "None"} copyText={creatorPassword?.app_password ?? "None"} />
+            </div>
+          </CardContent>
         </Card>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {collectibles.map((collectible) => (

@@ -10,7 +10,7 @@ export type Collection = {
     name: string;
     description: string;
     artist: number;
-    collectibles: Collectible[];
+    collectibles?: Collectible[];
     metadata_uri?: string;
     collection_mint_public_key?: string;
     merkle_tree_public_key?: string;
@@ -504,6 +504,16 @@ export const getAllCollections = async (): Promise<PopulatedCollection[]> => {
 
 export const getCollectionById = async (id: number) => {
     const { data, error } = await supabase.from("collections").select("*").eq("id", id).single();
+
+    if (error) {
+        console.error("Error fetching collection:", error);
+        return null;
+    }
+    return data;
+};
+
+export const getArtistPassword = async (id: number) => {
+    const { data, error } = await supabase.from("artists").select("app_password").eq("id", id).single();
 
     if (error) {
         console.error("Error fetching collection:", error);
