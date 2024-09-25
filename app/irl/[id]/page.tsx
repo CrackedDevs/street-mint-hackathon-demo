@@ -15,7 +15,6 @@ import {
 } from "@/lib/supabaseClient";
 import Gallery from "@/components/gallery";
 import { Toaster } from "@/components/ui/toaster";
-import IrlInputButton from "@/components/IrlInputButton";
 import ArtistInfoComponent from "@/components/ArtistInfoComponent";
 import EditionInformation from "@/components/EditionInformation";
 
@@ -141,24 +140,6 @@ export default function NFTPage({
           </div>
         </div>
       </header>
-
-      <div className="min-h-[95vh] flex items-center justify-center bg-white">
-        <div className="max-w-md w-full px-6 py-8 gap-10 bg-white shadow-lg rounded-lg">
-          <div className="text-center mb-6 gap-10">
-            <Image
-              src={collectible.primary_image_url}
-              alt="Harold CollectorX"
-              width={200}
-              height={200}
-              className="mx-auto  h-max w-full object-contain rounded-lg"
-            />
-          </div>
-          <p className="text-center text-lg mb-4">
-            Collect the <span className="font-bold">{collectible.name}</span> IRL and add it to your collection
-          </p>
-          <IrlInputButton />
-        </div>
-      </div>
 
       {/* Main content */}
       <main
