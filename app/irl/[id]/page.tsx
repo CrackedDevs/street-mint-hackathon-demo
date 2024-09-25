@@ -103,8 +103,6 @@ export default function NFTPage({
     isIRLtapped: false;
   }>();
 
-  
-  const [walletAddress, setwalletAddress] = useState("");
 
   useEffect(() => {
     fetchNFTData(params.id, searchParams.rnd, searchParams.sign, setNFTData);
@@ -150,18 +148,15 @@ export default function NFTPage({
             <Image
               src={collectible.primary_image_url}
               alt="Harold CollectorX"
-              width={150}
-              height={150}
-              className="mx-auto  h-max w-max object-contain rounded-lg"
+              width={200}
+              height={200}
+              className="mx-auto  h-max w-full object-contain rounded-lg"
             />
           </div>
           <p className="text-center text-lg mb-4">
-            Collect the <span className="font-bold">{collectible.name}</span> and add it to your collection
+            Collect the <span className="font-bold">{collectible.name}</span> IRL and add it to your collection
           </p>
-          <IrlInputButton
-            walletAddress={walletAddress}
-            setwalletAddress={setwalletAddress}
-          />
+          <IrlInputButton />
         </div>
       </div>
 
@@ -207,7 +202,6 @@ export default function NFTPage({
                 ...collectible,
                 quantity_type: collectible.quantity_type as QuantityType,
               }}
-              inputWalletAddress={walletAddress}
               remainingQuantity={remainingQuantity}
               artistWalletAddress={artist.wallet_address}
             />

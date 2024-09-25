@@ -24,7 +24,6 @@ const EditionInformation = ({
   artistWalletAddress,
   soldCount,
   isIRLtapped,
-  inputWalletAddress,
 }: {
   collection: Collection;
   collectible: Collectible;
@@ -32,7 +31,6 @@ const EditionInformation = ({
   artistWalletAddress: string;
   soldCount: number;
   isIRLtapped: boolean;
-  inputWalletAddress?: string;
 }) => {
   const [mintingStatus, setMintingStatus] = useState<
     "not-started" | "ongoing" | "ended"
@@ -160,7 +158,6 @@ const EditionInformation = ({
           {/* Render MintButton only if minting has started */}
 
           <MintButton
-            inputWalletAddress={inputWalletAddress}
             isIRLtapped={true} // Add true for IslandDAO minting because chips are late
             artistWalletAddress={artistWalletAddress}
             collectible={{
