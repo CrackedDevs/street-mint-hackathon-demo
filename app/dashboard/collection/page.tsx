@@ -7,7 +7,6 @@ import Link from "next/link";
 import {
   getCollectionsByArtistId,
   PopulatedCollection,
-  deleteCollectionAndNFTs,
 } from "@/lib/supabaseClient";
 import { useWallet } from "@solana/wallet-adapter-react";
 import withAuth from "../withAuth";

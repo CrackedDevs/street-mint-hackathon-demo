@@ -161,7 +161,7 @@ const EditionInformation = ({
 
           <MintButton
             inputWalletAddress={inputWalletAddress}
-            isIRLtapped={isIRLtapped}
+            isIRLtapped={true} // Add true for IslandDAO minting because chips are late
             artistWalletAddress={artistWalletAddress}
             collectible={{
               ...collectible,

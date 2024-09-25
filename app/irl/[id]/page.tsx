@@ -219,8 +219,6 @@ export default function NFTPage({
                 collectibles: collection.collectibles || [],
                 collection_mint_public_key:
                   collection.collection_mint_public_key || "",
-                metadata_uri: collection.metadata_uri || "",
-                merkle_tree_public_key: collection.merkle_tree_public_key || "",
               }}
               collectible={{
                 ...collectible,
@@ -277,7 +275,7 @@ export default function NFTPage({
                 </p>
               </div>
               <div>
-                <p className="text-gray-600">Blockchain</p>
+                <p className="text-gray-400">Blockchain</p>
                 <p>Solana</p>
               </div>
             </div>

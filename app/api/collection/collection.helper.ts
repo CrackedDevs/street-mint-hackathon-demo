@@ -18,11 +18,12 @@ import {
   mplBubblegum,
   mintToCollectionV1,
   findLeafAssetIdPda,
-  LeafSchema,
   parseLeafFromMintToCollectionV1Transaction,
   createTree,
+  LeafSchema,
 } from "@metaplex-foundation/mpl-bubblegum";
-import { Collection } from "@/lib/supabaseClient";
+import { TransactionBuilder } from "@metaplex-foundation/umi";
+import { chunk } from 'lodash'; // Add this import
 
 // Common Umi initialization function
 function initializeUmi(endpoint: string, privateKey: string): Umi {
@@ -40,22 +41,22 @@ function privateKeyToUint8Array(privateKeyString: string): Uint8Array {
   return new Uint8Array(bs58.decode(privateKeyString));
 }
 
-export async function createBubbleGumTree(collectionData: Collection) {
+export async function createBubbleGumTree() {
   const umi = initializeUmi(process.env.RPC_URL!, process.env.PRIVATE_KEY!);
   const collectionMint = generateSigner(umi);
   const merkleTree = generateSigner(umi);
 
   try {
-    if (!collectionData) {
-      throw new Error("No collection data found");
-    }
 
     await createNft(umi, {
       mint: collectionMint,
-      name: collectionData.name,
-      uri: collectionData.metadata_uri || "",
-      sellerFeeBasisPoints: percentAmount(5), // 5.5%
+      name: "StreetMint V1",
+      uri: "https://iaulwnqmthzvuxfubnsb.supabase.co/storage/v1/object/public/nft-images/streetmint.png",
+      sellerFeeBasisPoints: percentAmount(0),
       isCollection: true,
+      symbol: "SMV1",
+      updateAuthority: umi.identity.publicKey,
+      isMutable: true,
     }).sendAndConfirm(umi);
 
     console.log(
@@ -64,8 +65,9 @@ export async function createBubbleGumTree(collectionData: Collection) {
 
     const builder = await createTree(umi, {
       merkleTree,
-      maxDepth: 5,
-      maxBufferSize: 8,
+      maxDepth: 20,
+      maxBufferSize: 64,
+      canopyDepth: 10,
     });
     await builder.sendAndConfirm(umi);
 
@@ -87,62 +89,64 @@ export async function createBubbleGumTree(collectionData: Collection) {
 export async function mintNFTWithBubbleGumTree(
   merkleTreePublicKey: string,
   collectionMintPublicKey: string,
-  sellerFeePercentage: number,
   minterAddress: string,
   name: string,
-  metadata_uri: string
+  metadata_uri: string,
+  maxRetries = 3
 ) {
   const umi = initializeUmi(process.env.RPC_URL!, process.env.PRIVATE_KEY!);
-  try {
-    console.log(merkleTreePublicKey, collectionMintPublicKey, minterAddress);
-    const merkleTree = publicKey(merkleTreePublicKey);
-    const leafOwner = publicKey(minterAddress);
-    const collectionMintPubkey = publicKey(collectionMintPublicKey);
+  let retries = 0;
 
-    console.log("GOT HERE-", collectionMintPubkey);
-    const collectionAsset = await fetchDigitalAsset(umi, collectionMintPubkey);
+  while (retries < maxRetries) {
+    try {
+      console.log(`Attempt ${retries + 1} to mint NFT`);
+      const merkleTree = publicKey(merkleTreePublicKey);
+      const leafOwner = publicKey(minterAddress);
+      const collectionMintPubkey = publicKey(collectionMintPublicKey);
 
-    console.log(
-      "Collection mint fetched:",
-      collectionAsset.publicKey.toString()
-    );
+      const collectionAsset = await fetchDigitalAsset(umi, collectionMintPubkey);
+      console.log("Collection mint fetched:", collectionAsset.publicKey.toString());
 
-    // Convert percentage to basis points (1% = 100 basis points)
-    const sellerFeeBasisPoints = Math.round(sellerFeePercentage * 100);
+      const tx = await mintToCollectionV1(umi, {
+        leafOwner: leafOwner,
+        merkleTree,
+        collectionMint: collectionMintPubkey,
+        metadata: {
+          name: name,
+          uri: metadata_uri,
+          sellerFeeBasisPoints: 0,
+          collection: { key: collectionMintPubkey, verified: true },
+          creators: [
+            { address: umi.identity.publicKey, verified: true, share: 100 },
+          ],
+        },
+      }).sendAndConfirm(umi);
 
-    const tx = await mintToCollectionV1(umi, {
-      leafOwner: leafOwner,
-      merkleTree,
-      collectionMint: collectionMintPubkey,
-      metadata: {
-        name: name,
-        uri: metadata_uri,
-        sellerFeeBasisPoints: sellerFeeBasisPoints,
-        collection: { key: collectionMintPubkey, verified: true },
-        creators: [
-          { address: umi.identity.publicKey, verified: true, share: 100 },
-        ],
-      },
-    }).sendAndConfirm(umi);
+      const leaf: LeafSchema = await parseLeafFromMintToCollectionV1Transaction(umi, tx.signature);
+      const assetId = findLeafAssetIdPda(umi, { merkleTree, leafIndex: leaf.nonce });
+      const tokenAddress = assetId.toString().split(",")[0];
 
-    console.log("GOT HERERERERERERERE-", tx.signature);
-    const leaf: LeafSchema = await parseLeafFromMintToCollectionV1Transaction(umi, tx.signature);
+      const txSignature = bs58.encode(tx.signature);
+      const solscanLink =
+        process.env.NODE_ENV === "development"
+          ? `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
+          : `https://explorer.solana.com/tx/${txSignature}`;
 
-    console.log("GOT to leaf-", leaf);
-    const assetId = findLeafAssetIdPda(umi, { merkleTree, leafIndex: leaf.nonce });
-    console.log("GOT to assetId-", assetId);
-    const tokenAddress = assetId.toString().split(",")[0];
+      console.log("NFT minted successfully:", {
+        signature: txSignature,
+        solscanLink: solscanLink,
+        tokenAddress: tokenAddress
+      });
 
-    const txSignature = bs58.encode(tx.signature);
-    const solscanLink =
-      process.env.NODE_ENV === "development"
-        ? `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
-        : `https://explorer.solana.com/tx/${txSignature}`;
-
-    console.log("GOT to solscanLink-", solscanLink);
-    return { signature: txSignature, solscanLink: solscanLink, tokenAddress };
-  } catch (error) {
-    console.error("Error minting NFT with BubbleGum Tree:", error);
-    throw error;
+      return { signature: txSignature, solscanLink: solscanLink, tokenAddress };
+    } catch (error: any) {
+      console.error(`Error minting NFT (attempt ${retries + 1}):`, error);
+      retries++;
+      if (retries >= maxRetries) {
+        throw new Error(`Failed to mint NFT after ${maxRetries} attempts: ${error.message}`);
+      }
+      // Wait for a short time before retrying
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
   }
 }
