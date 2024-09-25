@@ -38,7 +38,7 @@ export async function POST(req: Request, res: NextApiResponse) {
       return NextResponse.json(
         {
           success: false,
-          error: "Already minted or minting in progress for this NFT",
+          error: "Already minted or minting in progress for this NFT" + reason,
         },
         { status: 400 }
       );

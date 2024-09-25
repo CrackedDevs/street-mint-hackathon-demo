@@ -26,21 +26,25 @@ async function fetchNFTData(
   setNFTData: (data: any) => void
 ) {
   try {
-    // Fetch SOL price
-    const response = await fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
-    );
-    const data = await response.json();
-    if (!response.ok || !data || !data.solana) {
-      return null;
-    }
-    const solPriceUSD = data.solana.usd;
-
-    let isIRLtapped = false;
-
     const collectible = await fetchCollectibleById(Number(id));
     if (!collectible) return null;
-    // if (!collectible) return null;
+
+    let solPriceUSD = 0;
+    let priceInSOL = 0;
+
+    // Only fetch SOL price if price_usd is defined and greater than 0
+    if (collectible.price_usd && collectible.price_usd > 0) {
+      const response = await fetch(
+        "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+      );
+      const data = await response.json();
+      if (response.ok && data && data.solana) {
+        solPriceUSD = data.solana.usd;
+        priceInSOL = collectible.price_usd / solPriceUSD;
+      }
+    }
+
+    let isIRLtapped = false;
 
     if (collectible.nfc_public_key) {
       const isValid = await verifyNfcSignature(
@@ -48,11 +52,9 @@ async function fetchNFTData(
         sign,
         collectible.nfc_public_key
       );
+      isIRLtapped = isValid;
       if (!isValid) {
         console.log("Signature is not valid");
-        isIRLtapped = false;
-      } else {
-        isIRLtapped = true;
       }
     }
 
@@ -61,9 +63,6 @@ async function fetchNFTData(
 
     const artist = await getArtistById(collection.artist);
     if (!artist) return;
-
-    // Calculate NFT price in SOL
-    const priceInSOL = collectible.price_usd / solPriceUSD;
 
     // Calculate remaining quantity for limited editions
     let remainingQuantity = null;
@@ -104,6 +103,7 @@ export default function NFTPage({
     isIRLtapped: false;
   }>();
 
+  
   const [walletAddress, setwalletAddress] = useState("");
 
   useEffect(() => {
@@ -127,19 +127,6 @@ export default function NFTPage({
   const { collectible, collection, artist, priceInSOL, remainingQuantity } =
     nftData;
 
-  const getEditionTypeText = (type: QuantityType) => {
-    switch (type) {
-      case "unlimited":
-        return "Open Edition";
-      case "limited":
-        return "Limited Edition";
-      case "single":
-        return "1 of 1";
-      default:
-        return "Unknown Edition Type";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-white mb-20 text-black">
       {/* Header */}
@@ -160,9 +147,6 @@ export default function NFTPage({
       <div className="min-h-[95vh] flex items-center justify-center bg-white">
         <div className="max-w-md w-full px-6 py-8 gap-10 bg-white shadow-lg rounded-lg">
           <div className="text-center mb-6 gap-10">
-            <h2 className="text-2xl font-semibold mb-4 ">
-              Welcome to {collection.name}
-            </h2>
             <Image
               src={collectible.primary_image_url}
               alt="Harold CollectorX"
@@ -172,8 +156,7 @@ export default function NFTPage({
             />
           </div>
           <p className="text-center text-lg mb-4">
-            Collect <span className="font-bold">{collectible.name}</span> and
-            add it to your collection
+            Collect the <span className="font-bold">{collectible.name}</span> and add it to your collection
           </p>
           <IrlInputButton
             walletAddress={walletAddress}

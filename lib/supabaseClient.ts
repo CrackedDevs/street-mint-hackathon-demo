@@ -516,7 +516,7 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         return { eligible: true };
     } catch (error) {
         console.error('Error checking mint eligibility:', error);
-        throw error;
+        return { eligible: false, reason: 'Error checking mint eligibility.' };
     }
 }
 
