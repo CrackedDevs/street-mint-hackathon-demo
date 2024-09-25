@@ -463,7 +463,7 @@ export default function MintButton({
                   <Input
                     type="text"
                     placeholder="Enter wallet address"
-                    value={initialWalletAddress || walletAddress}
+                    value={walletAddress}
                     onChange={(e) => setWalletAddress(e.target.value)}
                     className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
                   />

@@ -13,21 +13,22 @@ import ArtistInfoComponent from "@/components/ArtistInfoComponent";
 import EditionInformation from "@/components/EditionInformation";
 
 async function getNFTData(id: string, rnd: string, sign: string) {
-  // Fetch SOL price
   let isIRLtapped = false;
-
-  const response = await fetch(
-    "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
-  );
-  const data = await response.json();
-  if (!response.ok || !data || !data.solana) {
-    return null;
-  }
-  const solPriceUSD = data.solana.usd;
+  let solPriceInUSD = 0;
 
   const collectible = await fetchCollectibleById(Number(id));
   if (!collectible) return null;
-  // if (!collectible) return null;
+
+  // Only fetch SOL price if usdc_price is defined and greater than 0
+  if (collectible.price_usd && collectible.price_usd > 0) {
+    const response = await fetch(
+      "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+    );
+    const data = await response.json();
+    if (response.ok && data && data.solana) {
+      solPriceInUSD = data.solana.usd;
+    }
+  }
 
   if (collectible.nfc_public_key) {
     const isValid = await verifyNfcSignature(
@@ -50,7 +51,7 @@ async function getNFTData(id: string, rnd: string, sign: string) {
   if (!artist) return null;
 
   // Calculate NFT price in SOL
-  const priceInSOL = collectible.price_usd / solPriceUSD;
+  const priceInSOL = collectible.price_usd / solPriceInUSD;
 
   // Calculate remaining quantity for limited editions
   let remainingQuantity = null;
