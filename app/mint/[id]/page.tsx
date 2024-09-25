@@ -209,7 +209,7 @@ export default async function NFTPage({
                 </p>
               </div>
               <div>
-                <p className="text-gray-600">Blockchain</p>
+                <p className="text-gray-00">Blockchain</p>
                 <p>Solana</p>
               </div>
             </div>

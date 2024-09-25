@@ -57,7 +57,6 @@ export async function POST(request: Request) {
     const result = await mintNFTWithBubbleGumTree(
       merkleTreePublicKey,
       collectionMintPublicKey,
-      sellerFeePercentage,
       minterAddress,
       name,
       metadata_uri

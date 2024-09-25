@@ -105,7 +105,7 @@ export async function POST(req: Request, res: NextApiResponse) {
     const { data: order, error: fetchError } = await supabase
       .from("orders")
       .select(
-        "*, collectibles(name, metadata_uri, collections(merkle_tree_public_key, collection_mint_public_key))"
+        "*, collectibles(name, metadata_uri)"
       )
       .eq("id", orderId)
       .single();
@@ -183,11 +183,13 @@ export async function POST(req: Request, res: NextApiResponse) {
       }
     }
 
+    const merkleTreePublicKey = process.env.MERKLE_TREE_PUBLIC_KEY;
+    const collectionMintPublicKey = process.env.MEGA_COLLECTION_MINT_PUBLIC_KEY;
+
     if (
       !order.collectibles ||
-      !order.collectibles.collections ||
-      !order.collectibles.collections.merkle_tree_public_key ||
-      !order.collectibles.collections.collection_mint_public_key ||
+      !merkleTreePublicKey ||
+      !collectionMintPublicKey ||
       !order.collectibles.metadata_uri
     ) {
       return NextResponse.json(
@@ -198,15 +200,14 @@ export async function POST(req: Request, res: NextApiResponse) {
 
     // Mint NFT
     const mintResult = await mintNFTWithBubbleGumTree(
-      order.collectibles.collections.merkle_tree_public_key,
-      order.collectibles.collections.collection_mint_public_key,
-      5, // sellerFeePercentage, adjust as needed
+      merkleTreePublicKey,
+      collectionMintPublicKey,
       order.wallet_address,
       order.collectibles.name,
       order.collectibles.metadata_uri
     );
 
-    if (!mintResult.signature) {
+    if (!mintResult || !mintResult.signature) {
       console.log("Failed to mint NFT");
       throw new Error("Failed to mint NFT");
     }
