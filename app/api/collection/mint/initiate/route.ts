@@ -46,23 +46,39 @@ export async function POST(req: Request, res: NextApiResponse) {
 
     // Create order in database
     const supabaseAdmin = await getSupabaseAdmin();
-    const { data: order, error: insertError } = await supabaseAdmin
-      .from("orders")
-      .insert({
-        id: uuidv4(),
-        wallet_address: walletAddress,
-        collectible_id: collectibleId,
-        collection_id: collectionId,
-        status: "pending",
-        price_usd: collectible.price_usd,
-        nft_type: collectible.quantity_type,
-        max_supply: collectible.quantity || null, // Use null for unlimited supply
-        device_id: deviceId,
-      })
-      .select()
-      .single();
+    let order;
+    try {
+      const { data, error: insertError } = await supabaseAdmin
+        .from("orders")
+        .insert({
+          id: uuidv4(),
+          wallet_address: walletAddress,
+          collectible_id: collectibleId,
+          collection_id: collectionId,
+          status: "pending",
+          price_usd: collectible.price_usd,
+          nft_type: collectible.quantity_type,
+          max_supply: collectible.quantity || null, // Use null for unlimited supply
+          device_id: deviceId,
+        })
+        .select()
+        .single();
 
-    if (insertError || !order) {
+      if (insertError) throw insertError;
+      order = data;
+    } catch (insertError) {
+      console.error("Error creating order:", insertError);
+      // If there's an error, update the order status to 'failed'
+      if (order && order.id) {
+        await supabaseAdmin
+          .from("orders")
+          .update({ status: "failed" })
+          .eq("id", order.id);
+      }
+      throw new Error("Failed to create order");
+    }
+
+    if (!order) {
       throw new Error("Failed to create order");
     }
 

@@ -104,17 +104,12 @@ export async function POST(req: Request, res: NextApiResponse) {
     // Fetch order
     const { data: order, error: fetchError } = await supabase
       .from("orders")
-      .select(
-        "*, collectibles(name, metadata_uri)"
-      )
+      .select("*, collectibles(name, metadata_uri)")
       .eq("id", orderId)
       .single();
 
     if (!order) {
-      return NextResponse.json(
-        { success: false, error: "Invalid Tansaction" },
-        { status: 400 }
-      );
+      throw new Error("Invalid Tansaction");
     }
 
     if (order.status == "completed") {
@@ -124,10 +119,7 @@ export async function POST(req: Request, res: NextApiResponse) {
     // For paid mints, verify and send transaction
     if (order.price_usd && order.price_usd > 0) {
       if (!signedTransaction) {
-        return NextResponse.json(
-          { success: false, error: "Missed transaction signature" },
-          { status: 400 }
-        );
+        throw new Error("Missed transaction signature");
       }
       let transaction;
 
@@ -192,10 +184,7 @@ export async function POST(req: Request, res: NextApiResponse) {
       !collectionMintPublicKey ||
       !order.collectibles.metadata_uri
     ) {
-      return NextResponse.json(
-        { success: false, error: "Something went wrong" },
-        { status: 400 }
-      );
+      throw new Error("Something went wrong");
     }
 
     // Mint NFT

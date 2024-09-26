@@ -54,19 +54,19 @@ const DashboardPage = () => {
               <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto font-raleway">
                 Start selling your digital collectibles in minutes.
               </p>
-                <ShimmerButton
-                  className="shadow-2xl"
-                  onClick={() => handleConnect()}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <div className="flex items-center w-16 h-6 justify-center">
-                      <div className="animate-spin text-white rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
-                    </div>
-                  ) : (
-                    <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-                      Connect Wallet
-                    </span>
+              <ShimmerButton
+                className="shadow-2xl"
+                onClick={() => handleConnect()}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center w-16 h-6 justify-center">
+                    <div className="animate-spin text-white rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                  </div>
+                ) : (
+                  <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
+                    Connect Wallet
+                  </span>
                 )}
               </ShimmerButton>
               <div className="hidden">

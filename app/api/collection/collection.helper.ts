@@ -23,7 +23,7 @@ import {
   LeafSchema,
 } from "@metaplex-foundation/mpl-bubblegum";
 import { TransactionBuilder } from "@metaplex-foundation/umi";
-import { chunk } from 'lodash'; // Add this import
+import { chunk } from "lodash"; // Add this import
 
 // Common Umi initialization function
 function initializeUmi(endpoint: string, privateKey: string): Umi {
@@ -47,7 +47,6 @@ export async function createBubbleGumTree() {
   const merkleTree = generateSigner(umi);
 
   try {
-
     await createNft(umi, {
       mint: collectionMint,
       name: "StreetMint V1",
@@ -104,8 +103,14 @@ export async function mintNFTWithBubbleGumTree(
       const leafOwner = publicKey(minterAddress);
       const collectionMintPubkey = publicKey(collectionMintPublicKey);
 
-      const collectionAsset = await fetchDigitalAsset(umi, collectionMintPubkey);
-      console.log("Collection mint fetched:", collectionAsset.publicKey.toString());
+      const collectionAsset = await fetchDigitalAsset(
+        umi,
+        collectionMintPubkey
+      );
+      console.log(
+        "Collection mint fetched:",
+        collectionAsset.publicKey.toString()
+      );
 
       const tx = await mintToCollectionV1(umi, {
         leafOwner: leafOwner,
@@ -122,8 +127,14 @@ export async function mintNFTWithBubbleGumTree(
         },
       }).sendAndConfirm(umi);
 
-      const leaf: LeafSchema = await parseLeafFromMintToCollectionV1Transaction(umi, tx.signature);
-      const assetId = findLeafAssetIdPda(umi, { merkleTree, leafIndex: leaf.nonce });
+      const leaf: LeafSchema = await parseLeafFromMintToCollectionV1Transaction(
+        umi,
+        tx.signature
+      );
+      const assetId = findLeafAssetIdPda(umi, {
+        merkleTree,
+        leafIndex: leaf.nonce,
+      });
       const tokenAddress = assetId.toString().split(",")[0];
 
       const txSignature = bs58.encode(tx.signature);
@@ -135,7 +146,7 @@ export async function mintNFTWithBubbleGumTree(
       console.log("NFT minted successfully:", {
         signature: txSignature,
         solscanLink: solscanLink,
-        tokenAddress: tokenAddress
+        tokenAddress: tokenAddress,
       });
 
       return { signature: txSignature, solscanLink: solscanLink, tokenAddress };
@@ -143,10 +154,12 @@ export async function mintNFTWithBubbleGumTree(
       console.error(`Error minting NFT (attempt ${retries + 1}):`, error);
       retries++;
       if (retries >= maxRetries) {
-        throw new Error(`Failed to mint NFT after ${maxRetries} attempts: ${error.message}`);
+        throw new Error(
+          `Failed to mint NFT after ${maxRetries} attempts: ${error.message}`
+        );
       }
       // Wait for a short time before retrying
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
   }
 }

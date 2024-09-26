@@ -67,6 +67,8 @@ const EditionInformation = ({
     return () => clearInterval(interval);
   }, [collectible.mint_start_date, collectible.mint_end_date]);
 
+  const isIslandDAOCollection = collection.id === 5279184362;
+
   return (
     <div>
       <Card className="bg-black mx-auto text-white my-2">
@@ -77,7 +79,9 @@ const EditionInformation = ({
                 variant="secondary"
                 className="text-black text-md md:text-lg"
               >
-                {EditionService.getEditionTypeText(collectible.quantity_type as QuantityType)}
+                {EditionService.getEditionTypeText(
+                  collectible.quantity_type as QuantityType
+                )}
               </Badge>
               <span className="md:text-2xl text-md ml-2 font-bold">
                 {collectible.quantity_type === QuantityType.Limited &&
@@ -158,7 +162,7 @@ const EditionInformation = ({
           {/* Render MintButton only if minting has started */}
 
           <MintButton
-            isIRLtapped={true} // Add true for IslandDAO minting because chips are late
+            isIRLtapped={isIslandDAOCollection ? true : isIRLtapped}
             artistWalletAddress={artistWalletAddress}
             collectible={{
               ...collectible,
