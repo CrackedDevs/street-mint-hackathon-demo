@@ -20,8 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AppWalletProvider>
-          <UserProfileProvider>{children}
-          </UserProfileProvider>
+          <UserProfileProvider>{children}</UserProfileProvider>
         </AppWalletProvider>
       </body>
     </html>

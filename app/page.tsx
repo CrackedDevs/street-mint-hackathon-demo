@@ -30,7 +30,8 @@ export default function LandingPage() {
                   Digital Collectibles, Real-World Connections
                 </h1>
                 <p className="mt-6 text-lg leading-8 text-gray-600">
-                Create, mint, and share unique digital collectibles and IRLS on Solana with the power of NFC technology.
+                  Create, mint, and share unique digital collectibles and IRLS
+                  on Solana with the power of NFC technology.
                 </p>
                 <div className="mt-10 flex items-center justify-center gap-x-6">
                   <a

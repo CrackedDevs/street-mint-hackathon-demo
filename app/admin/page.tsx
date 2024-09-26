@@ -24,7 +24,10 @@ export default function AdminDashboard() {
   if (!isLoggedIn) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <form onSubmit={handleLogin} className="p-8 bg-white shadow-md rounded-lg">
+        <form
+          onSubmit={handleLogin}
+          className="p-8 bg-white shadow-md rounded-lg"
+        >
           <h1 className="text-2xl font-bold mb-4">Admin Login</h1>
           <input
             type="password"
@@ -33,7 +36,10 @@ export default function AdminDashboard() {
             placeholder="Enter password"
             className="w-full p-2 mb-4 border rounded"
           />
-          <button type="submit" className="w-full p-2 bg-blue-500 text-white rounded">
+          <button
+            type="submit"
+            className="w-full p-2 bg-blue-500 text-white rounded"
+          >
             Login
           </button>
         </form>

@@ -23,7 +23,13 @@ import { Input } from "./ui/input";
 import confetti from "canvas-confetti";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckIcon, CopyIcon, ExternalLink, HeartIcon, ImageIcon } from "lucide-react";
+import {
+  CheckIcon,
+  CopyIcon,
+  ExternalLink,
+  HeartIcon,
+  ImageIcon,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import Artist from "@/app/assets/artist.png";
 import LocationButton from "./LocationButton";
@@ -47,7 +53,8 @@ export default function MintButton({
   isIRLtapped,
   mintStatus,
 }: MintButtonProps) {
-  const { connected, connect, publicKey, signTransaction, connecting } = useWallet();
+  const { connected, connect, publicKey, signTransaction, connecting } =
+    useWallet();
   const { connection } = useConnection();
   const [isMinting, setIsMinting] = useState(false);
   const [isEligible, setIsEligible] = useState(false);
@@ -439,23 +446,28 @@ export default function MintButton({
         <>
           {transactionSignature && tokenAddress ? (
             <div className="flex flex-col items-center space-y-2 mt-4 w-full">
-              <Link href={SolanaFMService.getAddress(tokenAddress)} target="_blank" className="w-full">
-      <WhiteBgShimmerButton 
-                    borderRadius="6px"
-                    className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
-      >
-        VIEW COLLECTIBLE
-      </WhiteBgShimmerButton>
-        </Link>
-      <Link href={SolanaFMService.getTransaction(transactionSignature)} target="_blank">
-      <button 
-        className="text-sm text-white transition-colors flex items-center"
-      >
-        <ExternalLink className="w-4 h-4 mr-1" />
-        View Transaction
-      </button>
-                </Link>
-    </div>
+              <Link
+                href={SolanaFMService.getAddress(tokenAddress)}
+                target="_blank"
+                className="w-full"
+              >
+                <WhiteBgShimmerButton
+                  borderRadius="6px"
+                  className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
+                >
+                  VIEW COLLECTIBLE
+                </WhiteBgShimmerButton>
+              </Link>
+              <Link
+                href={SolanaFMService.getTransaction(transactionSignature)}
+                target="_blank"
+              >
+                <button className="text-sm text-white transition-colors flex items-center">
+                  <ExternalLink className="w-4 h-4 mr-1" />
+                  View Transaction
+                </button>
+              </Link>
+            </div>
           ) : (
             <>
               {isFreeMint ? (
@@ -472,7 +484,10 @@ export default function MintButton({
                     className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
                     onClick={handleMintClick}
                     disabled={
-                      isMinting || !isEligible || existingOrder || (isFreeMint && !walletAddress)
+                      isMinting ||
+                      !isEligible ||
+                      existingOrder ||
+                      (isFreeMint && !walletAddress)
                     }
                   >
                     {getButtonText()}

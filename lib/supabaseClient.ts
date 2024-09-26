@@ -449,9 +449,6 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             .single();
 
         if (collectibleError) throw collectibleError;
-
-        // Check if the minting period has started
-
         // Get the count of existing orders for this collectible
         const { count, error: countError } = await supabase
             .from('orders')
@@ -478,9 +475,11 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             .select('id')
             .eq('wallet_address', walletAddress)
             .eq('collectible_id', collectibleId)
-            .eq('status', 'completed')
+            .in('status', ['completed', 'pending'])
             .single();
 
+        console.log("existingOrder", existingOrder);
+        console.log("orderError", orderError);
         if (orderError && orderError.code !== 'PGRST116') throw orderError; // PGRST116 means no rows returned
 
         if (existingOrder) {
@@ -493,8 +492,11 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             .select('id, status')
             .eq('device_id', deviceId)
             .eq('collectible_id', collectibleId)
-            .eq('status', 'completed')
+            .in('status', ['completed', 'pending'])
             .single();
+
+        console.log("existingDeviceMint", existingDeviceMint);
+        console.log("deviceError", deviceError);
 
         if (deviceError && deviceError.code !== 'PGRST116') throw deviceError;
         if (existingDeviceMint) {

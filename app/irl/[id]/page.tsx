@@ -102,7 +102,6 @@ export default function NFTPage({
     isIRLtapped: false;
   }>();
 
-
   useEffect(() => {
     fetchNFTData(params.id, searchParams.rnd, searchParams.sign, setNFTData);
   }, [params.id, searchParams.rnd, searchParams.sign]);
@@ -224,8 +223,8 @@ export default function NFTPage({
                 <p>
                   {collectible.price_usd > 0 ? (
                     <>
-                      ${collectible.price_usd.toFixed(2)} ({priceInSOL.toFixed(2)}{" "}
-                      SOL)
+                      ${collectible.price_usd.toFixed(2)} (
+                      {priceInSOL.toFixed(2)} SOL)
                     </>
                   ) : (
                     "Free"

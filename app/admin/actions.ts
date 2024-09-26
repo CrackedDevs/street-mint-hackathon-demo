@@ -1,6 +1,9 @@
 "use server";
 
-import { getAllCollections, getCollectionsByArtistId } from "@/lib/supabaseClient";
+import {
+  getAllCollections,
+  getCollectionsByArtistId,
+} from "@/lib/supabaseClient";
 
 export async function loginAdmin(password: string) {
   if (password === process.env.ADMIN_PASSWORD) {

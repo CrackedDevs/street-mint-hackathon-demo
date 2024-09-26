@@ -9,7 +9,10 @@ interface CopyableTextProps {
   copyText: string;
 }
 
-const CopyableText: React.FC<CopyableTextProps> = ({ displayText, copyText }) => {
+const CopyableText: React.FC<CopyableTextProps> = ({
+  displayText,
+  copyText,
+}) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(copyText ?? "");
     toast({

@@ -16,7 +16,7 @@ const ConnectedWalletWidget = () => {
   const { userProfile, isLoading, handleDisconnect } = useUserProfile();
 
   if (!connected || isLoading) {
-    return <div/>;
+    return <div />;
   }
 
   return (
