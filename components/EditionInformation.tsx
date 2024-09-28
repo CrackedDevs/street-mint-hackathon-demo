@@ -162,7 +162,7 @@ const EditionInformation = ({
           {/* Render MintButton only if minting has started */}
 
           <MintButton
-            isIRLtapped={isIslandDAOCollection ? true : isIRLtapped}
+            isIRLtapped={true}
             artistWalletAddress={artistWalletAddress}
             collectible={{
               ...collectible,
