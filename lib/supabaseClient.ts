@@ -478,8 +478,6 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             .in('status', ['completed', 'pending'])
             .single();
 
-        console.log("existingOrder", existingOrder);
-        console.log("orderError", orderError);
         if (orderError && orderError.code !== 'PGRST116') throw orderError; // PGRST116 means no rows returned
 
         if (existingOrder) {
@@ -495,8 +493,6 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             .in('status', ['completed', 'pending'])
             .single();
 
-        console.log("existingDeviceMint", existingDeviceMint);
-        console.log("deviceError", deviceError);
 
         if (deviceError && deviceError.code !== 'PGRST116') throw deviceError;
         if (existingDeviceMint) {
