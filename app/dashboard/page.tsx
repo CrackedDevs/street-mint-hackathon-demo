@@ -20,14 +20,12 @@ const DashboardPage = () => {
       setProfileNotComplete(
         connected && !isLoading && userProfile && !userProfile.email
       );
-    }
-  }, [userProfile]);
 
-  useEffect(() => {
-    if (connected && !isLoading && userProfile) {
-      router.push("/dashboard/collection");
+      if (connected && !isLoading && userProfile.email) {
+        router.push("/dashboard/collection");
+      }
     }
-  }, [connected, isLoading, router]);
+  }, [connected, isLoading, userProfile, router]);
 
   const handleConnect = () => {
     const button = document.querySelector(
