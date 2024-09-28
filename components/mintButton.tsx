@@ -35,6 +35,7 @@ import Artist from "@/app/assets/artist.png";
 import LocationButton from "./LocationButton";
 import { SolanaFMService } from "@/lib/services/solanaExplorerService";
 import Link from "next/link";
+import { resolveSolDomain } from "@/app/api/collection/collection.helper";
 
 interface MintButtonProps {
   collectible: Collectible;
