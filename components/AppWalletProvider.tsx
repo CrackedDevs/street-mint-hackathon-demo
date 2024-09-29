@@ -23,7 +23,7 @@ import {
 } from "@solana/web3.js";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
 import { Web3Auth } from "@web3auth/modal";
-// import "@solana/wallet-adapter-react-ui/styles.css";
+import "@solana/wallet-adapter-react-ui/styles.css";
 import {
   SolanaPrivateKeyProvider,
   SolanaWallet,
