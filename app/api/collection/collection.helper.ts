@@ -169,7 +169,7 @@ export async function resolveSolDomain(
   domain: string
 ): Promise<string> {
   try {
-    const { pubkey } = getDomainKeySync(domain);
+    const { pubkey } = getDomainKeySync(domain.toLocaleLowerCase().trim());
     if (!pubkey) {
       throw new Error("Domain not found");
     }
