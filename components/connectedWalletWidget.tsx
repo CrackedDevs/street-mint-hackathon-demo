@@ -10,12 +10,15 @@ import { shortenAddress } from "@/lib/shortenAddress";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
+import { redirect } from "next/navigation";
 
 const ConnectedWalletWidget = () => {
   const { publicKey, connected } = useWallet();
   const { userProfile, isLoading, handleDisconnect } = useUserProfile();
 
-  if (!connected || isLoading) {
+  if (!connected && !isLoading) {
+    //navigate to dashboard
+    redirect("/dashboard");
     return <div />;
   }
 
