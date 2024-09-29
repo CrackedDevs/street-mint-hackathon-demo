@@ -22,7 +22,7 @@ import {
   createTree,
   LeafSchema,
 } from "@metaplex-foundation/mpl-bubblegum";
-import { getDomainKeySync } from "@bonfida/spl-name-service";
+import { getDomainKeySync, NameRegistryState } from "@bonfida/spl-name-service";
 import { Connection } from "@solana/web3.js";
 
 // Common Umi initialization function
@@ -169,15 +169,16 @@ export async function resolveSolDomain(
   domain: string
 ): Promise<string> {
   try {
-    console.log("Domain:", domain);
     const { pubkey } = getDomainKeySync(domain);
-    console.log("Pubkey:", pubkey);
-
     if (!pubkey) {
       throw new Error("Domain not found");
     }
-    // return new PublicKey(pubkey.data.subarray(32, 64)).toString();
-    return pubkey.toString();
+    const { registry } = await NameRegistryState.retrieve(connection, pubkey);
+    if (registry) {
+      return registry.owner.toBase58();
+    } else {
+      throw new Error("Domain not found");
+    }
   } catch (error) {
     console.error("Error resolving .sol domain:", error);
     throw new Error("Failed to resolve .sol domain");

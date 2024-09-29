@@ -17,7 +17,6 @@ import {
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import {
   clusterApiUrl,
-  Connection,
   PublicKey,
   Transaction,
   TransactionVersion,
@@ -238,10 +237,6 @@ export default function AppWalletProvider({
     }
     return [new PhantomWalletAdapter()];
   }, [web3auth]);
-
-  // if (!web3auth) {
-  //   return <div>Loading Web3Auth...</div>;
-  // }
 
   return (
     <ConnectionProvider endpoint={endpoint}>

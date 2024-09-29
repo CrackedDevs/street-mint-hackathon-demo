@@ -131,6 +131,7 @@ export async function POST(req: Request, res: NextApiResponse) {
       }
     }
     console.log("Resolved Wallet Address:", resolvedWalletAddress);
+
     // For paid mints, verify and send transaction
     if (order.price_usd && order.price_usd > 0) {
       if (!signedTransaction) {
@@ -223,6 +224,7 @@ export async function POST(req: Request, res: NextApiResponse) {
         status: "completed",
         mint_signature: mintResult.signature,
         mint_address: mintResult.tokenAddress,
+        wallet_address: resolvedWalletAddress,
       })
       .eq("id", orderId);
 

@@ -2,8 +2,13 @@ import { AuthError, createClient, User } from '@supabase/supabase-js';
 import { Database } from './types/database.types';
 import { isSignatureValid } from './nfcVerificationHellper';
 import { GalleryItem } from '@/app/gallery/galleryGrid';
+import { resolveSolDomain } from '@/app/api/collection/collection.helper';
+import { Connection } from '@solana/web3.js';
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const connection = new Connection(process.env.NEXT_PUBLIC_RPC_URL!);
 
 export type Collection = {
     id: number;
@@ -74,14 +79,6 @@ export type Artist = {
     linkedin_username?: string | null;
     farcaster_username?: string | null;
     wallet_address: string;
-};
-
-type CreateCollectionMintResponse = {
-    success: boolean;
-    result: {
-        merkleTreePublicKey: string;
-        collectionMintPublicKey: string;
-    };
 };
 
 export type ArtistWithoutWallet = Omit<Artist, 'wallet_address'>;
@@ -442,6 +439,18 @@ export const fetchCollectiblesByCollectionId = async (collectionId: number) => {
 export async function checkMintEligibility(walletAddress: string, collectibleId: number, deviceId: string): Promise<{ eligible: boolean; reason?: string }> {
     try {
         // Check if the NFT is still available and get its details
+        // Check if the wallet address is a .sol domain
+        let resolvedWalletAddress = walletAddress;
+        if (walletAddress.endsWith('.sol')) {
+            try {
+                resolvedWalletAddress = await resolveSolDomain(connection, walletAddress);
+            } catch (error) {
+                console.error("Error resolving .sol domain:", error);
+                return { eligible: false, reason: 'Failed to resolve .sol domain' };
+            }
+        }
+
+        // Use the resolved wallet address for the rest of the checks
         const { data: collectible, error: collectibleError } = await supabase
             .from('collectibles')
             .select('quantity, quantity_type, mint_start_date, mint_end_date')
@@ -473,7 +482,7 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         const { data: existingOrder, error: orderError } = await supabase
             .from('orders')
             .select('id')
-            .eq('wallet_address', walletAddress)
+            .eq('wallet_address', resolvedWalletAddress)
             .eq('collectible_id', collectibleId)
             .in('status', ['completed', 'pending'])
             .single();
@@ -513,7 +522,6 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         // If all checks pass, the user is eligible to mint
         return { eligible: true };
     } catch (error) {
-        console.error('Error checking mint eligibility:', error);
         return { eligible: false, reason: 'Error checking mint eligibility.' };
     }
 }
