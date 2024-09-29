@@ -51,7 +51,7 @@ export default function CollectionCard({
           <h3 className="text-xl font-semibold leading-tight">
             {collection.name}
           </h3>
-          <p className="text-sm text-muted-foreground line-clamp-3">
+          <p className="text-sm text-muted-foreground line-clamp-1">
             {collection.description}
           </p>
           <p className="text-sm text-muted-foreground line-clamp-3">

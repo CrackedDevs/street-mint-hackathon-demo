@@ -8,7 +8,10 @@ import {
   SendTransactionError,
 } from "@solana/web3.js";
 import { supabase } from "@/lib/supabaseClient";
-import { mintNFTWithBubbleGumTree } from "../../collection.helper";
+import {
+  mintNFTWithBubbleGumTree,
+  resolveSolDomain,
+} from "../../collection.helper";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdminClient";
 
@@ -116,6 +119,19 @@ export async function POST(req: Request, res: NextApiResponse) {
       throw new Error("No transaction found");
     }
 
+    let resolvedWalletAddress = order.wallet_address;
+    if (order.wallet_address.endsWith(".sol")) {
+      try {
+        resolvedWalletAddress = await resolveSolDomain(
+          connection,
+          order.wallet_address
+        );
+      } catch (error) {
+        throw new Error("Failed to resolve .sol domain");
+      }
+    }
+    console.log("Resolved Wallet Address:", resolvedWalletAddress);
+
     // For paid mints, verify and send transaction
     if (order.price_usd && order.price_usd > 0) {
       if (!signedTransaction) {
@@ -191,7 +207,7 @@ export async function POST(req: Request, res: NextApiResponse) {
     const mintResult = await mintNFTWithBubbleGumTree(
       merkleTreePublicKey,
       collectionMintPublicKey,
-      order.wallet_address,
+      resolvedWalletAddress,
       order.collectibles.name,
       order.collectibles.metadata_uri
     );
@@ -208,6 +224,7 @@ export async function POST(req: Request, res: NextApiResponse) {
         status: "completed",
         mint_signature: mintResult.signature,
         mint_address: mintResult.tokenAddress,
+        wallet_address: resolvedWalletAddress,
       })
       .eq("id", orderId);
 

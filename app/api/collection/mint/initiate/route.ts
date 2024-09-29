@@ -34,15 +34,18 @@ export async function POST(req: Request, res: NextApiResponse) {
       deviceId
     );
 
-    // if (!eligible) {
-    //   return NextResponse.json(
-    //     {
-    //       success: false,
-    //       error: "Already minted or minting in progress for this NFT" + reason,
-    //     },
-    //     { status: 400 }
-    //   );
-    // }
+    console.log("Eligible:", eligible);
+    console.log("Reason:", reason);
+
+    if (!eligible) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Already minted or minting in progress for this NFT" + reason,
+        },
+        { status: 400 }
+      );
+    }
 
     // Create order in database
     const supabaseAdmin = await getSupabaseAdmin();

@@ -11,6 +11,7 @@
     "supabase-types": "npx supabase gen types typescript --project-id iaulwnqmthzvuxfubnsb > lib/types/database.types.ts"
   },
   "dependencies": {
+    "@bonfida/spl-name-service": "^2.5.4",
     "@fingerprintjs/fingerprintjs": "^4.5.0",
     "@metaplex-foundation/digital-asset-standard-api": "^1.0.4",
     "@metaplex-foundation/js": "^0.20.1",
@@ -33,11 +34,11 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-switch": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.1",
+    "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/wallet-adapter-base": "^0.9.23",
-    "@solana/wallet-adapter-clover": "^0.4.19",
+    "@solana/wallet-adapter-phantom": "^0.9.24",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/wallet-adapter-react-ui": "^0.9.35",
-    "@solana/wallet-adapter-wallets": "^0.19.32",
     "@solana/web3.js": "^1.95.3",
     "@supabase/supabase-js": "^2.45.3",
     "@tanstack/react-table": "^8.20.5",

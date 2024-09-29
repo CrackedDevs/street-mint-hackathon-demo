@@ -35,6 +35,7 @@ import Artist from "@/app/assets/artist.png";
 import LocationButton from "./LocationButton";
 import { SolanaFMService } from "@/lib/services/solanaExplorerService";
 import Link from "next/link";
+import { resolveSolDomain } from "@/app/api/collection/collection.helper";
 
 interface MintButtonProps {
   collectible: Collectible;
@@ -55,9 +56,10 @@ export default function MintButton({
 }: MintButtonProps) {
   const { connected, connect, publicKey, signTransaction, connecting } =
     useWallet();
-  const { connection } = useConnection();
   const [isMinting, setIsMinting] = useState(false);
+  const { connection } = useConnection();
   const [isEligible, setIsEligible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [transactionSignature, setTransactionSignature] = useState<
     string | null
@@ -120,6 +122,7 @@ export default function MintButton({
   async function checkEligibilityAndExistingOrder() {
     const addressToCheck = isFreeMint ? walletAddress : publicKey?.toString();
     if (addressToCheck && deviceId) {
+      setIsLoading(true);
       try {
         const { eligible, reason } = await checkMintEligibility(
           addressToCheck,
@@ -127,6 +130,7 @@ export default function MintButton({
           deviceId
         );
         setIsEligible(eligible);
+        setIsLoading(false);
         if (!eligible) {
           setError(reason || "You are not eligible to mint this NFT.");
         } else {
@@ -142,8 +146,10 @@ export default function MintButton({
         console.error("Error checking eligibility or existing order:", error);
         setError("Failed to check minting eligibility.");
         setIsEligible(false);
+        setIsLoading(false);
       }
     } else {
+      setIsLoading(false);
       setIsEligible(false);
       setExistingOrder(null);
     }
@@ -272,7 +278,7 @@ export default function MintButton({
     } catch (error: any) {
       console.error("Error minting NFT:", error);
       toast({
-        title: "Something went wrong while minting your collectible",
+        title: "Something went wrong while minting your collectible ",
         description:
           error.message ||
           "An unexpected error occurred. Please try again later.",
@@ -328,7 +334,6 @@ export default function MintButton({
       setIsMinting(false);
       return;
     }
-
     await handlePaymentAndMint();
     setIsMinting(false);
   };
@@ -337,8 +342,9 @@ export default function MintButton({
     if (isFreeMint && !walletAddress) return "COLLECT NOW";
     if (connecting) return "CONNECTING...";
     if (isMinting) return "PROCESSING...";
-    if (isEligible) return "MINT NOW";
+    if (isLoading) return "Checking Eligibility...";
     if (!isEligible) return "NOT ELIGIBLE";
+    if (isEligible) return "MINT NOW";
     return "LOADING...";
   };
 
@@ -487,7 +493,8 @@ export default function MintButton({
                       isMinting ||
                       !isEligible ||
                       existingOrder ||
-                      (isFreeMint && !walletAddress)
+                      (isFreeMint && !walletAddress) ||
+                      isLoading
                     }
                   >
                     {getButtonText()}
@@ -512,7 +519,8 @@ export default function MintButton({
                     disabled={
                       isMinting ||
                       !isEligible ||
-                      existingOrder?.status == "completed"
+                      existingOrder?.status == "completed" ||
+                      isLoading
                     }
                   >
                     {getButtonText()}

@@ -22,8 +22,8 @@ import {
   createTree,
   LeafSchema,
 } from "@metaplex-foundation/mpl-bubblegum";
-import { TransactionBuilder } from "@metaplex-foundation/umi";
-import { chunk } from "lodash"; // Add this import
+import { getDomainKeySync, NameRegistryState } from "@bonfida/spl-name-service";
+import { Connection } from "@solana/web3.js";
 
 // Common Umi initialization function
 function initializeUmi(endpoint: string, privateKey: string): Umi {
@@ -161,5 +161,26 @@ export async function mintNFTWithBubbleGumTree(
       // Wait for a short time before retrying
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
+  }
+}
+
+export async function resolveSolDomain(
+  connection: Connection,
+  domain: string
+): Promise<string> {
+  try {
+    const { pubkey } = getDomainKeySync(domain);
+    if (!pubkey) {
+      throw new Error("Domain not found");
+    }
+    const { registry } = await NameRegistryState.retrieve(connection, pubkey);
+    if (registry) {
+      return registry.owner.toBase58();
+    } else {
+      throw new Error("Domain not found");
+    }
+  } catch (error) {
+    console.error("Error resolving .sol domain:", error);
+    throw new Error("Failed to resolve .sol domain");
   }
 }
