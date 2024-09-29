@@ -11,7 +11,7 @@
     "supabase-types": "npx supabase gen types typescript --project-id iaulwnqmthzvuxfubnsb > lib/types/database.types.ts"
   },
   "dependencies": {
-    "@bonfida/spl-name-service": "^3.0.3",
+    "@bonfida/spl-name-service": "^2.5.4",
     "@fingerprintjs/fingerprintjs": "^4.5.0",
     "@metaplex-foundation/digital-asset-standard-api": "^1.0.4",
     "@metaplex-foundation/js": "^0.20.1",
