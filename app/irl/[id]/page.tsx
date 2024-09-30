@@ -169,6 +169,7 @@ export default function NFTPage({
 
             {/* Edition Information Section */}
             <EditionInformation
+              isIRLSmint={true}
               soldCount={nftData.soldCount}
               isIRLtapped={nftData.isIRLtapped}
               collection={{
