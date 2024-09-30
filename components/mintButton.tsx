@@ -23,26 +23,18 @@ import { Input } from "./ui/input";
 import confetti from "canvas-confetti";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  CheckIcon,
-  CopyIcon,
-  ExternalLink,
-  HeartIcon,
-  ImageIcon,
-} from "lucide-react";
+import { CheckIcon, CopyIcon, ExternalLink, HeartIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import Artist from "@/app/assets/artist.png";
 import LocationButton from "./LocationButton";
 import { SolanaFMService } from "@/lib/services/solanaExplorerService";
 import Link from "next/link";
-import { resolveSolDomain } from "@/app/api/collection/collection.helper";
 
 interface MintButtonProps {
   collectible: Collectible;
   collection: Collection;
   artistWalletAddress: string;
   isIRLtapped: boolean;
-  inputWalletAddress?: string;
   mintStatus: string;
 }
 
@@ -50,7 +42,6 @@ export default function MintButton({
   collectible,
   collection,
   artistWalletAddress,
-  inputWalletAddress: initialWalletAddress,
   isIRLtapped,
   mintStatus,
 }: MintButtonProps) {
@@ -68,12 +59,9 @@ export default function MintButton({
   const [deviceId, setDeviceId] = useState("");
   const [existingOrder, setExistingOrder] = useState<any | null>(null);
   const isFreeMint = collectible.price_usd === 0;
-  const [walletAddress, setWalletAddress] = useState(
-    initialWalletAddress || ""
-  );
+  const [walletAddress, setWalletAddress] = useState("");
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const isIrlMint = !!initialWalletAddress;
 
   const TriggerConfetti = () => {
     const end = Date.now() + 3 * 1000; // 3 seconds
@@ -112,12 +100,6 @@ export default function MintButton({
     }
     fetchDeviceId();
   }, []);
-
-  useEffect(() => {
-    if (isIrlMint && !initialWalletAddress) {
-      window.scrollTo(0, 0);
-    }
-  }, [isIrlMint, initialWalletAddress]);
 
   async function checkEligibilityAndExistingOrder() {
     const addressToCheck = isFreeMint ? walletAddress : publicKey?.toString();

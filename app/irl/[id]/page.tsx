@@ -169,6 +169,7 @@ export default function NFTPage({
 
             {/* Edition Information Section */}
             <EditionInformation
+              isIRLSmint={true}
               soldCount={nftData.soldCount}
               isIRLtapped={nftData.isIRLtapped}
               collection={{
@@ -192,7 +193,11 @@ export default function NFTPage({
         <div className="max-w-7xl mx-auto w-full bg-black text-white rounded-xl  py-8">
           <div className="max-w-7xl mx-auto px-4">
             <h2 className="text-2xl font-bold mb-4">Description</h2>
-            <p className="text-lg mb-6">{collectible.description}</p>
+            {collectible.description.split("\n").map((paragraph, index) => (
+              <p key={index} className="text-md mb-2">
+                {paragraph}
+              </p>
+            ))}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div>
                 <p className="text-gray-400">Art title</p>

@@ -23,6 +23,7 @@ const EditionInformation = ({
   remainingQuantity,
   artistWalletAddress,
   soldCount,
+  isIRLSmint,
   isIRLtapped,
 }: {
   collection: Collection;
@@ -31,6 +32,7 @@ const EditionInformation = ({
   artistWalletAddress: string;
   soldCount: number;
   isIRLtapped: boolean;
+  isIRLSmint?: boolean;
 }) => {
   const [mintingStatus, setMintingStatus] = useState<
     "not-started" | "ongoing" | "ended"
@@ -175,10 +177,16 @@ const EditionInformation = ({
           />
         </CardContent>
         <CardFooter>
-          <p className="text-sm text-gray-300">
-            Locate the Street Mint mint station, tap it with your phone to claim
-            your digital collectible.
-          </p>
+          {isIRLSmint ? (
+            <p className="text-sm text-gray-300">
+              Locate the IRLS Mint Station, tap it…
+            </p>
+          ) : (
+            <p className="text-sm text-gray-300">
+              Locate the Street Mint mint station, tap it with your phone to
+              claim your digital collectible.
+            </p>
+          )}
         </CardFooter>
       </Card>
     </div>
