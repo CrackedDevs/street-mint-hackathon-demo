@@ -509,7 +509,7 @@ export default function MintButton({
                           className="w-full h-12 bg-white  text-black font-bold py-2 px-4 rounded transition duration-300 ease-in-out flex items-center justify-center"
                         >
                           <Wallet className="mr-2 h-5 w-5" />
-                          No wallet ? Click here
+                          No wallet ? Collect with Google
                         </button>
                       ) : (
                         <button

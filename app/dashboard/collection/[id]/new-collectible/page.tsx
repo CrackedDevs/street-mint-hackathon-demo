@@ -70,6 +70,14 @@ function CreateCollectiblePage() {
   const [isFreeMint, setIsFreeMint] = useState(false);
 
   const handleCollectibleChange = (field: keyof Collectible, value: any) => {
+    if (field === "name" && value.length > 32) {
+      toast({
+        title: "Error",
+        description: "Collectible name must not exceed 32 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
     setCollectible((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -154,6 +162,14 @@ function CreateCollectiblePage() {
       toast({
         title: "Enter quantity",
         description: "Enter quantity for limited quantity type",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (collectible.name.length > 32) {
+      toast({
+        title: "Error",
+        description: "Collectible name must not exceed 32 characters.",
         variant: "destructive",
       });
       return;
@@ -301,7 +317,11 @@ function CreateCollectiblePage() {
                     }
                     className="text-lg"
                     required
+                    maxLength={32}
                   />
+                  <p className="text-sm text-muted-foreground">
+                    {collectible.name.length}/32 characters
+                  </p>
                 </div>
 
                 <div className="space-y-2">
