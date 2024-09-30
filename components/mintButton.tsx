@@ -29,13 +29,15 @@ import {
   ExternalLink,
   HeartIcon,
   ImageIcon,
+  Unplug,
+  Wallet,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import Artist from "@/app/assets/artist.png";
 import LocationButton from "./LocationButton";
 import { SolanaFMService } from "@/lib/services/solanaExplorerService";
 import Link from "next/link";
-import { resolveSolDomain } from "@/app/api/collection/collection.helper";
+import { GoogleViaTipLinkWalletName } from "@tiplink/wallet-adapter";
 
 interface MintButtonProps {
   collectible: Collectible;
@@ -54,8 +56,15 @@ export default function MintButton({
   isIRLtapped,
   mintStatus,
 }: MintButtonProps) {
-  const { connected, connect, publicKey, signTransaction, connecting } =
-    useWallet();
+  const {
+    connected,
+    connect,
+    publicKey,
+    signTransaction,
+    select,
+    disconnect,
+    connecting,
+  } = useWallet();
   const [isMinting, setIsMinting] = useState(false);
   const { connection } = useConnection();
   const [isEligible, setIsEligible] = useState(false);
@@ -165,6 +174,12 @@ export default function MintButton({
     collectible.id,
     isFreeMint,
   ]);
+
+  useEffect(() => {
+    if (connected && publicKey) {
+      setWalletAddress(publicKey.toString());
+    }
+  }, [connected]);
 
   const handlePaymentAndMint = async () => {
     const addressToUse = isFreeMint ? walletAddress : publicKey?.toString();
@@ -369,6 +384,14 @@ export default function MintButton({
       return <div></div>;
     }
   }
+  const handleConnect = () => {
+    const button = document.querySelector(
+      ".wallet-adapter-button"
+    ) as HTMLElement;
+    if (button) {
+      button.click();
+    }
+  };
 
   return (
     <div className="flex flex-col w-full justify-center items-center">
@@ -478,13 +501,46 @@ export default function MintButton({
             <>
               {isFreeMint ? (
                 <div className="w-full flex flex-col items-center justify-center">
-                  <Input
-                    type="text"
-                    placeholder="Enter wallet address"
-                    value={walletAddress}
-                    onChange={(e) => setWalletAddress(e.target.value)}
-                    className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
-                  />
+                  <div className="w-full gap-4 mt-4 flex flex-col items-center justify-center mb-4">
+                    <Input
+                      type="text"
+                      placeholder="Enter .sol or wallet address"
+                      value={walletAddress}
+                      onChange={(e) => setWalletAddress(e.target.value)}
+                      className="w-full h-12 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
+                    />
+                    <span>OR</span>
+                    <div className="w-full">
+                      {!connected ? (
+                        <button
+                          // onClick={handleConnect}
+                          onClick={() => {
+                            select(GoogleViaTipLinkWalletName);
+                          }}
+                          className="w-full h-12 bg-white  text-black font-bold py-2 px-4 rounded transition duration-300 ease-in-out flex items-center justify-center"
+                        >
+                          <Wallet className="mr-2 h-5 w-5" />
+                          No wallet ? Click here
+                        </button>
+                      ) : (
+                        <button
+                          onClick={async () => {
+                            await disconnect();
+                            setWalletAddress("");
+                            console.log("Change wallet clicked");
+                          }}
+                          className="w-full h-12 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition duration-300 ease-in-out flex items-center justify-center"
+                        >
+                          <Unplug className="mr-2 h-5 w-5" />
+                          Change Wallet
+                        </button>
+                      )}
+                    </div>
+                    <div className="hidden">
+                      <WalletMultiButton />
+                    </div>
+                  </div>
+
                   <WhiteBgShimmerButton
                     borderRadius="6px"
                     className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"

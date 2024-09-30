@@ -30,6 +30,13 @@ import {
 } from "@web3auth/solana-provider";
 import { CHAIN_NAMESPACES, CustomChainConfig } from "@web3auth/base";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
+import { TipLinkWalletAdapter } from "@tiplink/wallet-adapter";
+import {
+  WalletDisconnectButton,
+  WalletMultiButton,
+  TipLinkWalletAutoConnectV2,
+} from "@tiplink/wallet-adapter-react-ui";
+import { useSearchParams } from "next/navigation";
 
 class Web3AuthWalletAdapter extends BaseMessageSignerWalletAdapter {
   name = "Social Login" as WalletName<"Web3Auth">;
@@ -232,16 +239,23 @@ export default function AppWalletProvider({
   // Custom Web3Auth wallet adapter
 
   const wallets = useMemo(() => {
-    if (web3auth) {
-      return [new PhantomWalletAdapter(), new Web3AuthWalletAdapter(web3auth)];
-    }
-    return [new PhantomWalletAdapter()];
-  }, [web3auth]);
+    return [
+      new TipLinkWalletAdapter({
+        title: "Streetmint",
+        clientId: "694bf97c-d2ac-4dfc-a786-a001812658df",
+        theme: "dark", // pick between "dark"/"light"/"system"
+      }),
+      new PhantomWalletAdapter(),
+    ];
+  }, []);
+  const searchParams = useSearchParams();
 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
+        <TipLinkWalletAutoConnectV2 query={searchParams} isReady={true}>
+          <WalletModalProvider>{children}</WalletModalProvider>
+        </TipLinkWalletAutoConnectV2>
       </WalletProvider>
     </ConnectionProvider>
   );

@@ -7,6 +7,8 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useRouter } from "next/navigation";
 import { useUserProfile } from "@/app/providers/UserProfileProvider";
 import Page from "@/app/dashboard/profile/page";
+import { Button } from "@/components/ui/button";
+import { GoogleViaTipLinkWalletName } from "@tiplink/wallet-adapter";
 
 const DashboardPage = () => {
   const { connected } = useWallet();
