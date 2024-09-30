@@ -31,12 +31,6 @@ import {
 import { CHAIN_NAMESPACES, CustomChainConfig } from "@web3auth/base";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { TipLinkWalletAdapter } from "@tiplink/wallet-adapter";
-import {
-  WalletDisconnectButton,
-  WalletMultiButton,
-  TipLinkWalletAutoConnectV2,
-} from "@tiplink/wallet-adapter-react-ui";
-import { useSearchParams } from "next/navigation";
 
 class Web3AuthWalletAdapter extends BaseMessageSignerWalletAdapter {
   name = "Social Login" as WalletName<"Web3Auth">;
@@ -248,14 +242,11 @@ export default function AppWalletProvider({
       new PhantomWalletAdapter(),
     ];
   }, []);
-  const searchParams = useSearchParams();
 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
-        <TipLinkWalletAutoConnectV2 query={searchParams} isReady={true}>
-          <WalletModalProvider>{children}</WalletModalProvider>
-        </TipLinkWalletAutoConnectV2>
+        <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );

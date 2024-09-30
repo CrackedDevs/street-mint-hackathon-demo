@@ -4,15 +4,34 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useEffect, useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import { PublicKey, SystemProgram, LAMPORTS_PER_SOL, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import {
+  PublicKey,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import WhiteBgShimmerButton from "./magicui/whiteBg-shimmer-button";
-import { checkMintEligibility, Collectible, Collection, getExistingOrder } from "@/lib/supabaseClient";
+import {
+  checkMintEligibility,
+  Collectible,
+  Collection,
+  getExistingOrder,
+} from "@/lib/supabaseClient";
 import { generateDeviceId } from "@/lib/fingerPrint";
 import { Input } from "./ui/input";
 import confetti from "canvas-confetti";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckIcon, CopyIcon, ExternalLink, HeartIcon, ImageIcon, Unplug, Wallet } from "lucide-react";
+import {
+  CheckIcon,
+  CopyIcon,
+  ExternalLink,
+  HeartIcon,
+  ImageIcon,
+  Unplug,
+  Wallet,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import Artist from "@/app/assets/artist.png";
 import LocationButton from "./LocationButton";
@@ -35,13 +54,23 @@ export default function MintButton({
   isIRLtapped,
   mintStatus,
 }: MintButtonProps) {
-  const { connected, connect, publicKey, signTransaction, select, disconnect, connecting } = useWallet();
+  const {
+    connected,
+    connect,
+    publicKey,
+    signTransaction,
+    select,
+    disconnect,
+    connecting,
+  } = useWallet();
   const [isMinting, setIsMinting] = useState(false);
   const { connection } = useConnection();
   const [isEligible, setIsEligible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [transactionSignature, setTransactionSignature] = useState<string | null>(null);
+  const [transactionSignature, setTransactionSignature] = useState<
+    string | null
+  >(null);
   const [tokenAddress, setTokenAddress] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState("");
   const [existingOrder, setExistingOrder] = useState<any | null>(null);
@@ -94,7 +123,11 @@ export default function MintButton({
     if (addressToCheck && deviceId) {
       setIsLoading(true);
       try {
-        const { eligible, reason } = await checkMintEligibility(addressToCheck, collectible.id, deviceId);
+        const { eligible, reason } = await checkMintEligibility(
+          addressToCheck,
+          collectible.id,
+          deviceId
+        );
         setIsEligible(eligible);
         setIsLoading(false);
         if (!eligible) {
@@ -123,7 +156,14 @@ export default function MintButton({
 
   useEffect(() => {
     checkEligibilityAndExistingOrder();
-  }, [connected, publicKey, walletAddress, deviceId, collectible.id, isFreeMint]);
+  }, [
+    connected,
+    publicKey,
+    walletAddress,
+    deviceId,
+    collectible.id,
+    isFreeMint,
+  ]);
 
   useEffect(() => {
     if (connected && publicKey) {
@@ -162,7 +202,9 @@ export default function MintButton({
 
       if (!isFree && publicKey) {
         // Step 2: Create payment transaction (only for paid mints)
-        const solPrice = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
+        const solPrice = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+        );
         const solPriceData = await solPrice.json();
 
         if (solPriceData && !solPriceData.solana) {
@@ -179,7 +221,8 @@ export default function MintButton({
           }),
         ];
 
-        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+        const { blockhash, lastValidBlockHeight } =
+          await connection.getLatestBlockhash();
         const messageV0 = new TransactionMessage({
           payerKey: publicKey,
           recentBlockhash: blockhash,
@@ -200,7 +243,9 @@ export default function MintButton({
         let signedTx;
         // Serialize the signed transaction
         signedTx = await signTransaction(transaction);
-        signedTransaction = Buffer.from(signedTx.serialize()).toString("base64");
+        signedTransaction = Buffer.from(signedTx.serialize()).toString(
+          "base64"
+        );
       }
 
       const processResponse = await fetch("/api/collection/mint/process", {
@@ -218,7 +263,8 @@ export default function MintButton({
         throw new Error(errorData.error || "Failed to process minting");
       }
 
-      const { success, tokenAddress, mintSignature } = await processResponse.json();
+      const { success, tokenAddress, mintSignature } =
+        await processResponse.json();
       if (success) {
         setTransactionSignature(mintSignature);
         setTokenAddress(tokenAddress);
@@ -238,7 +284,9 @@ export default function MintButton({
       console.error("Error minting NFT:", error);
       toast({
         title: "Something went wrong while minting your collectible ",
-        description: error.message || "An unexpected error occurred. Please try again later.",
+        description:
+          error.message ||
+          "An unexpected error occurred. Please try again later.",
         variant: "destructive",
       });
       setError("An unexpected error occurred");
@@ -316,7 +364,9 @@ export default function MintButton({
     if (collectible.location)
       return (
         <div className="flex flex-col gap-4 w-full justify-center items-center">
-          <span className="text-sm text-gray-400 mb-2">{collectible.location_note}</span>
+          <span className="text-sm text-gray-400 mb-2">
+            {collectible.location_note}
+          </span>
           <LocationButton location={collectible.location} />
         </div>
       );
@@ -325,7 +375,9 @@ export default function MintButton({
     }
   }
   const handleConnect = () => {
-    const button = document.querySelector(".wallet-adapter-button") as HTMLElement;
+    const button = document.querySelector(
+      ".wallet-adapter-button"
+    ) as HTMLElement;
     if (button) {
       button.click();
     }
@@ -336,7 +388,10 @@ export default function MintButton({
       {showDonationModal && (
         <div>
           <AnimatePresence>
-            <Dialog open={showDonationModal} onOpenChange={setShowDonationModal}>
+            <Dialog
+              open={showDonationModal}
+              onOpenChange={setShowDonationModal}
+            >
               <DialogContent className=" ">
                 <div
                   className="absolute  inset-0 z-0"
@@ -371,16 +426,32 @@ export default function MintButton({
                     </div>
                   </motion.div>
 
-                  <DialogTitle className="text-3xl font-bold mb-4 text-primary">Support the Creator</DialogTitle>
+                  <DialogTitle className="text-3xl font-bold mb-4 text-primary">
+                    Support the Creator
+                  </DialogTitle>
 
-                  <p className="text-lg mb-6">Dig this artwork? Give the artist some love and donate a little SOL</p>
+                  <p className="text-lg mb-6">
+                    Dig this artwork? Give the artist some love and donate a
+                    little SOL
+                  </p>
 
                   <div className="bg-black text-white p-4 rounded-lg shadow-lg mb-6">
-                    <h3 className="font-semibold mb-2">Creators Wallet Address</h3>
+                    <h3 className="font-semibold mb-2">
+                      Creators Wallet Address
+                    </h3>
                     <div className="flex items-center justify-between bg-white text-black p-2 rounded">
                       <code className="text-sm">{artistWalletAddress}</code>
-                      <Button variant="ghost" size="sm" onClick={copyToClipboard} className="ml-2">
-                        {isCopied ? <CheckIcon className="h-4 w-4 text-green-500" /> : <CopyIcon className="h-4 w-4" />}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={copyToClipboard}
+                        className="ml-2"
+                      >
+                        {isCopied ? (
+                          <CheckIcon className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <CopyIcon className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -394,7 +465,11 @@ export default function MintButton({
         <>
           {transactionSignature && tokenAddress ? (
             <div className="flex flex-col items-center space-y-2 mt-4 w-full">
-              <Link href={SolanaFMService.getAddress(tokenAddress)} target="_blank" className="w-full">
+              <Link
+                href={SolanaFMService.getAddress(tokenAddress)}
+                target="_blank"
+                className="w-full"
+              >
                 <WhiteBgShimmerButton
                   borderRadius="6px"
                   className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
@@ -402,7 +477,10 @@ export default function MintButton({
                   VIEW COLLECTIBLE
                 </WhiteBgShimmerButton>
               </Link>
-              <Link href={SolanaFMService.getTransaction(transactionSignature)} target="_blank">
+              <Link
+                href={SolanaFMService.getTransaction(transactionSignature)}
+                target="_blank"
+              >
                 <button className="text-sm text-white transition-colors flex items-center">
                   <ExternalLink className="w-4 h-4 mr-1" />
                   View Transaction
@@ -457,7 +535,13 @@ export default function MintButton({
                     borderRadius="6px"
                     className="w-full mb-4 hover:bg-gray-800 h-[45px] text-black rounded font-bold"
                     onClick={handleMintClick}
-                    disabled={isMinting || !isEligible || existingOrder || (isFreeMint && !walletAddress) || isLoading}
+                    disabled={
+                      isMinting ||
+                      !isEligible ||
+                      existingOrder ||
+                      (isFreeMint && !walletAddress) ||
+                      isLoading
+                    }
                   >
                     {getButtonText()}
                   </WhiteBgShimmerButton>
@@ -478,7 +562,12 @@ export default function MintButton({
                     borderRadius="6px"
                     className="w-full mb-4  text-black hover:bg-gray-800 h-[40px] rounded font-bold"
                     onClick={handleMintClick}
-                    disabled={isMinting || !isEligible || existingOrder?.status == "completed" || isLoading}
+                    disabled={
+                      isMinting ||
+                      !isEligible ||
+                      existingOrder?.status == "completed" ||
+                      isLoading
+                    }
                   >
                     {getButtonText()}
                   </WhiteBgShimmerButton>
