@@ -179,7 +179,8 @@ const EditionInformation = ({
         <CardFooter>
           {isIRLSmint ? (
             <p className="text-sm text-gray-300">
-              Locate the IRLS Mint Station, tap it…
+              Locate the IRLS Mint mint station, tap it with your phone to claim
+              your digital collectible.
             </p>
           ) : (
             <p className="text-sm text-gray-300">
