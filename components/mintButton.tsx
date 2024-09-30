@@ -385,6 +385,7 @@ export default function MintButton({
 
   return (
     <div className="flex flex-col w-full justify-center items-center">
+      <h1>DEVICE ID :{deviceId}</h1>
       {showDonationModal && (
         <div>
           <AnimatePresence>
