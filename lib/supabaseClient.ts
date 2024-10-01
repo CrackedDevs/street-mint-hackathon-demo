@@ -4,6 +4,7 @@ import { isSignatureValid } from './nfcVerificationHellper';
 import { GalleryItem } from '@/app/gallery/galleryGrid';
 import { resolveSolDomain } from '@/app/api/collection/collection.helper';
 import { Connection } from '@solana/web3.js';
+import { pinata } from './pinataConfig';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -133,24 +134,21 @@ export const createCollection = async (collection: Omit<Collection, 'collectible
             category: "image"
         }
     };
-
-    // Upload collection metadata to Supabase storage
+    // Upload collection metadata to Pinata
     const collectionMetadataFileName = `${Date.now()}-collection-metadata.json`;
-    const { error: metadataUploadError } = await supabase.storage
-        .from("nft-images")
-        .upload(collectionMetadataFileName, JSON.stringify(collectionMetadata));
-
-    if (metadataUploadError) {
-        console.error('Error uploading collection metadata:', metadataUploadError);
+    const metadataFile = new File([JSON.stringify(collectionMetadata)], collectionMetadataFileName, { type: 'application/json' });
+    let result = null;
+    try {
+        result = await uploadFileToPinata(metadataFile);
+        if (!result) {
+            throw new Error('Failed to upload collection metadata to Pinata');
+        }
+    } catch (error) {
+        console.error('Error uploading collection metadata:', error);
         return null;
     }
 
-    // Get the public URL for the uploaded metadata
-    const { data: metadataUrlData } = supabase.storage
-        .from("nft-images")
-        .getPublicUrl(collectionMetadataFileName);
-
-    const collectionMetadataUri = metadataUrlData.publicUrl;
+    const collectionMetadataUri = result;
 
     // Add the on-chain data to the collection object
     const collectionToInsert = {
@@ -202,23 +200,25 @@ export const createCollectible = async (collectible: Omit<Collectible, 'id'>, co
     };
 
     const nftMetadataFileName = `${Date.now()}-${collectible.name}-metadata.json`;
-    const { error: nftMetadataUploadError } = await supabase.storage
-        .from("nft-images")
-        .upload(nftMetadataFileName, JSON.stringify(nftMetadata));
 
-    if (nftMetadataUploadError) {
-        console.error('Error uploading NFT metadata:', nftMetadataUploadError);
+    // Create a JSON file from the NFT metadata
+    const nftMetadataFile = new File([JSON.stringify(nftMetadata)], nftMetadataFileName, {
+        type: "application/json",
+    });
+
+    // Upload the JSON file to Pinata
+    const metadataUrl = await uploadFileToPinata(nftMetadataFile);
+
+    if (!metadataUrl) {
+        console.error('Error uploading NFT metadata to Pinata');
         return null;
     }
 
-    const { data: nftMetadataUrlData } = supabase.storage
-        .from("nft-images")
-        .getPublicUrl(nftMetadataFileName);
 
     const collectibleToInsert = {
         ...collectible,
         collection_id: collectionId,
-        metadata_uri: nftMetadataUrlData.publicUrl
+        metadata_uri: metadataUrl
     };
 
     const { data: insertedCollectible, error: nftError } = await supabase
@@ -237,19 +237,21 @@ export const createCollectible = async (collectible: Omit<Collectible, 'id'>, co
     return null;
 };
 
-export const uploadImage = async (file: File) => {
-    const { user, error: authError } = await getAuthenticatedUser();
-    if (!user || authError) {
+export const uploadFileToPinata = async (file: File) => {
+    try {
+        const { user, error: authError } = await getAuthenticatedUser();
+        if (!user || authError) {
+            return null;
+        }
+        const fileName = `${Date.now()}-${file.name}`;
+        const uploadData = await pinata.upload.file(file, { metadata: { name: fileName } }).key(process.env.NEXT_PUBLIC_PINATA_JWT!)
+        const url = await pinata.gateways.convert(uploadData.IpfsHash)
+        console.log(url)
+        return url;
+    } catch (error) {
+        console.error('Error uploading image:', error);
         return null;
     }
-    const fileName = `${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage.from("nft-images").upload(fileName, file);
-    if (error) {
-        console.error("Error uploading image:", error);
-        return null;
-    }
-    const { data: publicUrlData } = supabase.storage.from("nft-images").getPublicUrl(fileName);
-    return publicUrlData.publicUrl;
 };
 
 

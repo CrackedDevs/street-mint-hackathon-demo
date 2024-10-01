@@ -152,11 +152,7 @@ export async function POST(req: Request, res: NextApiResponse) {
       let txSignature;
       try {
         txSignature = await connection.sendRawTransaction(
-          transaction.serialize(),
-          {
-            skipPreflight: true,
-            maxRetries: 3,
-          }
+          transaction.serialize()
         );
         await waitForTransactionConfirmation(txSignature);
         console.log("Transaction confirmed");
@@ -173,11 +169,7 @@ export async function POST(req: Request, res: NextApiResponse) {
 
             // Retry sending the transaction
             txSignature = await connection.sendRawTransaction(
-              transaction.serialize(),
-              {
-                skipPreflight: true,
-                maxRetries: 3,
-              }
+              transaction.serialize()
             );
             console.log("Transaction sent. Signature:", txSignature);
 

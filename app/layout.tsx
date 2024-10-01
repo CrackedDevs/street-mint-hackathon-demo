@@ -3,9 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import AppWalletProvider from "@/components/AppWalletProvider";
 import { UserProfileProvider } from "./providers/UserProfileProvider";
-import {
-  FpjsProvider,
-} from "@fingerprintjs/fingerprintjs-pro-react";
+import { FpjsProvider } from "@fingerprintjs/fingerprintjs-pro-react";
 
 const inter = Inter({ subsets: ["latin"] });
 

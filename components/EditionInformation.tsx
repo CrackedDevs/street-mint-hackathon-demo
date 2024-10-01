@@ -164,7 +164,13 @@ const EditionInformation = ({
           {/* Render MintButton only if minting has started */}
 
           <MintButton
-            isIRLtapped={isIslandDAOCollection ? true : isIRLtapped}
+            isIRLtapped={
+              process.env.NODE_ENV === "development"
+                ? true
+                : isIslandDAOCollection
+                ? true
+                : isIRLtapped
+            }
             artistWalletAddress={artistWalletAddress}
             collectible={{
               ...collectible,

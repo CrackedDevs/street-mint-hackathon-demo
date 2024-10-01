@@ -101,16 +101,25 @@ export default function MintButton({
   };
 
   async function fetchDeviceId() {
-    let deviceId = localStorage.getItem("DeviceId");
-    console.log("Device ID in mintButton.tsx:", deviceId);
-    if (!deviceId) {
-      const id = await getData({ ignoreCache: true });
-      setDeviceId(id.visitorId);
-      // Store the new device ID
-      localStorage.setItem("DeviceId", id.visitorId);
+    try {
+      let deviceId = localStorage.getItem("DeviceId");
+      console.log("Device ID in mintButton.tsx:", deviceId);
+      if (!deviceId) {
+        const id = await getData({ ignoreCache: true });
+        setDeviceId(id.visitorId);
+        // Store the new device ID
+        localStorage.setItem("DeviceId", id.visitorId);
+      }
+      setDeviceId(deviceId!);
+      return deviceId;
+    } catch (error) {
+      console.error("Error fetching or setting device ID:", error);
+      toast({
+        title: "Error",
+        description: "Please disable ad blockers or shields and try again.",
+      });
+      return null;
     }
-    setDeviceId(deviceId!);
-    return deviceId;
   }
   useEffect(() => {
     fetchDeviceId();
@@ -449,7 +458,7 @@ export default function MintButton({
         </div>
       )}
       {mintStatus === "ongoing" && (
-        <>
+        <div className="flex flex-col items-center justify-center w-full">
           {transactionSignature && tokenAddress ? (
             <div className="flex flex-col items-center space-y-2 mt-4 w-full">
               <Link
@@ -475,7 +484,7 @@ export default function MintButton({
               </Link>
             </div>
           ) : (
-            <>
+            <div className="flex flex-col items-center justify-center w-full">
               {isFreeMint ? (
                 <div className="w-full flex flex-col items-center justify-center">
                   <Input
@@ -527,10 +536,10 @@ export default function MintButton({
                   </WhiteBgShimmerButton>
                 )
               )}
-            </>
+            </div>
           )}
           {error && <p className="text-red-500 mt-2">{error}</p>}
-        </>
+        </div>
       )}
     </div>
   );
