@@ -100,23 +100,27 @@ export default function MintButton({
     frame();
   };
 
-  useEffect(() => {
-    async function fetchDeviceId() {
-      let deviceId = localStorage.getItem("DeviceId");
-      console.log("Device ID in mintButton.tsx:", deviceId);
-      if (!deviceId) {
-        const id = await getData({ ignoreCache: true });
-        setDeviceId(id.visitorId);
-        // Store the new device ID
-        localStorage.setItem("DeviceId", id.visitorId);
-      }
-      setDeviceId(deviceId!);
+  async function fetchDeviceId() {
+    let deviceId = localStorage.getItem("DeviceId");
+    console.log("Device ID in mintButton.tsx:", deviceId);
+    if (!deviceId) {
+      const id = await getData({ ignoreCache: true });
+      setDeviceId(id.visitorId);
+      // Store the new device ID
+      localStorage.setItem("DeviceId", id.visitorId);
     }
+    setDeviceId(deviceId!);
+    return deviceId;
+  }
+  useEffect(() => {
     fetchDeviceId();
   }, []);
 
   async function checkEligibilityAndExistingOrder() {
     const addressToCheck = isFreeMint ? walletAddress : publicKey?.toString();
+    if (!deviceId) {
+      const device = await fetchDeviceId();
+    }
     if (addressToCheck && deviceId) {
       setIsLoading(true);
       try {

@@ -5,7 +5,6 @@ import AppWalletProvider from "@/components/AppWalletProvider";
 import { UserProfileProvider } from "./providers/UserProfileProvider";
 import {
   FpjsProvider,
-  FingerprintJSPro,
 } from "@fingerprintjs/fingerprintjs-pro-react";
 
 const inter = Inter({ subsets: ["latin"] });
