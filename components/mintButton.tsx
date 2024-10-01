@@ -18,7 +18,6 @@ import {
   Collection,
   getExistingOrder,
 } from "@/lib/supabaseClient";
-import { generateDeviceId } from "@/lib/fingerPrint";
 import { Input } from "./ui/input";
 import confetti from "canvas-confetti";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -29,6 +28,7 @@ import Artist from "@/app/assets/artist.png";
 import LocationButton from "./LocationButton";
 import { SolanaFMService } from "@/lib/services/solanaExplorerService";
 import Link from "next/link";
+import { useVisitorData } from "@fingerprintjs/fingerprintjs-pro-react";
 
 interface MintButtonProps {
   collectible: Collectible;
@@ -63,7 +63,14 @@ export default function MintButton({
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
-  const TriggerConfetti = () => {
+  const {
+    isLoading: isFingerPrintLoading,
+    error: FingerPrintError,
+    data: fingerPrintData,
+    getData,
+  } = useVisitorData({ extendedResult: true }, { immediate: true });
+
+  const TriggerConfetti = (): void => {
     const end = Date.now() + 3 * 1000; // 3 seconds
     const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
 
@@ -95,8 +102,15 @@ export default function MintButton({
 
   useEffect(() => {
     async function fetchDeviceId() {
-      const id = await generateDeviceId();
-      setDeviceId(id);
+      let deviceId = localStorage.getItem("DeviceId");
+      console.log("Device ID in mintButton.tsx:", deviceId);
+      if (!deviceId) {
+        const id = await getData({ ignoreCache: true });
+        setDeviceId(id.visitorId);
+        // Store the new device ID
+        localStorage.setItem("DeviceId", id.visitorId);
+      }
+      setDeviceId(deviceId!);
     }
     fetchDeviceId();
   }, []);
