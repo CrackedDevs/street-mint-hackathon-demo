@@ -95,6 +95,7 @@ export async function mintNFTWithBubbleGumTree(
 ) {
   const umi = initializeUmi(process.env.RPC_URL!, process.env.PRIVATE_KEY!);
   let retries = 0;
+  let mintTx;
 
   while (retries < maxRetries) {
     try {
@@ -112,7 +113,7 @@ export async function mintNFTWithBubbleGumTree(
         collectionAsset.publicKey.toString()
       );
 
-      const tx = await mintToCollectionV1(umi, {
+      mintTx = await mintToCollectionV1(umi, {
         leafOwner: leafOwner,
         merkleTree,
         collectionMint: collectionMintPubkey,
@@ -127,23 +128,46 @@ export async function mintNFTWithBubbleGumTree(
         },
       }).sendAndConfirm(umi);
 
+      console.log("NFT minted successfully");
+      break; // Exit the retry loop if minting is successful
+    } catch (error: any) {
+      console.error(`Error minting NFT (attempt ${retries + 1}):`, error);
+      retries++;
+      if (retries >= maxRetries) {
+        throw new Error(
+          `Failed to mint NFT after ${maxRetries} attempts: ${error.message}`
+        );
+      }
+      // Wait for a short time before retrying
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+  if (!mintTx) {
+    throw new Error("Minting failed");
+  }
+
+  let postMintRetries = 0;
+  const maxPostMintRetries = 3;
+
+  while (postMintRetries < maxPostMintRetries) {
+    try {
       const leaf: LeafSchema = await parseLeafFromMintToCollectionV1Transaction(
         umi,
-        tx.signature
+        mintTx.signature
       );
       const assetId = findLeafAssetIdPda(umi, {
-        merkleTree,
+        merkleTree: publicKey(merkleTreePublicKey),
         leafIndex: leaf.nonce,
       });
       const tokenAddress = assetId.toString().split(",")[0];
 
-      const txSignature = bs58.encode(tx.signature);
+      const txSignature = bs58.encode(mintTx.signature);
       const solscanLink =
         process.env.NODE_ENV === "development"
           ? `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
           : `https://explorer.solana.com/tx/${txSignature}`;
 
-      console.log("NFT minted successfully:", {
+      console.log("NFT minting details:", {
         signature: txSignature,
         solscanLink: solscanLink,
         tokenAddress: tokenAddress,
@@ -151,11 +175,14 @@ export async function mintNFTWithBubbleGumTree(
 
       return { signature: txSignature, solscanLink: solscanLink, tokenAddress };
     } catch (error: any) {
-      console.error(`Error minting NFT (attempt ${retries + 1}):`, error);
-      retries++;
-      if (retries >= maxRetries) {
+      console.error(
+        `Error in post-minting operations (attempt ${postMintRetries + 1}):`,
+        error
+      );
+      postMintRetries++;
+      if (postMintRetries >= maxPostMintRetries) {
         throw new Error(
-          `Failed to mint NFT after ${maxRetries} attempts: ${error.message}`
+          `NFT minted successfully, but encountered an error in post-minting operations after ${maxPostMintRetries} attempts: ${error.message}`
         );
       }
       // Wait for a short time before retrying

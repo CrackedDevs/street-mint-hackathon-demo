@@ -27,7 +27,7 @@ import {
   checkUsernameAvailability,
   createProfile,
   updateProfile,
-  uploadImage,
+  uploadFileToPinata,
 } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -132,7 +132,7 @@ function ProfileForm() {
 
     let uploadedUrl: string | null = formData.avatar_url;
     if (avatarLocalFile) {
-      uploadedUrl = await uploadImage(avatarLocalFile);
+      uploadedUrl = await uploadFileToPinata(avatarLocalFile);
       if (uploadedUrl == null) {
         toast({
           title: "Failed to upload image",
@@ -229,7 +229,7 @@ function ProfileForm() {
                   </Avatar>
                 </div>
                 {isEditing && (
-                  <>
+                  <div>
                     <input
                       type="file"
                       id="avatar-upload"
@@ -256,7 +256,7 @@ function ProfileForm() {
                     <p className="text-xs text-muted-foreground text-center">
                       500x500px, 2.5MB max
                     </p>
-                  </>
+                  </div>
                 )}
               </div>
               <div className="flex-1 space-y-2">
@@ -403,10 +403,10 @@ function ProfileForm() {
               disabled={isSubmitting}
             >
               {isSubmitting ? (
-                <>
+                <div>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving Profile...
-                </>
+                </div>
               ) : (
                 "Save Profile"
               )}

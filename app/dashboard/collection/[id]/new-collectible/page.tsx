@@ -26,7 +26,7 @@ import {
   Collectible,
   createCollectible,
   QuantityType,
-  uploadImage,
+  uploadFileToPinata,
 } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -162,12 +162,13 @@ function CreateCollectiblePage() {
     try {
       let primaryImageUrl = "";
       if (primaryImageLocalFile) {
-        primaryImageUrl = (await uploadImage(primaryImageLocalFile)) || "";
+        primaryImageUrl =
+          (await uploadFileToPinata(primaryImageLocalFile)) || "";
       }
 
       const uploadedGalleryUrls = await Promise.all(
         galleryImages.map(async (file) => {
-          return (await uploadImage(file)) || "";
+          return (await uploadFileToPinata(file)) || "";
         })
       );
 
@@ -499,7 +500,7 @@ function CreateCollectiblePage() {
                       className="text-lg font-semibold flex items-center"
                     >
                       <CalendarIcon className="mr-2 h-5 w-5" />
-                      Minting Start Date and Time *
+                      Minting Start Date and Time
                     </Label>
                     <span>Mention the timings in GMT</span>
                     <Input
@@ -513,7 +514,6 @@ function CreateCollectiblePage() {
                         )
                       }
                       className="text-base w-fit"
-                      required
                     />
                   </div>
 
@@ -523,7 +523,7 @@ function CreateCollectiblePage() {
                       className="text-lg font-semibold flex items-center"
                     >
                       <CalendarIcon className="mr-2 h-5 w-5" />
-                      Minting End Date and Time *
+                      Minting End Date and Time
                     </Label>
                     <span>Mention the timings in GMT</span>
                     <Input
@@ -534,7 +534,6 @@ function CreateCollectiblePage() {
                         handleCollectibleChange("mint_end_date", e.target.value)
                       }
                       className="text-base w-fit"
-                      required
                     />
                   </div>
                   <span className="mt-2 ">You can edit this later</span>
@@ -616,10 +615,10 @@ function CreateCollectiblePage() {
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
-                  <>
+                  <div className="flex items-center gap-6 justify-center">
                     <Loader2 className="mr-2 h-6 w-6 animate-spin" />
                     Creating Collectible...
-                  </>
+                  </div>
                 ) : (
                   "Create Collectible"
                 )}

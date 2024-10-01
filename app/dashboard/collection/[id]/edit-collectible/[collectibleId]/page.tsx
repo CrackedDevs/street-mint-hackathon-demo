@@ -20,7 +20,7 @@ import {
   fetchCollectibleById,
   QuantityType,
   updateCollectible,
-  uploadImage,
+  uploadFileToPinata,
 } from "@/lib/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import withAuth from "@/app/dashboard/withAuth";
@@ -125,7 +125,7 @@ function EditCollectiblePage() {
     try {
       const uploadedGalleryUrls = await Promise.all(
         newGalleryImages.map(async (file) => {
-          return (await uploadImage(file)) || "";
+          return (await uploadFileToPinata(file)) || "";
         })
       );
 
