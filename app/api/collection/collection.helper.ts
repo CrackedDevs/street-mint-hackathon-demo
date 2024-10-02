@@ -150,6 +150,7 @@ export async function mintNFTWithBubbleGumTree(
   const maxPostMintRetries = 3;
 
   while (postMintRetries < maxPostMintRetries) {
+    console.log(`Attempt ${retries + 1} to post mint functions`);
     try {
       const leaf: LeafSchema = await parseLeafFromMintToCollectionV1Transaction(
         umi,
@@ -159,6 +160,7 @@ export async function mintNFTWithBubbleGumTree(
         merkleTree: publicKey(merkleTreePublicKey),
         leafIndex: leaf.nonce,
       });
+      console.log("ASSET ID", assetId);
       const tokenAddress = assetId.toString().split(",")[0];
 
       const txSignature = bs58.encode(mintTx.signature);
