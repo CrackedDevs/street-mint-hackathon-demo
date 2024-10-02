@@ -69,9 +69,11 @@ function verifyTransactionAmount(
   return transferAmount >= lowerBound && transferAmount <= upperBound;
 }
 
+const connection = new Connection(process.env.RPC_URL!);
+
 const waitForTransactionConfirmation = async (
   signature: string,
-  maxAttempts = 30
+  maxAttempts = 10
 ) => {
   for (let i = 0; i < maxAttempts; i++) {
     const confirmation = await connection.getSignatureStatus(signature, {
@@ -90,8 +92,6 @@ const waitForTransactionConfirmation = async (
   }
   throw new Error("Transaction confirmation timed out");
 };
-
-const connection = new Connection(process.env.RPC_URL!);
 
 export async function POST(req: Request, res: NextApiResponse) {
   const { orderId, signedTransaction, priceInSol } = await req.json();
@@ -152,7 +152,11 @@ export async function POST(req: Request, res: NextApiResponse) {
       let txSignature;
       try {
         txSignature = await connection.sendRawTransaction(
-          transaction.serialize()
+          transaction.serialize(),
+          {
+            skipPreflight: true,
+            maxRetries: 3,
+          }
         );
         await waitForTransactionConfirmation(txSignature);
         console.log("Transaction confirmed");
@@ -169,7 +173,11 @@ export async function POST(req: Request, res: NextApiResponse) {
 
             // Retry sending the transaction
             txSignature = await connection.sendRawTransaction(
-              transaction.serialize()
+              transaction.serialize(),
+              {
+                skipPreflight: true,
+                maxRetries: 3,
+              }
             );
             console.log("Transaction sent. Signature:", txSignature);
 

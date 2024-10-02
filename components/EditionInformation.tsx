@@ -185,13 +185,13 @@ const EditionInformation = ({
         <CardFooter>
           {isIRLSmint ? (
             <p className="text-sm text-gray-300">
-              Locate the IRLS Mint station, tap it with your phone to claim
-              your digital collectible.
+              Locate the IRLS Mint station, tap it with your phone to claim your
+              digital collectible.
             </p>
           ) : (
             <p className="text-sm text-gray-300">
-              Locate the Street Mint station, tap it with your phone to
-              claim your digital collectible.
+              Locate the Street Mint station, tap it with your phone to claim
+              your digital collectible.
             </p>
           )}
         </CardFooter>
