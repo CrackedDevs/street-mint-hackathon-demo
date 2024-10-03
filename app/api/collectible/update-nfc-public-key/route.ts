@@ -4,9 +4,11 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    console.log("body", body);
     const { collectibleId, nfcPublicKey, artistPassword } = body;
 
     if (!collectibleId || !nfcPublicKey || !artistPassword) {
+      console.log("Collectible ID, NFC public key, and artist password are required");
       return NextResponse.json(
         {
           success: false,
@@ -25,6 +27,7 @@ export async function POST(request: Request) {
       .single();
 
     if (!collectible) {
+      console.log("Collectible not found");
       return NextResponse.json(
         { success: false, error: "Collectible not found" },
         { status: 404 }
@@ -38,6 +41,7 @@ export async function POST(request: Request) {
       .single();
 
     if (!artist) {
+      console.log("Artist not found");
       return NextResponse.json(
         { success: false, error: "Artist not found" },
         { status: 404 }
@@ -45,6 +49,7 @@ export async function POST(request: Request) {
     }
 
     if (!artistPassword) {
+      console.log("Artist password not found");
       return NextResponse.json(
         { success: false, error: "Artist password not found" },
         { status: 404 }
@@ -55,6 +60,7 @@ export async function POST(request: Request) {
       artistPassword !== artist.artists?.app_password &&
       artistPassword !== process.env.APP_ADMIN_PASSWORD
     ) {
+      console.log("Artist password is incorrect");
       return NextResponse.json(
         { success: false, error: "Artist password is incorrect" },
         { status: 401 }
@@ -66,12 +72,15 @@ export async function POST(request: Request) {
       .select("nfc_public_key, id")
       .eq("nfc_public_key", nfcPublicKey);
 
+    console.log("oldCollectible", oldCollectible);
+
     await supabaseClient
       .from("collectibles")
       .update({ nfc_public_key: nfcPublicKey })
       .eq("id", collectibleId);
 
     if (oldCollectible && oldCollectible.length > 0) {
+      console.log("oldCollectible", oldCollectible);
       oldCollectible.forEach(async (collectible) => {
         await supabaseClient
           .from("collectibles")
@@ -79,6 +88,7 @@ export async function POST(request: Request) {
           .eq("id", collectible.id);
       });
     }
+    console.log("SUCCESS in nfc updating");
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
