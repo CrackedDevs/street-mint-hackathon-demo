@@ -29,7 +29,7 @@ export default function CollectionCard({
       <CardContent className="p-6 flex flex-col h-full">
         <div className="mb-4">
           <div className={`grid gap-1 grid-cols-6 overflow-hidden`}>
-            {collection.collectible_image_urls.slice(0, 6).map((url, index) => (
+            {collection.collectible_image_urls.slice(0, 5).map((url, index) => (
               <div key={index} className="aspect-square overflow-hidden">
                 <Image
                   src={url}
