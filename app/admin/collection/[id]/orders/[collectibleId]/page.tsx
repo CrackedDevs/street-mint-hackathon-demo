@@ -51,6 +51,7 @@ interface Order {
   collectible_id: number | null;
   device_id: string | null;
   nft_type: string | null;
+  airdrop_won: boolean | null;
 }
 
 const formatAddress = (address: string | null) => {
@@ -78,6 +79,15 @@ const columns: ColumnDef<Order>[] = [
     header: "Status",
     cell: ({ row }) => (
       <div className="capitalize">{row.getValue("status")}</div>
+    ),
+  },
+  {
+    accessorKey: "airdrop_won",
+    header: "Airdrop Won",
+    cell: ({ row }) => (
+      <div className="capitalize">
+        {row.getValue("airdrop_won") ? "Yes" : "No"}
+      </div>
     ),
   },
   {

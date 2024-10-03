@@ -44,6 +44,7 @@ export type Collectible = {
     nfc_public_key: string | null;
     mint_start_date: string | null;
     mint_end_date: string | null;
+    airdrop_eligibility_index: number | null;
 };
 
 interface Order {
@@ -438,7 +439,7 @@ export const fetchCollectiblesByCollectionId = async (collectionId: number) => {
     return data;
 };
 
-export async function checkMintEligibility(walletAddress: string, collectibleId: number, deviceId: string): Promise<{ eligible: boolean; reason?: string }> {
+export async function checkMintEligibility(walletAddress: string, collectibleId: number, deviceId: string): Promise<{ eligible: boolean; reason?: string, isAirdropEligible?: boolean }> {
     try {
         // Check if the NFT is still available and get its details
         // Check if the wallet address is a .sol domain
@@ -455,7 +456,7 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         // Use the resolved wallet address for the rest of the checks
         const { data: collectible, error: collectibleError } = await supabase
             .from('collectibles')
-            .select('quantity, quantity_type, mint_start_date, mint_end_date')
+            .select('quantity, quantity_type, mint_start_date, mint_end_date,airdrop_eligibility_index')
             .eq('id', collectibleId)
             .single();
 
@@ -466,6 +467,8 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             .select('id', { count: 'exact', head: true })
             .eq('collectible_id', collectibleId)
             .eq('status', 'completed');
+
+        console.log("Count of existing orders for collectible ", collectibleId, " is ", count);
 
         if (countError) throw countError;
 
@@ -521,12 +524,40 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             return { eligible: false, reason: 'Minting period has ended.' };
         }
 
+        let isAirdropEligible = false;
+        if (collectible.airdrop_eligibility_index) {
+            isAirdropEligible = collectible.airdrop_eligibility_index === count! + 1;
+        }
+
         // If all checks pass, the user is eligible to mint
-        return { eligible: true };
+        return { eligible: true, isAirdropEligible };
     } catch (error) {
         return { eligible: false, reason: 'Error checking mint eligibility.' };
     }
 }
+
+export async function updateOrderAirdropStatus(orderId: string, airdropWon: boolean) {
+    try {
+        const { data, error } = await supabase
+            .from('orders')
+            .update({ airdrop_won: airdropWon })
+            .eq('id', orderId)
+            .select()
+            .single()
+
+        if (error) {
+            console.error("Error updating order airdrop status:", error);
+            throw error;
+        }
+
+        console.log("Order airdrop status updated to true won by user ", data.wallet_address, " for order id ", data.id);
+        return data;
+    } catch (error) {
+        console.error("Error in updateOrderAirdropStatus:", error);
+        throw error;
+    }
+}
+
 
 export async function getExistingOrder(walletAddress: string, collectibleId: number) {
     try {

@@ -53,6 +53,12 @@ const nextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "bonkcoin.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };

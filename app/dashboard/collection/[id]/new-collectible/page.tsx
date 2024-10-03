@@ -63,6 +63,7 @@ function CreateCollectiblePage() {
     nfc_public_key: "",
     mint_start_date: "",
     mint_end_date: "",
+    airdrop_eligibility_index: null,
   });
   const [primaryImageLocalFile, setPrimaryImageLocalFile] =
     useState<File | null>(null);

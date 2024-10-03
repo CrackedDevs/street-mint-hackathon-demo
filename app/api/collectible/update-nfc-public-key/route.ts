@@ -8,7 +8,9 @@ export async function POST(request: Request) {
     const { collectibleId, nfcPublicKey, artistPassword } = body;
 
     if (!collectibleId || !nfcPublicKey || !artistPassword) {
-      console.log("Collectible ID, NFC public key, and artist password are required");
+      console.log(
+        "Collectible ID, NFC public key, and artist password are required"
+      );
       return NextResponse.json(
         {
           success: false,

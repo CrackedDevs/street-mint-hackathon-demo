@@ -17,6 +17,7 @@ import {
   Collectible,
   Collection,
   getExistingOrder,
+  updateOrderAirdropStatus,
 } from "@/lib/supabaseClient";
 import { Input } from "./ui/input";
 import confetti from "canvas-confetti";
@@ -24,6 +25,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckIcon,
+  Coins,
   CopyIcon,
   ExternalLink,
   HeartIcon,
@@ -38,6 +40,7 @@ import Link from "next/link";
 import { useVisitorData } from "@fingerprintjs/fingerprintjs-pro-react";
 import { v4 as uuidv4 } from "uuid";
 import { shortenAddress } from "@/lib/shortenAddress";
+import Image from "next/image";
 
 interface MintButtonProps {
   collectible: Collectible;
@@ -78,6 +81,8 @@ export default function MintButton({
   const [walletAddress, setWalletAddress] = useState("");
   const [showDonationModal, setShowDonationModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [showAirdropModal, setShowAirdropModal] = useState(false);
+  const [isAirdropEligible, setIsAirdropEligible] = useState(false);
 
   const {
     isLoading: isFingerPrintLoading,
@@ -151,12 +156,17 @@ export default function MintButton({
     if (addressToCheck && deviceId) {
       setIsLoading(true);
       try {
-        const { eligible, reason } = await checkMintEligibility(
+        const {
+          eligible,
+          reason,
+          isAirdropEligible: airdropEligible,
+        } = await checkMintEligibility(
           addressToCheck,
           collectible.id,
           deviceId
         );
         setIsEligible(eligible);
+        setIsAirdropEligible(airdropEligible || false);
         setIsLoading(false);
         if (!eligible) {
           setError(reason || "You are not eligible to mint this NFT.");
@@ -296,6 +306,16 @@ export default function MintButton({
           title: "✅ NFT Minted Successfully",
         });
         setIsEligible(false);
+        if (isAirdropEligible) {
+          setShowAirdropModal(true);
+          updateOrderAirdropStatus(orderId, true);
+          console.log(
+            "Order airdrop status updated to true won by user ",
+            walletAddress,
+            " for order id ",
+            orderId
+          );
+        }
         //TODO: UNCOMMENT THIS AFTER 20 SEPTEMBER 2024
         //setShowDonationModal(true);
         //TODO: UNCOMMENT THIS AFTER 20 SEPTEMBER 2024
@@ -552,6 +572,61 @@ export default function MintButton({
             </Dialog>
           </AnimatePresence>
         </div>
+      )}
+      {showAirdropModal && (
+        <Dialog open={showAirdropModal} onOpenChange={setShowAirdropModal}>
+          <DialogContent>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="text-center relative z-10"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{
+                  delay: 0.2,
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 10,
+                }}
+                className="mb-6"
+              >
+                <div className="relative inline-block">
+                  <div className="absolute inset-0 bg-yellow-500/20 rounded-full blur-xl"></div>
+                  <Image
+                    height={100}
+                    width={100}
+                    src="https://bonkcoin.com/static/media/bonkog_800.18d79e1cea6b283f2ee7.png"
+                    alt="Bonk"
+                    className="w-24 h-24 text-yellow-500 relative z-10"
+                  />
+                </div>
+              </motion.div>
+
+              <DialogTitle className="text-3xl font-bold mb-4 text-primary">
+                Congratulations!
+              </DialogTitle>
+
+              <p className="text-lg mb-6">
+                You&apos;ve won a $BONK airdrop worth $10! 🎉
+              </p>
+              <p className="text-md mb-6">
+                We have recorded your wallet address and will airdrop the $BONK
+                tokens at the end of the day.
+              </p>
+
+              <Button
+                onClick={() => setShowAirdropModal(false)}
+                className="bg-primary text-white px-6 py-2 rounded-full hover:bg-primary-dark transition-colors duration-200"
+              >
+                Close
+              </Button>
+            </motion.div>
+          </DialogContent>
+        </Dialog>
       )}
       {((transactionSignature && tokenAddress) ||
         existingOrder?.status === "completed") &&
