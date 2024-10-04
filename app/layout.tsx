@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import AppWalletProvider from "@/components/AppWalletProvider";
 import { UserProfileProvider } from "./providers/UserProfileProvider";
+import { FpjsProvider } from "@fingerprintjs/fingerprintjs-pro-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +21,16 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AppWalletProvider>
-          <UserProfileProvider>{children}</UserProfileProvider>
+          <UserProfileProvider>
+            <FpjsProvider
+              loadOptions={{
+                apiKey: "w0ZUI01Dq1WYInPXn8Ar",
+                region: "ap",
+              }}
+            >
+              {children}
+            </FpjsProvider>
+          </UserProfileProvider>
         </AppWalletProvider>
       </body>
     </html>

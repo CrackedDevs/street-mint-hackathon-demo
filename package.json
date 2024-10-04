@@ -13,6 +13,7 @@
   "dependencies": {
     "@bonfida/spl-name-service": "^2.5.4",
     "@fingerprintjs/fingerprintjs": "^4.5.0",
+    "@fingerprintjs/fingerprintjs-pro-react": "^2.6.3",
     "@metaplex-foundation/digital-asset-standard-api": "^1.0.4",
     "@metaplex-foundation/js": "^0.20.1",
     "@metaplex-foundation/mpl-bubblegum": "^4.2.1",
@@ -57,6 +58,7 @@
     "framer-motion": "^11.3.31",
     "lucide-react": "^0.438.0",
     "next": "14.2.7",
+    "pinata-web3": "^0.5.0",
     "pino-pretty": "^11.2.2",
     "react": "^18",
     "react-dom": "^18",

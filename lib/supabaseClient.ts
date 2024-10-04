@@ -4,6 +4,7 @@ import { isSignatureValid } from './nfcVerificationHellper';
 import { GalleryItem } from '@/app/gallery/galleryGrid';
 import { resolveSolDomain } from '@/app/api/collection/collection.helper';
 import { Connection } from '@solana/web3.js';
+import { pinata } from './pinataConfig';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -43,6 +44,7 @@ export type Collectible = {
     nfc_public_key: string | null;
     mint_start_date: string | null;
     mint_end_date: string | null;
+    airdrop_eligibility_index: number | null;
 };
 
 interface Order {
@@ -133,24 +135,21 @@ export const createCollection = async (collection: Omit<Collection, 'collectible
             category: "image"
         }
     };
-
-    // Upload collection metadata to Supabase storage
+    // Upload collection metadata to Pinata
     const collectionMetadataFileName = `${Date.now()}-collection-metadata.json`;
-    const { error: metadataUploadError } = await supabase.storage
-        .from("nft-images")
-        .upload(collectionMetadataFileName, JSON.stringify(collectionMetadata));
-
-    if (metadataUploadError) {
-        console.error('Error uploading collection metadata:', metadataUploadError);
+    const metadataFile = new File([JSON.stringify(collectionMetadata)], collectionMetadataFileName, { type: 'application/json' });
+    let result = null;
+    try {
+        result = await uploadFileToPinata(metadataFile);
+        if (!result) {
+            throw new Error('Failed to upload collection metadata to Pinata');
+        }
+    } catch (error) {
+        console.error('Error uploading collection metadata:', error);
         return null;
     }
 
-    // Get the public URL for the uploaded metadata
-    const { data: metadataUrlData } = supabase.storage
-        .from("nft-images")
-        .getPublicUrl(collectionMetadataFileName);
-
-    const collectionMetadataUri = metadataUrlData.publicUrl;
+    const collectionMetadataUri = result;
 
     // Add the on-chain data to the collection object
     const collectionToInsert = {
@@ -202,23 +201,25 @@ export const createCollectible = async (collectible: Omit<Collectible, 'id'>, co
     };
 
     const nftMetadataFileName = `${Date.now()}-${collectible.name}-metadata.json`;
-    const { error: nftMetadataUploadError } = await supabase.storage
-        .from("nft-images")
-        .upload(nftMetadataFileName, JSON.stringify(nftMetadata));
 
-    if (nftMetadataUploadError) {
-        console.error('Error uploading NFT metadata:', nftMetadataUploadError);
+    // Create a JSON file from the NFT metadata
+    const nftMetadataFile = new File([JSON.stringify(nftMetadata)], nftMetadataFileName, {
+        type: "application/json",
+    });
+
+    // Upload the JSON file to Pinata
+    const metadataUrl = await uploadFileToPinata(nftMetadataFile);
+
+    if (!metadataUrl) {
+        console.error('Error uploading NFT metadata to Pinata');
         return null;
     }
 
-    const { data: nftMetadataUrlData } = supabase.storage
-        .from("nft-images")
-        .getPublicUrl(nftMetadataFileName);
 
     const collectibleToInsert = {
         ...collectible,
         collection_id: collectionId,
-        metadata_uri: nftMetadataUrlData.publicUrl
+        metadata_uri: metadataUrl
     };
 
     const { data: insertedCollectible, error: nftError } = await supabase
@@ -237,19 +238,21 @@ export const createCollectible = async (collectible: Omit<Collectible, 'id'>, co
     return null;
 };
 
-export const uploadImage = async (file: File) => {
-    const { user, error: authError } = await getAuthenticatedUser();
-    if (!user || authError) {
+export const uploadFileToPinata = async (file: File) => {
+    try {
+        const { user, error: authError } = await getAuthenticatedUser();
+        if (!user || authError) {
+            return null;
+        }
+        const fileName = `${Date.now()}-${file.name}`;
+        const uploadData = await pinata.upload.file(file, { metadata: { name: fileName } }).key(process.env.NEXT_PUBLIC_PINATA_JWT!)
+        const url = await pinata.gateways.convert(uploadData.IpfsHash)
+        console.log(url)
+        return url;
+    } catch (error) {
+        console.error('Error uploading image:', error);
         return null;
     }
-    const fileName = `${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage.from("nft-images").upload(fileName, file);
-    if (error) {
-        console.error("Error uploading image:", error);
-        return null;
-    }
-    const { data: publicUrlData } = supabase.storage.from("nft-images").getPublicUrl(fileName);
-    return publicUrlData.publicUrl;
 };
 
 
@@ -436,7 +439,7 @@ export const fetchCollectiblesByCollectionId = async (collectionId: number) => {
     return data;
 };
 
-export async function checkMintEligibility(walletAddress: string, collectibleId: number, deviceId: string): Promise<{ eligible: boolean; reason?: string }> {
+export async function checkMintEligibility(walletAddress: string, collectibleId: number, deviceId: string): Promise<{ eligible: boolean; reason?: string, isAirdropEligible?: boolean }> {
     try {
         // Check if the NFT is still available and get its details
         // Check if the wallet address is a .sol domain
@@ -453,7 +456,7 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         // Use the resolved wallet address for the rest of the checks
         const { data: collectible, error: collectibleError } = await supabase
             .from('collectibles')
-            .select('quantity, quantity_type, mint_start_date, mint_end_date')
+            .select('quantity, quantity_type, mint_start_date, mint_end_date,airdrop_eligibility_index')
             .eq('id', collectibleId)
             .single();
 
@@ -464,6 +467,8 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             .select('id', { count: 'exact', head: true })
             .eq('collectible_id', collectibleId)
             .eq('status', 'completed');
+
+        console.log("Count of existing orders for collectible ", collectibleId, " is ", count);
 
         if (countError) throw countError;
 
@@ -519,12 +524,40 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
             return { eligible: false, reason: 'Minting period has ended.' };
         }
 
+        let isAirdropEligible = false;
+        if (collectible.airdrop_eligibility_index) {
+            isAirdropEligible = collectible.airdrop_eligibility_index === count! + 1;
+        }
+
         // If all checks pass, the user is eligible to mint
-        return { eligible: true };
+        return { eligible: true, isAirdropEligible };
     } catch (error) {
         return { eligible: false, reason: 'Error checking mint eligibility.' };
     }
 }
+
+export async function updateOrderAirdropStatus(orderId: string, airdropWon: boolean) {
+    try {
+        const { data, error } = await supabase
+            .from('orders')
+            .update({ airdrop_won: airdropWon })
+            .eq('id', orderId)
+            .select()
+            .single()
+
+        if (error) {
+            console.error("Error updating order airdrop status:", error);
+            throw error;
+        }
+
+        console.log("Order airdrop status updated to true won by user ", data.wallet_address, " for order id ", data.id);
+        return data;
+    } catch (error) {
+        console.error("Error in updateOrderAirdropStatus:", error);
+        throw error;
+    }
+}
+
 
 export async function getExistingOrder(walletAddress: string, collectibleId: number) {
     try {

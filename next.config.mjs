@@ -43,7 +43,19 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "white-original-anaconda-474.mypinata.cloud",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
         hostname: "docs.farcaster.xyz",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "bonkcoin.com",
         port: "",
         pathname: "/**",
       },

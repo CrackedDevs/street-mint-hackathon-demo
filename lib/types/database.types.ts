@@ -56,6 +56,7 @@ export type Database = {
       }
       collectibles: {
         Row: {
+          airdrop_eligibility_index: number | null
           chain: string | null
           collection_id: number
           created_at: string
@@ -75,6 +76,7 @@ export type Database = {
           quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Insert: {
+          airdrop_eligibility_index?: number | null
           chain?: string | null
           collection_id: number
           created_at?: string
@@ -94,6 +96,7 @@ export type Database = {
           quantity_type: Database["public"]["Enums"]["quantity_type"]
         }
         Update: {
+          airdrop_eligibility_index?: number | null
           chain?: string | null
           collection_id?: number
           created_at?: string
@@ -183,6 +186,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          airdrop_won: boolean
           collectible_id: number | null
           collection_id: number | null
           created_at: string | null
@@ -201,6 +205,7 @@ export type Database = {
           wallet_address: string
         }
         Insert: {
+          airdrop_won?: boolean
           collectible_id?: number | null
           collection_id?: number | null
           created_at?: string | null
@@ -219,6 +224,7 @@ export type Database = {
           wallet_address: string
         }
         Update: {
+          airdrop_won?: boolean
           collectible_id?: number | null
           collection_id?: number | null
           created_at?: string | null
@@ -261,6 +267,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      collectible_type: "IRLS" | "STREETMINT" | "TEST_IRLS" | "TEST_STREETMINT"
       quantity_type: "limited" | "unlimited" | "single"
     }
     CompositeTypes: {

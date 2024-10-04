@@ -136,14 +136,13 @@ const EditionInformation = ({
           {/* Render MintButton only if minting has started */}
 
           <MintButton
-            // isIRLtapped={
-            //   process.env.NODE_ENV === "development"
-            //     ? true
-            //     : isIslandDAOCollection
-            //     ? true
-            //     : isIRLtapped
-            // }
-            isIRLtapped={true}
+            isIRLtapped={
+              process.env.NODE_ENV === "development"
+                ? true
+                : isIslandDAOCollection
+                ? true
+                : isIRLtapped
+            }
             artistWalletAddress={artistWalletAddress}
             collectible={{
               ...collectible,
@@ -158,11 +157,11 @@ const EditionInformation = ({
         <CardFooter>
           {isIRLSmint ? (
             <p className="text-sm text-gray-300">
-              Locate the IRLS Mint mint station, tap it with your phone to claim your digital collectible.
+              Locate the IRLS Mint station, tap it with your phone to claim your digital collectible.
             </p>
           ) : (
             <p className="text-sm text-gray-300">
-              Locate the Street Mint mint station, tap it with your phone to claim your digital collectible.
+              Locate the Street Mint station, tap it with your phone to claim your digital collectible.
             </p>
           )}
         </CardFooter>
