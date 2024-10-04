@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 export async function generateDeviceId(): Promise<string> {
@@ -12,6 +11,7 @@ export async function generateDeviceId(): Promise<string> {
         const result = await fp.get();
         // Combine fingerprint with a UUID for added uniqueness
         deviceId = `${result.visitorId}`;
+        console.log("Device ID in fingerprint.ts:", deviceId);
 
         // Store the new device ID
         localStorage.setItem('deviceId', deviceId);

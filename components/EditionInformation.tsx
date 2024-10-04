@@ -41,28 +41,29 @@ const EditionInformation = ({
 
   useEffect(() => {
     const updateMintingStatus = () => {
-      const now = new Date();
+      const now = Date.now();
+
       if (!collectible.mint_start_date || !collectible.mint_end_date) {
         setMintingStatus("ongoing");
         return;
       }
-      const startDate = new Date(collectible.mint_start_date);
-      const endDate = new Date(collectible.mint_end_date);
+      // Convert mint start and end dates to UTC
+      const startDateUTC = new Date(collectible.mint_start_date).getTime();
+      const endDateUTC = new Date(collectible.mint_end_date).getTime();
 
-      if (now < startDate) {
+      if (now < startDateUTC) {
         setMintingStatus("not-started");
-        const timeToStart = startDate.getTime() - now.getTime();
+        const timeToStart = startDateUTC - now;
         setTimeLeft(TimeService.formatTimeLeft(timeToStart));
-      } else if (now >= startDate && now <= endDate) {
+      } else if (now >= startDateUTC && now <= endDateUTC) {
         setMintingStatus("ongoing");
-        const timeToEnd = endDate.getTime() - now.getTime();
+        const timeToEnd = endDateUTC - now;
         setTimeLeft(TimeService.formatTimeLeft(timeToEnd));
       } else {
         setMintingStatus("ended");
         setTimeLeft("");
       }
     };
-
     updateMintingStatus();
     const interval = setInterval(updateMintingStatus, 1000);
 

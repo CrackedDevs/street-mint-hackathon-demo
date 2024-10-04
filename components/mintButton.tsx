@@ -25,10 +25,10 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckIcon,
-  Coins,
   CopyIcon,
   ExternalLink,
   HeartIcon,
+  ImageIcon,
   Unplug,
   Wallet,
 } from "lucide-react";
@@ -37,6 +37,7 @@ import Artist from "@/app/assets/artist.png";
 import LocationButton from "./LocationButton";
 import { SolanaFMService } from "@/lib/services/solanaExplorerService";
 import Link from "next/link";
+import { GoogleViaTipLinkWalletName } from "@tiplink/wallet-adapter";
 import { useVisitorData } from "@fingerprintjs/fingerprintjs-pro-react";
 import { v4 as uuidv4 } from "uuid";
 import { shortenAddress } from "@/lib/shortenAddress";
@@ -203,6 +204,12 @@ export default function MintButton({
     isFreeMint,
   ]);
 
+  useEffect(() => {
+    if (connected && publicKey) {
+      setWalletAddress(publicKey.toString());
+    }
+  }, [connected]);
+
   const handlePaymentAndMint = async () => {
     const addressToUse = isFreeMint ? walletAddress : publicKey?.toString();
     if (!addressToUse || !isEligible) {
@@ -309,12 +316,6 @@ export default function MintButton({
         if (isAirdropEligible) {
           setShowAirdropModal(true);
           updateOrderAirdropStatus(orderId, true);
-          console.log(
-            "Order airdrop status updated to true won by user ",
-            walletAddress,
-            " for order id ",
-            orderId
-          );
         }
         //TODO: UNCOMMENT THIS AFTER 20 SEPTEMBER 2024
         //setShowDonationModal(true);
@@ -416,7 +417,6 @@ export default function MintButton({
       return <div></div>;
     }
   }
-
   const handleConnect = () => {
     const button = document.querySelector(
       ".wallet-adapter-button"
@@ -635,14 +635,41 @@ export default function MintButton({
         <div className="flex flex-col items-center justify-center w-full">
           <div className="flex flex-col items-center justify-center w-full">
             {isFreeMint ? (
-              <div className="w-full flex mt-2 flex-col items-center justify-center">
+              <div className="w-full flex mt-2 gap-4 flex-col items-center justify-center">
                 <Input
                   type="text"
                   placeholder="Enter your Solana address or .SOL"
                   value={walletAddress}
                   onChange={(e) => setWalletAddress(e.target.value)}
-                  className="w-full h-12 mb-4 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
+                  className="w-full h-12 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
                 />
+                <span>OR</span>
+                <div className="w-full">
+                  {!connected ? (
+                    <button
+                      onClick={() => {
+                        select(GoogleViaTipLinkWalletName);
+                      }}
+                      className="w-full h-10 bg-white  text-black font-bold py-2 px-4 rounded transition duration-300 ease-in-out flex items-center justify-center"
+                    >
+                      <Wallet className="mr-2 h-5 w-5" />
+                      Connect with Google
+                    </button>
+                  ) : (
+                    <button
+                      onClick={async () => {
+                        await disconnect();
+                        setWalletAddress("");
+                        setError(null);
+                        console.log("Change wallet clicked");
+                      }}
+                      className="w-full h-10 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition duration-300 ease-in-out flex items-center justify-center"
+                    >
+                      <Unplug className="mr-2 h-5 w-5" />
+                      Change Wallet
+                    </button>
+                  )}
+                </div>
                 {existingOrder?.status !== "completed" &&
                   walletAddress &&
                   renderMintButton()}
