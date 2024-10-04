@@ -1,5 +1,11 @@
 "use client";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collectible, Collection, QuantityType } from "@/lib/supabaseClient";
 import MintButton from "@/components/mintButton";
@@ -28,33 +34,36 @@ const EditionInformation = ({
   isIRLtapped: boolean;
   isIRLSmint?: boolean;
 }) => {
-  const [mintingStatus, setMintingStatus] = useState<"not-started" | "ongoing" | "ended">("not-started");
+  const [mintingStatus, setMintingStatus] = useState<
+    "not-started" | "ongoing" | "ended"
+  >("not-started");
   const [timeLeft, setTimeLeft] = useState<string>("");
 
   useEffect(() => {
     const updateMintingStatus = () => {
-      const now = new Date();
+      const now = Date.now();
+
       if (!collectible.mint_start_date || !collectible.mint_end_date) {
         setMintingStatus("ongoing");
         return;
       }
-      const startDate = new Date(collectible.mint_start_date);
-      const endDate = new Date(collectible.mint_end_date);
+      // Convert mint start and end dates to UTC
+      const startDateUTC = new Date(collectible.mint_start_date).getTime();
+      const endDateUTC = new Date(collectible.mint_end_date).getTime();
 
-      if (now < startDate) {
+      if (now < startDateUTC) {
         setMintingStatus("not-started");
-        const timeToStart = startDate.getTime() - now.getTime();
+        const timeToStart = startDateUTC - now;
         setTimeLeft(TimeService.formatTimeLeft(timeToStart));
-      } else if (now >= startDate && now <= endDate) {
+      } else if (now >= startDateUTC && now <= endDateUTC) {
         setMintingStatus("ongoing");
-        const timeToEnd = endDate.getTime() - now.getTime();
+        const timeToEnd = endDateUTC - now;
         setTimeLeft(TimeService.formatTimeLeft(timeToEnd));
       } else {
         setMintingStatus("ended");
         setTimeLeft("");
       }
     };
-
     updateMintingStatus();
     const interval = setInterval(updateMintingStatus, 1000);
 
@@ -69,15 +78,21 @@ const EditionInformation = ({
         <CardHeader className="space-y-3 flex justify-between">
           <div className="flex justify-between items-center w-full">
             <div className="flex justify-between items-center">
-              <Badge variant="secondary" className="text-black text-md md:text-lg">
-                {EditionService.getEditionTypeText(collectible.quantity_type as QuantityType)}
+              <Badge
+                variant="secondary"
+                className="text-black text-md md:text-lg"
+              >
+                {EditionService.getEditionTypeText(
+                  collectible.quantity_type as QuantityType
+                )}
               </Badge>
               <span className="md:text-2xl text-md ml-2 font-bold">
-                {collectible.quantity_type === QuantityType.Limited && remainingQuantity !== null && (
-                  <span>
-                    {remainingQuantity} of {collectible.quantity}
-                  </span>
-                )}
+                {collectible.quantity_type === QuantityType.Limited &&
+                  remainingQuantity !== null && (
+                    <span>
+                      {remainingQuantity} of {collectible.quantity}
+                    </span>
+                  )}
               </span>
             </div>
             <div
@@ -90,7 +105,9 @@ const EditionInformation = ({
               </AnimatedShinyText>
             </div>
           </div>
-          <CardTitle className="text-3xl font-extrabold">{collectible.name}</CardTitle>
+          <CardTitle className="text-3xl font-extrabold">
+            {collectible.name}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 gap-10">
           <div className="flex justify-between gap-10 flex-col items-baseline">
@@ -98,11 +115,21 @@ const EditionInformation = ({
               <SparklesText
                 className="text-5xl font-bold"
                 sparklesCount={5}
-                text={`${collectible.price_usd === 0 ? "Free Mint" : `$${collectible.price_usd.toFixed(2)}`}`}
+                text={`${
+                  collectible.price_usd === 0
+                    ? "Free Mint"
+                    : `$${collectible.price_usd.toFixed(2)}`
+                }`}
               />
             </div>
             <div className="flex  flex-row w-full justify-between">
-              <div>{soldCount > 0 && <span className="text-white text-lg">Minted: {soldCount}</span>}</div>
+              <div>
+                {soldCount > 0 && (
+                  <span className="text-white text-lg">
+                    Minted: {soldCount}
+                  </span>
+                )}
+              </div>
               <Badge variant="secondary" className="text-black text-sm">
                 EXCLUSIVE IRL MINT <Earth className="ml-2" />
               </Badge>
@@ -128,7 +155,9 @@ const EditionInformation = ({
             )}
             {timeLeft && (
               <div className="text-lg font-semibold">
-                {mintingStatus === "not-started" ? `Starts in: ${timeLeft}` : `${timeLeft} left`}
+                {mintingStatus === "not-started"
+                  ? `Starts in: ${timeLeft}`
+                  : `${timeLeft} left`}
               </div>
             )}
           </div>
@@ -157,11 +186,13 @@ const EditionInformation = ({
         <CardFooter>
           {isIRLSmint ? (
             <p className="text-sm text-gray-300">
-              Locate the IRLS Mint station, tap it with your phone to claim your digital collectible.
+              Locate the IRLS Mint station, tap it with your phone to claim your
+              digital collectible.
             </p>
           ) : (
             <p className="text-sm text-gray-300">
-              Locate the Street Mint station, tap it with your phone to claim your digital collectible.
+              Locate the Street Mint station, tap it with your phone to claim
+              your digital collectible.
             </p>
           )}
         </CardFooter>

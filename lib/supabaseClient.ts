@@ -514,13 +514,18 @@ export async function checkMintEligibility(walletAddress: string, collectibleId:
         }
 
         //CHECK FOR MINT START AND END DATE
-        const now = new Date();
-        if (collectible.mint_start_date && now < new Date(collectible.mint_start_date)) {
+        const mintStartDateUTC = collectible.mint_start_date ? new Date(collectible.mint_start_date).getTime() : null;
+        const mintEndDateUTC = collectible.mint_end_date ? new Date(collectible.mint_end_date).getTime() : null;
+
+        const nowUTC = Date.now();
+
+        // Check if minting has started
+        if (mintStartDateUTC && nowUTC < mintStartDateUTC) {
             return { eligible: false, reason: 'Minting not started yet.' };
         }
 
         // Check if the minting period has ended
-        if (collectible.mint_end_date && now > new Date(collectible.mint_end_date)) {
+        if (mintEndDateUTC && nowUTC > mintEndDateUTC) {
             return { eligible: false, reason: 'Minting period has ended.' };
         }
 
