@@ -43,6 +43,7 @@
     "@solana/web3.js": "^1.95.3",
     "@supabase/supabase-js": "^2.45.3",
     "@tanstack/react-table": "^8.20.5",
+    "@tiplink/api": "^0.2.7",
     "@tiplink/wallet-adapter": "^2.1.21",
     "@tiplink/wallet-adapter-react-ui": "^1.0.0",
     "@types/canvas-confetti": "^1.6.4",
@@ -58,6 +59,7 @@
     "framer-motion": "^11.3.31",
     "lucide-react": "^0.438.0",
     "next": "14.2.7",
+    "nodemailer": "^6.9.15",
     "pinata-web3": "^0.5.0",
     "pino-pretty": "^11.2.2",
     "react": "^18",
@@ -70,6 +72,7 @@
   "devDependencies": {
     "@types/elliptic": "^6.4.18",
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.16",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8.41.0",

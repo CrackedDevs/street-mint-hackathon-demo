@@ -27,7 +27,7 @@ export default function AppWalletProvider({
     return [
       new TipLinkWalletAdapter({
         title: "Streetmint",
-        clientId: "d708571b-1fae-4a01-a9a0-08c71ef4e122",
+        clientId: process.env.TIPLINK_CLIENT_ID as string,
         theme: "dark", // pick between "dark"/"light"/"system"
       }),
       new PhantomWalletAdapter(),

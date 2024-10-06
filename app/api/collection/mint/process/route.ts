@@ -94,8 +94,10 @@ const waitForTransactionConfirmation = async (
 };
 
 export async function POST(req: Request, res: NextApiResponse) {
-  const { orderId, signedTransaction, priceInSol } = await req.json();
-
+  const { orderId, signedTransaction, priceInSol, tipLinkWalletAddress, isEmail } = await req.json();
+  //log all
+  console.log("tipLinkWalletAddress", tipLinkWalletAddress);
+  console.log("isEmail", isEmail);
   if (!orderId) {
     return NextResponse.json(
       { success: false, error: "Transaction not found" },
@@ -207,7 +209,7 @@ export async function POST(req: Request, res: NextApiResponse) {
     const mintResult = await mintNFTWithBubbleGumTree(
       merkleTreePublicKey,
       collectionMintPublicKey,
-      resolvedWalletAddress,
+      isEmail && tipLinkWalletAddress ? tipLinkWalletAddress : resolvedWalletAddress,
       order.collectibles.name,
       order.collectibles.metadata_uri
     );
@@ -224,7 +226,7 @@ export async function POST(req: Request, res: NextApiResponse) {
         status: "completed",
         mint_signature: mintResult.signature,
         mint_address: mintResult.tokenAddress,
-        wallet_address: resolvedWalletAddress,
+        wallet_address: isEmail && tipLinkWalletAddress ? tipLinkWalletAddress : resolvedWalletAddress,
       })
       .eq("id", orderId);
 

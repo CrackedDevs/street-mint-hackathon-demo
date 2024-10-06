@@ -200,6 +200,7 @@ export type Database = {
           price_usd: number | null
           quantity: number | null
           status: string | null
+          tiplink_url: string | null
           transaction_signature: string | null
           updated_at: string | null
           wallet_address: string
@@ -219,6 +220,7 @@ export type Database = {
           price_usd?: number | null
           quantity?: number | null
           status?: string | null
+          tiplink_url?: string | null
           transaction_signature?: string | null
           updated_at?: string | null
           wallet_address: string
@@ -238,6 +240,7 @@ export type Database = {
           price_usd?: number | null
           quantity?: number | null
           status?: string | null
+          tiplink_url?: string | null
           transaction_signature?: string | null
           updated_at?: string | null
           wallet_address?: string
