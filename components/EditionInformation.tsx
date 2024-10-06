@@ -70,8 +70,6 @@ const EditionInformation = ({
     return () => clearInterval(interval);
   }, [collectible.mint_start_date, collectible.mint_end_date]);
 
-  const isIslandDAOCollection = collection.id === 5279184362;
-
   return (
     <div>
       <Card className="bg-black mx-auto text-white my-2">
@@ -166,11 +164,7 @@ const EditionInformation = ({
 
           <MintButton
             isIRLtapped={
-              process.env.NODE_ENV === "development"
-                ? true
-                : isIslandDAOCollection
-                ? true
-                : isIRLtapped
+              process.env.NODE_ENV === "development" ? true : isIRLtapped
             }
             artistWalletAddress={artistWalletAddress}
             collectible={{
