@@ -21,37 +21,37 @@ export default function ImageGallery({ images }: { images: string[] }) {
       <div className="relative aspect-square">
         <Image
           src={images[currentImage]}
-          alt={`Gallery image ${0 + 1}`}
+          alt={`Gallery image ${currentImage + 1}`}
           layout="fill"
           objectFit="cover"
           className="rounded-lg"
         />
-        <button
-          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md"
-          onClick={() => {
-            prevImage();
-          }}
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <button
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md"
-          onClick={() => {
-            nextImage();
-          }}
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
-          {images.map((_: any, index: number) => (
-            <div
-              key={index}
-              className={`h-2 w-2 rounded-full ${
-                0 === index ? "bg-white" : "bg-gray-300"
-              }`}
-            />
-          ))}
-        </div>
+        {images.length > 1 && (
+          <>
+            <button
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md"
+              onClick={prevImage}
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-md"
+              onClick={nextImage}
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
+              {images.map((_, index) => (
+                <div
+                  key={index}
+                  className={`h-2 w-2 rounded-full ${
+                    currentImage === index ? "bg-white" : "bg-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

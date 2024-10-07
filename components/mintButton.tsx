@@ -4,7 +4,13 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useEffect, useState } from "react";
 import { toast } from "@/hooks/use-toast";
-import { PublicKey, SystemProgram, LAMPORTS_PER_SOL, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import {
+  PublicKey,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import WhiteBgShimmerButton from "./magicui/whiteBg-shimmer-button";
 import {
   checkMintEligibility,
@@ -42,13 +48,23 @@ export default function MintButton({
   isIRLtapped,
   mintStatus,
 }: MintButtonProps) {
-  const { connected, connect, publicKey, signTransaction, select, connecting, disconnect } = useWallet();
+  const {
+    connected,
+    connect,
+    publicKey,
+    signTransaction,
+    select,
+    connecting,
+    disconnect,
+  } = useWallet();
   const [isMinting, setIsMinting] = useState(false);
   const { connection } = useConnection();
   const [isEligible, setIsEligible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [transactionSignature, setTransactionSignature] = useState<string | null>(null);
+  const [transactionSignature, setTransactionSignature] = useState<
+    string | null
+  >(null);
   const [tokenAddress, setTokenAddress] = useState<string | null>(null);
   const [deviceId, setDeviceId] = useState("");
   const [existingOrder, setExistingOrder] = useState<any | null>(null);
@@ -59,7 +75,10 @@ export default function MintButton({
   const [isAirdropEligible, setIsAirdropEligible] = useState(false);
   const [tipLinkUrl, setTipLinkUrl] = useState<string | null>(null);
 
-  const { getData } = useVisitorData({ extendedResult: true }, { immediate: true });
+  const { getData } = useVisitorData(
+    { extendedResult: true },
+    { immediate: true }
+  );
 
   const TriggerConfetti = (): void => {
     const end = Date.now() + 3 * 1000; // 3 seconds
@@ -130,7 +149,11 @@ export default function MintButton({
           eligible,
           reason,
           isAirdropEligible: airdropEligible,
-        } = await checkMintEligibility(addressToCheck, collectible.id, deviceId);
+        } = await checkMintEligibility(
+          addressToCheck,
+          collectible.id,
+          deviceId
+        );
         setIsEligible(eligible);
         setIsAirdropEligible(airdropEligible || false);
         setIsLoading(false);
@@ -160,13 +183,28 @@ export default function MintButton({
 
   useEffect(() => {
     checkEligibilityAndExistingOrder();
-  }, [connected, publicKey, walletAddress, deviceId, collectible.id, isFreeMint]);
+  }, [
+    connected,
+    publicKey,
+    walletAddress,
+    deviceId,
+    collectible.id,
+    isFreeMint,
+  ]);
 
   useEffect(() => {
     if (connected && publicKey) {
       setWalletAddress(publicKey.toString());
     }
   }, [connected]);
+
+  useEffect(() => {
+    //Auto fill the wallet address if the user has previously minted
+    const lastMintInput = localStorage.getItem("lastMintInput");
+    if (lastMintInput) {
+      setWalletAddress(lastMintInput || "");
+    }
+  }, []);
 
   const handlePaymentAndMint = async () => {
     const addressToUse = isFreeMint ? walletAddress : publicKey?.toString();
@@ -199,11 +237,14 @@ export default function MintButton({
         throw new Error(errorData.error || "Failed to initiate minting");
       }
       let priceInSol = 0;
-      const { orderId, isFree, tipLinkWalletAddress, tipLinkUrl } = await initResponse.json();
+      const { orderId, isFree, tipLinkWalletAddress, tipLinkUrl } =
+        await initResponse.json();
       setTipLinkUrl(tipLinkUrl);
       if (!isFree && publicKey) {
         // Step 2: Create payment transaction (only for paid mints)
-        const solPrice = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
+        const solPrice = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+        );
         const solPriceData = await solPrice.json();
 
         if (solPriceData && !solPriceData.solana) {
@@ -220,7 +261,8 @@ export default function MintButton({
           }),
         ];
 
-        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+        const { blockhash, lastValidBlockHeight } =
+          await connection.getLatestBlockhash();
         const messageV0 = new TransactionMessage({
           payerKey: publicKey,
           recentBlockhash: blockhash,
@@ -241,7 +283,9 @@ export default function MintButton({
         let signedTx;
         // Serialize the signed transaction
         signedTx = await signTransaction(transaction);
-        signedTransaction = Buffer.from(signedTx.serialize()).toString("base64");
+        signedTransaction = Buffer.from(signedTx.serialize()).toString(
+          "base64"
+        );
       }
 
       const processResponse = await fetch("/api/collection/mint/process", {
@@ -253,6 +297,7 @@ export default function MintButton({
           signedTransaction,
           priceInSol,
           isEmail,
+          nftImageUrl: collectible.primary_image_url,
         }),
       });
 
@@ -261,20 +306,25 @@ export default function MintButton({
         throw new Error(errorData.error || "Failed to process minting");
       }
 
-      const { success, tokenAddress, mintSignature } = await processResponse.json();
+      const { success, tokenAddress, mintSignature } =
+        await processResponse.json();
       if (success) {
         setTransactionSignature(mintSignature);
         setTokenAddress(tokenAddress);
         TriggerConfetti();
         setExistingOrder({ id: orderId, status: "completed" });
         toast({
-          title: "✅ NFT Minted Successfully",
+          title: isEmail
+            ? "💌 Please check your inbox, your Collectible awaits you!"
+            : "✅ Collectible Minted Successfully",
         });
         setIsEligible(false);
         if (isAirdropEligible) {
           setShowAirdropModal(true);
           updateOrderAirdropStatus(orderId, true);
         }
+        localStorage.setItem("lastMintInput", addressToUse);
+        setWalletAddress("");
         //TODO: UNCOMMENT THIS AFTER 20 SEPTEMBER 2024
         //setShowDonationModal(true);
         //TODO: UNCOMMENT THIS AFTER 20 SEPTEMBER 2024
@@ -285,7 +335,9 @@ export default function MintButton({
       console.error("Error minting NFT:", error);
       toast({
         title: "Something went wrong while minting your collectible ",
-        description: error.message || "An unexpected error occurred. Please try again later.",
+        description:
+          error.message ||
+          "An unexpected error occurred. Please try again later.",
         variant: "destructive",
       });
       setError("An unexpected error occurred");
@@ -352,19 +404,13 @@ export default function MintButton({
     return "LOADING...";
   };
 
-  const sendTipLinkUrl = async () => {
-    const response = await fetch("/api/mailer/sendTiplinkUrl", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "lovlyraghav1@gmail.com", tiplinkUrl: "linkkkk" }),
-    });
-  };
-
   if (!isIRLtapped) {
     if (collectible.location)
       return (
         <div className="flex flex-col gap-4 w-full justify-center items-center">
-          <span className="text-sm text-gray-400 mb-2">{collectible.location_note}</span>
+          <span className="text-sm text-gray-400 mb-2">
+            {collectible.location_note}
+          </span>
           <LocationButton location={collectible.location} />
         </div>
       );
@@ -373,7 +419,9 @@ export default function MintButton({
     }
   }
   const handleConnect = () => {
-    const button = document.querySelector(".wallet-adapter-button") as HTMLElement;
+    const button = document.querySelector(
+      ".wallet-adapter-button"
+    ) as HTMLElement;
     if (button) {
       button.click();
     }
@@ -383,7 +431,9 @@ export default function MintButton({
     <button
       onClick={connected ? disconnect : () => handleConnect()}
       className={`w-full h-10 ${
-        connected ? "bg-gray-200 hover:bg-gray-300 text-gray-800" : "bg-white text-black"
+        connected
+          ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+          : "bg-white text-black"
       } font-bold py-2 px-4 rounded transition duration-300 ease-in-out flex items-center justify-center`}
     >
       {connected ? (
@@ -405,16 +455,25 @@ export default function MintButton({
       borderRadius="6px"
       className="w-full my-4 text-black hover:bg-gray-800 h-[40px] rounded font-bold"
       onClick={handleMintClick}
-      disabled={isMinting || !isEligible || existingOrder?.status === "completed" || isLoading}
+      disabled={
+        isMinting ||
+        !isEligible ||
+        existingOrder?.status === "completed" ||
+        isLoading
+      }
     >
       {getButtonText()}
     </WhiteBgShimmerButton>
   );
 
   const renderCompletedMint = () => (
-    <div className="flex flex-col items-center space-y-2 mt-4 w-full">
+    <div className="flex flex-col items-center my-3 w-full">
       <Link
-        href={SolanaFMService.getAddress(tokenAddress || existingOrder.mint_address)}
+        href={
+          tipLinkUrl ||
+          existingOrder.tiplink_url ||
+          SolanaFMService.getAddress(tokenAddress || existingOrder.mint_address)
+        }
         target="_blank"
         className="w-full"
       >
@@ -425,7 +484,12 @@ export default function MintButton({
           VIEW COLLECTIBLE
         </WhiteBgShimmerButton>
       </Link>
-      <Link href={SolanaFMService.getTransaction(transactionSignature || existingOrder.mint_signature)} target="_blank">
+      <Link
+        href={SolanaFMService.getTransaction(
+          transactionSignature || existingOrder.mint_signature
+        )}
+        target="_blank"
+      >
         <button className="text-sm text-white transition-colors flex items-center">
           <ExternalLink className="w-4 h-4 mr-1" />
           View Transaction
@@ -436,15 +500,19 @@ export default function MintButton({
 
   return (
     <div className="flex flex-col w-full justify-center items-center">
-      <button onClick={sendTipLinkUrl}>Send Tip Link Url</button>
       <ShowDonationModal
         showDonationModal={showDonationModal}
         setShowDonationModal={setShowDonationModal}
         artistWalletAddress={artistWalletAddress}
       />
-      <ShowAirdropModal showAirdropModal={showAirdropModal} setShowAirdropModal={setShowAirdropModal} />
+      <ShowAirdropModal
+        showAirdropModal={showAirdropModal}
+        setShowAirdropModal={setShowAirdropModal}
+      />
 
-      {((transactionSignature && tokenAddress) || existingOrder?.status === "completed") && renderCompletedMint()}
+      {((transactionSignature && tokenAddress) ||
+        existingOrder?.status === "completed") &&
+        renderCompletedMint()}
       {mintStatus === "ongoing" && (
         <div className="flex flex-col items-center justify-center w-full">
           <div className="flex flex-col items-center justify-center w-full">
@@ -452,39 +520,14 @@ export default function MintButton({
               <div className="w-full flex mt-2 gap-4 flex-col items-center justify-center">
                 <Input
                   type="text"
-                  placeholder="Enter your Solana address or .SOL"
+                  placeholder="Enter your Wallet address or .SOL or email"
                   value={walletAddress}
                   onChange={(e) => setWalletAddress(e.target.value)}
                   className="w-full h-12 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
                 />
-                <span>OR</span>
-                <div className="w-full">
-                  {!connected ? (
-                    <button
-                      onClick={() => {
-                        select(GoogleViaTipLinkWalletName);
-                      }}
-                      className="w-full h-10 bg-white  text-black font-bold py-2 px-4 rounded transition duration-300 ease-in-out flex items-center justify-center"
-                    >
-                      <Wallet className="mr-2 h-5 w-5" />
-                      Connect with Google
-                    </button>
-                  ) : (
-                    <button
-                      onClick={async () => {
-                        await disconnect();
-                        setWalletAddress("");
-                        setError(null);
-                        console.log("Change wallet clicked");
-                      }}
-                      className="w-full h-10 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition duration-300 ease-in-out flex items-center justify-center"
-                    >
-                      <Unplug className="mr-2 h-5 w-5" />
-                      Change Wallet
-                    </button>
-                  )}
-                </div>
-                {existingOrder?.status !== "completed" && walletAddress && renderMintButton()}
+                {existingOrder?.status !== "completed" &&
+                  walletAddress &&
+                  renderMintButton()}
               </div>
             ) : (
               <div className="w-full mt-4 flex flex-col items-center justify-center">
@@ -492,8 +535,9 @@ export default function MintButton({
                 <div className="hidden">
                   <WalletMultiButton />
                 </div>
-
-                {existingOrder?.status !== "completed" && walletAddress && renderMintButton()}
+                {existingOrder?.status !== "completed" &&
+                  walletAddress &&
+                  renderMintButton()}
               </div>
             )}
           </div>

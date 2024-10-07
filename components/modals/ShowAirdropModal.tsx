@@ -44,11 +44,16 @@ const ShowAirdropModal = ({
             </div>
           </motion.div>
 
-          <DialogTitle className="text-3xl font-bold mb-4 text-primary">Congratulations!</DialogTitle>
+          <DialogTitle className="text-3xl font-bold mb-4 text-primary">
+            Congratulations!
+          </DialogTitle>
 
-          <p className="text-lg mb-6">You&apos;ve won a $BONK airdrop worth $10! 🎉</p>
+          <p className="text-lg mb-6">
+            You&apos;ve won a $BONK airdrop worth $10! 🎉
+          </p>
           <p className="text-md mb-6">
-            We have recorded your wallet address and will airdrop the $BONK tokens at the end of the day.
+            We have recorded your wallet address and will airdrop the $BONK
+            tokens at the end of the day.
           </p>
 
           <Button

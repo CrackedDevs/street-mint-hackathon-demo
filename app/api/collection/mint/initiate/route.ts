@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdminClient";
 import { createTipLink } from "../../tiplink.helper";
 
-
 export async function POST(req: Request, res: NextApiResponse) {
   const { collectibleId, walletAddress, deviceId, collectionId } =
     await req.json();
@@ -103,7 +102,13 @@ export async function POST(req: Request, res: NextApiResponse) {
     }
 
     return NextResponse.json(
-      { success: true, orderId: order.id, isFree: order.price_usd === 0, tipLinkWalletAddress, tipLinkUrl },
+      {
+        success: true,
+        orderId: order.id,
+        isFree: order.price_usd === 0,
+        tipLinkWalletAddress,
+        tipLinkUrl,
+      },
       { status: 200 }
     );
   } catch (error) {

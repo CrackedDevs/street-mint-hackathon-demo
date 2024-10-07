@@ -65,16 +65,30 @@ const ShowDonationModal: React.FC<ShowDonationModalProps> = ({
                 </div>
               </motion.div>
 
-              <DialogTitle className="text-3xl font-bold mb-4 text-primary">Support the Creator</DialogTitle>
+              <DialogTitle className="text-3xl font-bold mb-4 text-primary">
+                Support the Creator
+              </DialogTitle>
 
-              <p className="text-lg mb-6">Dig this artwork? Give the artist some love and donate a little SOL</p>
+              <p className="text-lg mb-6">
+                Dig this artwork? Give the artist some love and donate a little
+                SOL
+              </p>
 
               <div className="bg-black text-white p-4 rounded-lg shadow-lg mb-6">
                 <h3 className="font-semibold mb-2">Creators Wallet Address</h3>
                 <div className="flex items-center justify-between bg-white text-black p-2 rounded">
                   <code className="text-sm">{artistWalletAddress}</code>
-                  <Button variant="ghost" size="sm" onClick={copyToClipboard} className="ml-2">
-                    {isCopied ? <CheckIcon className="h-4 w-4 text-green-500" /> : <CopyIcon className="h-4 w-4" />}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={copyToClipboard}
+                    className="ml-2"
+                  >
+                    {isCopied ? (
+                      <CheckIcon className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <CopyIcon className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
