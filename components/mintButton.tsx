@@ -32,6 +32,7 @@ import ShowAirdropModal from "./modals/ShowAirdropModal";
 import ShowDonationModal from "./modals/ShowDonationModal";
 import { ExternalLink, Unplug } from "lucide-react";
 import { Wallet } from "lucide-react";
+import CheckInboxModal from "./modals/ShowMailSentModal";
 
 interface MintButtonProps {
   collectible: Collectible;
@@ -74,6 +75,7 @@ export default function MintButton({
   const [showAirdropModal, setShowAirdropModal] = useState(false);
   const [isAirdropEligible, setIsAirdropEligible] = useState(false);
   const [tipLinkUrl, setTipLinkUrl] = useState<string | null>(null);
+  const [showMailSentModal, setShowMailSentModal] = useState(false);
 
   const { getData } = useVisitorData(
     { extendedResult: true },
@@ -318,6 +320,9 @@ export default function MintButton({
             ? "💌 Please check your inbox, your Collectible awaits you!"
             : "✅ Collectible Minted Successfully",
         });
+        if (isEmail) {
+          setShowMailSentModal(true);
+        }
         setIsEligible(false);
         if (isAirdropEligible) {
           setShowAirdropModal(true);
@@ -469,11 +474,9 @@ export default function MintButton({
   const renderCompletedMint = () => (
     <div className="flex flex-col items-center my-3 w-full">
       <Link
-        href={
-          tipLinkUrl ||
-          existingOrder.tiplink_url ||
-          SolanaFMService.getAddress(tokenAddress || existingOrder.mint_address)
-        }
+        href={SolanaFMService.getAddress(
+          tokenAddress || existingOrder.mint_address
+        )}
         target="_blank"
         className="w-full"
       >
@@ -508,6 +511,10 @@ export default function MintButton({
       <ShowAirdropModal
         showAirdropModal={showAirdropModal}
         setShowAirdropModal={setShowAirdropModal}
+      />
+      <CheckInboxModal
+        showModal={showMailSentModal}
+        setShowModal={setShowMailSentModal}
       />
 
       {((transactionSignature && tokenAddress) ||
