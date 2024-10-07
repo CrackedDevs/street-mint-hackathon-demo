@@ -64,6 +64,7 @@ function CreateCollectiblePage() {
     mint_start_date: "",
     mint_end_date: "",
     airdrop_eligibility_index: null,
+    whitelist: false,
   });
   const [primaryImageLocalFile, setPrimaryImageLocalFile] =
     useState<File | null>(null);

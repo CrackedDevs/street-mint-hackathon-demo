@@ -45,6 +45,7 @@ export type Collectible = {
     mint_start_date: string | null;
     mint_end_date: string | null;
     airdrop_eligibility_index: number | null;
+    whitelist: boolean;
 };
 
 interface Order {

@@ -46,6 +46,7 @@ function EditCollectiblePage() {
         setCollectible({
           ...fetchedCollectible,
           quantity_type: fetchedCollectible.quantity_type as QuantityType,
+          whitelist: fetchedCollectible.whitelist || false,
         });
       } else {
         toast({

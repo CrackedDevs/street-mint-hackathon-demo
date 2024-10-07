@@ -74,6 +74,7 @@ export type Database = {
           primary_image_url: string
           quantity: number | null
           quantity_type: Database["public"]["Enums"]["quantity_type"]
+          whitelist: boolean | null
         }
         Insert: {
           airdrop_eligibility_index?: number | null
@@ -94,6 +95,7 @@ export type Database = {
           primary_image_url: string
           quantity?: number | null
           quantity_type: Database["public"]["Enums"]["quantity_type"]
+          whitelist?: boolean | null
         }
         Update: {
           airdrop_eligibility_index?: number | null
@@ -114,6 +116,7 @@ export type Database = {
           primary_image_url?: string
           quantity?: number | null
           quantity_type?: Database["public"]["Enums"]["quantity_type"]
+          whitelist?: boolean | null
         }
         Relationships: [
           {

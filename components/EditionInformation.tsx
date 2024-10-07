@@ -70,6 +70,9 @@ const EditionInformation = ({
     return () => clearInterval(interval);
   }, [collectible.mint_start_date, collectible.mint_end_date]);
 
+  // Determine the effective isIRLtapped value
+  const effectiveIsIRLtapped = collectible.whitelist ? true : isIRLtapped;
+
   return (
     <div>
       <Card className="bg-black mx-auto text-white my-2">
@@ -164,7 +167,9 @@ const EditionInformation = ({
 
           <MintButton
             isIRLtapped={
-              process.env.NODE_ENV === "development" ? true : isIRLtapped
+              process.env.NODE_ENV === "development"
+                ? true
+                : effectiveIsIRLtapped
             }
             artistWalletAddress={artistWalletAddress}
             collectible={{
