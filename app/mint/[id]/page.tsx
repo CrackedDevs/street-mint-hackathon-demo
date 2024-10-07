@@ -160,6 +160,7 @@ export default async function NFTPage({
               collectible={{
                 ...collectible,
                 quantity_type: collectible.quantity_type as QuantityType,
+                whitelist: collectible.whitelist || false,
               }}
               remainingQuantity={remainingQuantity}
               artistWalletAddress={artist.wallet_address}

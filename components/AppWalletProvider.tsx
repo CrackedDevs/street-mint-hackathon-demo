@@ -10,7 +10,7 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
 import "@solana/wallet-adapter-react-ui/styles.css";
-import { TipLinkWalletAdapter } from "@tiplink/wallet-adapter";
+// import { TipLinkWalletAdapter } from "@tiplink/wallet-adapter";
 
 export default function AppWalletProvider({
   children,
@@ -25,11 +25,11 @@ export default function AppWalletProvider({
 
   const wallets = useMemo(() => {
     return [
-      new TipLinkWalletAdapter({
-        title: "Streetmint",
-        clientId: "d708571b-1fae-4a01-a9a0-08c71ef4e122",
-        theme: "dark", // pick between "dark"/"light"/"system"
-      }),
+      // new TipLinkWalletAdapter({
+      //   title: "Streetmint",
+      //   clientId: process.env.TIPLINK_CLIENT_ID as string,
+      //   theme: "dark", // pick between "dark"/"light"/"system"
+      // }),
       new PhantomWalletAdapter(),
     ];
   }, []);

@@ -14,6 +14,8 @@ import {
 } from "../../collection.helper";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdminClient";
+import TipLinkEmailTemplate from "@/components/email/tiplink-template";
+import { resend } from "@/lib/resendMailer";
 
 function verifyTransactionAmount(
   transaction: Transaction | VersionedTransaction,
@@ -94,8 +96,17 @@ const waitForTransactionConfirmation = async (
 };
 
 export async function POST(req: Request, res: NextApiResponse) {
-  const { orderId, signedTransaction, priceInSol } = await req.json();
-
+  const {
+    orderId,
+    signedTransaction,
+    priceInSol,
+    tipLinkWalletAddress,
+    isEmail,
+    nftImageUrl,
+  } = await req.json();
+  //log all
+  console.log("tipLinkWalletAddress", tipLinkWalletAddress);
+  console.log("isEmail", isEmail);
   if (!orderId) {
     return NextResponse.json(
       { success: false, error: "Transaction not found" },
@@ -207,7 +218,9 @@ export async function POST(req: Request, res: NextApiResponse) {
     const mintResult = await mintNFTWithBubbleGumTree(
       merkleTreePublicKey,
       collectionMintPublicKey,
-      resolvedWalletAddress,
+      isEmail && tipLinkWalletAddress
+        ? tipLinkWalletAddress
+        : resolvedWalletAddress,
       order.collectibles.name,
       order.collectibles.metadata_uri
     );
@@ -232,6 +245,34 @@ export async function POST(req: Request, res: NextApiResponse) {
       throw new Error("Failed to update order");
     }
 
+    if (isEmail && tipLinkWalletAddress) {
+      //send email
+      try {
+        const { wallet_address, tiplink_url } = order;
+        if (!wallet_address || !tiplink_url) {
+          console.log(
+            "Missing wallet_address or tiplink_url for email sending"
+          );
+          return;
+        }
+        const { data, error } = await resend.emails.send({
+          text: "Claim your Collectible!",
+          from: "Darly Kelly <darly@mail.irls.xyz>",
+          to: [wallet_address],
+          subject: "Claim your Collectible!",
+          react: TipLinkEmailTemplate({ tiplinkUrl: tiplink_url, nftImageUrl }),
+        });
+
+        if (error) {
+          console.log(error);
+          // return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+        }
+
+        console.log("Email sent successfully");
+      } catch (emailError) {
+        console.error("Error sending email:", emailError);
+      }
+    }
     return NextResponse.json(
       {
         success: true,

@@ -3,10 +3,13 @@ import { v4 as uuidv4 } from "uuid";
 import { checkMintEligibility, supabase } from "@/lib/supabaseClient";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdminClient";
+import { createTipLink } from "../../tiplink.helper";
 
 export async function POST(req: Request, res: NextApiResponse) {
   const { collectibleId, walletAddress, deviceId, collectionId } =
     await req.json();
+
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(walletAddress || "");
 
   if (!collectibleId || !walletAddress) {
     return NextResponse.json(
@@ -25,6 +28,18 @@ export async function POST(req: Request, res: NextApiResponse) {
 
     if (collectibleError || !collectible) {
       throw new Error("Failed to fetch collectible");
+    }
+
+    let tipLinkWalletAddress = null;
+    let tipLinkUrl = null;
+    if (isEmail) {
+      const tipLink = await createTipLink();
+      if (!tipLink) {
+        throw new Error("Failed to create tip link");
+      }
+      console.log("tipLink", tipLink);
+      tipLinkWalletAddress = tipLink.publicKey.toString();
+      tipLinkUrl = tipLink.url;
     }
 
     // Check eligibility
@@ -63,6 +78,7 @@ export async function POST(req: Request, res: NextApiResponse) {
           nft_type: collectible.quantity_type,
           max_supply: collectible.quantity || null, // Use null for unlimited supply
           device_id: deviceId,
+          tiplink_url: tipLinkUrl,
         })
         .select()
         .single();
@@ -86,7 +102,13 @@ export async function POST(req: Request, res: NextApiResponse) {
     }
 
     return NextResponse.json(
-      { success: true, orderId: order.id, isFree: order.price_usd === 0 },
+      {
+        success: true,
+        orderId: order.id,
+        isFree: order.price_usd === 0,
+        tipLinkWalletAddress,
+        tipLinkUrl,
+      },
       { status: 200 }
     );
   } catch (error) {
