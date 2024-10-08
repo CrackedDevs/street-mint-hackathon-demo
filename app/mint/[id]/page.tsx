@@ -6,6 +6,7 @@ import {
   QuantityType,
   verifyNfcSignature,
   getCompletedOrdersCount,
+  recordNfcTap,
 } from "@/lib/supabaseClient";
 import Gallery from "@/components/gallery";
 import { Toaster } from "@/components/ui/toaster";
@@ -60,6 +61,13 @@ async function getNFTData(id: string, rnd: string, sign: string) {
   }
   const soldCount = await getCompletedOrdersCount(collectible.id);
 
+  if (collectible.price_usd == 0) {
+    const recordSuccess = await recordNfcTap(rnd);
+    if (!recordSuccess) {
+      return;
+    }
+  }
+
   return {
     collectible,
     collection,
@@ -68,6 +76,7 @@ async function getNFTData(id: string, rnd: string, sign: string) {
     remainingQuantity,
     isIRLtapped,
     soldCount,
+    randomNumber: rnd,
   };
 }
 
@@ -103,6 +112,7 @@ export default async function NFTPage({
     remainingQuantity,
     soldCount,
     isIRLtapped,
+    randomNumber,
   } = data;
 
   return (
@@ -146,6 +156,7 @@ export default async function NFTPage({
             <ArtistInfoComponent artist={artist} />
             {/* Edition Information Section */}
             <EditionInformation
+              randomNumber={randomNumber}
               soldCount={soldCount}
               isIRLtapped={isIRLtapped}
               collection={{

@@ -17,6 +17,7 @@ import {
   Collectible,
   Collection,
   getExistingOrder,
+  recordNfcTap,
   updateOrderAirdropStatus,
 } from "@/lib/supabaseClient";
 import { Input } from "./ui/input";
@@ -40,6 +41,7 @@ interface MintButtonProps {
   artistWalletAddress: string;
   isIRLtapped: boolean;
   mintStatus: string;
+  randomNumber: string;
 }
 
 export default function MintButton({
@@ -48,6 +50,7 @@ export default function MintButton({
   artistWalletAddress,
   isIRLtapped,
   mintStatus,
+  randomNumber,
 }: MintButtonProps) {
   const {
     connected,
@@ -139,6 +142,12 @@ export default function MintButton({
   async function checkEligibilityAndExistingOrder() {
     if (connected) {
       setWalletAddress(publicKey?.toString() || "");
+      if (collectible.price_usd > 0) {
+        const recordSuccess = await recordNfcTap(randomNumber);
+        if (!recordSuccess) {
+          return;
+        }
+      }
     }
     const addressToCheck = isFreeMint ? walletAddress : publicKey?.toString();
     if (!deviceId) {

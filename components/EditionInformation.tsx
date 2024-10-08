@@ -25,6 +25,7 @@ const EditionInformation = ({
   soldCount,
   isIRLSmint,
   isIRLtapped,
+  randomNumber,
 }: {
   collection: Collection;
   collectible: Collectible;
@@ -33,6 +34,7 @@ const EditionInformation = ({
   soldCount: number;
   isIRLtapped: boolean;
   isIRLSmint?: boolean;
+  randomNumber: string;
 }) => {
   const [mintingStatus, setMintingStatus] = useState<
     "not-started" | "ongoing" | "ended"
@@ -166,6 +168,7 @@ const EditionInformation = ({
           {/* Render MintButton only if minting has started */}
 
           <MintButton
+            randomNumber={randomNumber}
             isIRLtapped={
               process.env.NODE_ENV === "development"
                 ? true

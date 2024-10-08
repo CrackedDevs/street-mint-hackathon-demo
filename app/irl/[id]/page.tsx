@@ -12,6 +12,7 @@ import {
   Artist,
   verifyNfcSignature,
   getCompletedOrdersCount,
+  recordNfcTap,
 } from "@/lib/supabaseClient";
 import Gallery from "@/components/gallery";
 import { Toaster } from "@/components/ui/toaster";
@@ -71,6 +72,13 @@ async function fetchNFTData(
 
     const soldCount = await getCompletedOrdersCount(collectible.id);
 
+    if (collectible.price_usd == 0) {
+      const recordSuccess = await recordNfcTap(rnd);
+      if (!recordSuccess) {
+        return;
+      }
+    }
+
     setNFTData({
       collectible,
       collection,
@@ -79,6 +87,7 @@ async function fetchNFTData(
       remainingQuantity,
       soldCount,
       isIRLtapped,
+      randomNumber: rnd,
     });
   } catch (error) {
     console.error("Failed to fetch NFT data", error);
@@ -100,6 +109,7 @@ export default function NFTPage({
     remainingQuantity: number | null;
     soldCount: number | 0;
     isIRLtapped: false;
+    randomNumber: string;
   }>();
 
   useEffect(() => {
@@ -172,6 +182,7 @@ export default function NFTPage({
               isIRLSmint={true}
               soldCount={nftData.soldCount}
               isIRLtapped={nftData.isIRLtapped}
+              randomNumber={nftData.randomNumber}
               collection={{
                 ...collection,
                 artist: collection.artist || 0,

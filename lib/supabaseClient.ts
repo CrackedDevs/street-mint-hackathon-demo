@@ -615,16 +615,26 @@ export async function verifyNfcSignature(rnd: string, sign: string, pubKey: stri
         return false;
     }
 
+    // const recordSuccess = await recordNfcTap(rnd);
+    // if (!recordSuccess) {
+    //     return false;
+    // }
+
+    return true;
+}
+
+export async function recordNfcTap(rnd: string): Promise<boolean> {
     const { error: insertError } = await supabase
         .from('nfc_taps')
         .insert({ random_number: rnd });
 
     if (insertError) {
         console.error('Error recording NFC tap:', insertError);
-        return false
+        return false;
     }
     return true;
 }
+
 
 export async function getCompletedOrdersCount(collectibleId: number): Promise<number> {
     const { count, error } = await supabase
