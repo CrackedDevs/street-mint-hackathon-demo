@@ -34,7 +34,7 @@ const EditionInformation = ({
   soldCount: number;
   isIRLtapped: boolean;
   isIRLSmint?: boolean;
-  randomNumber: string;
+  randomNumber: string | null;
 }) => {
   const [mintingStatus, setMintingStatus] = useState<
     "not-started" | "ongoing" | "ended"

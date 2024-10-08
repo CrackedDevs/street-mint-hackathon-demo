@@ -61,7 +61,7 @@ async function getNFTData(id: string, rnd: string, sign: string) {
   }
   const soldCount = await getCompletedOrdersCount(collectible.id);
 
-  if (collectible.price_usd == 0) {
+  if (collectible.price_usd == 0 && rnd && sign) {
     const recordSuccess = await recordNfcTap(rnd);
     if (!recordSuccess) {
       return;

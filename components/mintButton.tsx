@@ -41,7 +41,7 @@ interface MintButtonProps {
   artistWalletAddress: string;
   isIRLtapped: boolean;
   mintStatus: string;
-  randomNumber: string;
+  randomNumber: string | null;
 }
 
 export default function MintButton({
@@ -142,7 +142,7 @@ export default function MintButton({
   async function checkEligibilityAndExistingOrder() {
     if (connected) {
       setWalletAddress(publicKey?.toString() || "");
-      if (collectible.price_usd > 0) {
+      if (collectible.price_usd > 0 && randomNumber) {
         const recordSuccess = await recordNfcTap(randomNumber);
         if (!recordSuccess) {
           return;
