@@ -527,7 +527,7 @@ export default function MintButton({
               <div className="w-full flex mt-2 gap-4 flex-col items-center justify-center">
                 <Input
                   type="text"
-                  placeholder="Enter your Wallet address or .SOL or email"
+                  placeholder="Enter your Email, Wallet or .SOL address"
                   value={walletAddress}
                   onChange={(e) => setWalletAddress(e.target.value)}
                   className="w-full h-12 px-4 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out"
